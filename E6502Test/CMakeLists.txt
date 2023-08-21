@@ -36,7 +36,7 @@ add_dependencies( E6502Test E6502Lib)
 target_link_libraries(E6502Test E6502Lib)
 
 enable_testing()
-target_link_libraries( E6502Test GTest::gtest_main)
+target_link_libraries( E6502Test gmock GTest::gtest_main)
 include(GoogleTest)
 gtest_discover_tests(E6502Test)
 
