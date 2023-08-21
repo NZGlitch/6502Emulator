@@ -1,0 +1,20 @@
+﻿# CMakeList.txt : CMake project for 6502Emulator, include source and define
+# project specific logic here.
+#
+cmake_minimum_required (VERSION 3.8)
+
+project( E6502Lib)
+# Add source to this project's executable.
+#add_executable (6502Emulator "6502Emulator.cpp" "6502Emulator.h")
+
+# TODO: Add tests and install targets if needed.
+
+set (E6502LIB_SOURCES
+	"src/main.cpp"
+	"src/main.h")
+
+source_group("src" FILES ${E6502LIB_SOURCES})
+
+add_library( E6502Lib ${E6502LIB_SOURCES})
+
+target_include_directories ( E6502Lib PUBLIC "${PROJECT_SOURCE_DIR}/src")
