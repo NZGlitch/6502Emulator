@@ -31,13 +31,21 @@ set (E6502_SOURCES
 	"src/memory.cpp"
 	"src/instruction_manager.cpp"
 	"src/instruction_handler.cpp"
-	"src/cpu.cpp")
+	"src/cpu.cpp"
+
+	"src/instructions/abstract_instruction.cpp"	
+	"src/instructions/lda.cpp"	
+	)
+
 source_group("src" FILES ${E6502_SOURCES})
 
 
 add_executable( E6502Test ${E6502_SOURCES})
 add_dependencies( E6502Test E6502Lib)
+add_dependencies( E6502Test E6502Instruction)
+
 target_link_libraries(E6502Test E6502Lib)
+target_link_libraries(E6502Test E6502Instruction)
 
 enable_testing()
 target_link_libraries( E6502Test gmock GTest::gtest_main)

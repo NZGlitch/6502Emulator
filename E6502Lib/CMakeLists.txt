@@ -16,10 +16,20 @@ set (E6502LIB_SOURCES
 	"src/instruction_manager.h"
 	"src/instruction_manager.cpp"
 	"src/cpu.h"
-	"src/cpu.cpp")
+	"src/cpu.cpp"
+	)
+
+set (E6502LIB_INSTRUCTIONS
+	"src/instructions/abstract_instruction.h"
+	"src/instructions/lda.h"
+	"src/instructions/lda.cpp"
+)
 
 source_group("src" FILES ${E6502LIB_SOURCES})
+source_group("instructions" FILES ${E6502LIB_INSTRUCTIONS})
 
 add_library( E6502Lib ${E6502LIB_SOURCES})
+add_library( E6502Instruction ${E6502LIB_INSTRUCTIONS})
 
 target_include_directories ( E6502Lib PUBLIC "${PROJECT_SOURCE_DIR}/src")
+target_include_directories ( E6502Instruction PUBLIC "${PROJECT_SOURCE_DIR}/src/instructions")
