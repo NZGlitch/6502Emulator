@@ -50,3 +50,73 @@ TEST_F(TestLDAInstruction, TestLDAImmediateHandlerProps) {
 	EXPECT_TRUE(handler.isLegal);
 	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [Immediate]");
 }
+
+TEST_F(TestLDAInstruction, TestLDAZeroPageHandlerProps) {
+	// Given:
+	const LDA::LDA_ZP handler;
+
+	// Then
+	EXPECT_EQ(handler.opcode, INS_LDA_ZP);
+	EXPECT_TRUE(handler.isLegal);
+	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [ZeroPage]");
+}
+
+TEST_F(TestLDAInstruction, TestLDAZeroPageXHandlerProps) {
+	// Given:
+	const LDA::LDA_ZPX handler;
+
+	// Then
+	EXPECT_EQ(handler.opcode, INS_LDA_ZPX);
+	EXPECT_TRUE(handler.isLegal);
+	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [ZeroPage-X]");
+}
+
+TEST_F(TestLDAInstruction, TestLDAAbsolteHandlerProps) {
+	// Given:
+	const LDA::LDA_ABS handler;
+
+	// Then
+	EXPECT_EQ(handler.opcode, INS_LDA_ABS);
+	EXPECT_TRUE(handler.isLegal);
+	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [Absolute]");
+}
+
+TEST_F(TestLDAInstruction, TestLDAAbsoluteXHandlerProps) {
+	// Given:
+	const LDA::LDA_ABSX handler;
+
+	// Then
+	EXPECT_EQ(handler.opcode, INS_LDA_ABSX);
+	EXPECT_TRUE(handler.isLegal);
+	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [Absolute-X]");
+}
+
+TEST_F(TestLDAInstruction, TestLDAAbsoluteYHandlerProps) {
+	// Given:
+	const LDA::LDA_ABSY handler;
+
+	// Then
+	EXPECT_EQ(handler.opcode, INS_LDA_ABSY);
+	EXPECT_TRUE(handler.isLegal);
+	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [Absolute-Y]");
+}
+
+TEST_F(TestLDAInstruction, TestLDAIndirectXHandlerProps) {
+	// Given:
+	const LDA::LDA_INDX handler;
+
+	// Then
+	EXPECT_EQ(handler.opcode, INS_LDA_INDX);
+	EXPECT_TRUE(handler.isLegal);
+	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [Indirect-X]");
+}
+
+TEST_F(TestLDAInstruction, TestLDAIndirectYHandlerProps) {
+	// Given:
+	const LDA::LDA_INDY handler;
+
+	// Then
+	EXPECT_EQ(handler.opcode, INS_LDA_INDY);
+	EXPECT_TRUE(handler.isLegal);
+	EXPECT_STREQ(handler.name, "LDA - Load Accumulator [Indirect-Y]");
+}
