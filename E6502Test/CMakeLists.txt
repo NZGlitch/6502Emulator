@@ -27,7 +27,11 @@ FetchContent_MakeAvailable(googletest)
 
 set (E6502_SOURCES
 	"src/gtest_main.cpp"
-	"src/test_main.cpp")
+	"src/types.cpp"
+	"src/memory.cpp"
+	"src/instruction_manager.cpp"
+	"src/instruction_handler.cpp"
+	"src/cpu.cpp")
 source_group("src" FILES ${E6502_SOURCES})
 
 
@@ -36,7 +40,7 @@ add_dependencies( E6502Test E6502Lib)
 target_link_libraries(E6502Test E6502Lib)
 
 enable_testing()
-target_link_libraries( E6502Test GTest::gtest_main)
+target_link_libraries( E6502Test gmock GTest::gtest_main)
 include(GoogleTest)
 gtest_discover_tests(E6502Test)
 
