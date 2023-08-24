@@ -27,7 +27,11 @@ FetchContent_MakeAvailable(googletest)
 
 set (E6502_SOURCES
 	"src/gtest_main.cpp"
-	"src/test_main.cpp")
+	"src/types.cpp"
+	"src/memory.cpp"
+	"src/instruction_manager.cpp"
+	"src/instruction_handler.cpp"
+	"src/cpu.cpp")
 source_group("src" FILES ${E6502_SOURCES})
 
 

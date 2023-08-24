@@ -10,8 +10,13 @@ project( E6502Lib)
 # TODO: Add tests and install targets if needed.
 
 set (E6502LIB_SOURCES
-	"src/main.cpp"
-	"src/main.h")
+	"src/types.h"
+	"src/memory.h"
+	"src/instruction_handler.h"
+	"src/instruction_manager.h"
+	"src/instruction_manager.cpp"
+	"src/cpu.h"
+	"src/cpu.cpp")
 
 source_group("src" FILES ${E6502LIB_SOURCES})
 

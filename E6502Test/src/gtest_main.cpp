@@ -30,12 +30,12 @@ GTEST_API_ int main(int argc, char** argv) {
 
 #else
 
-#include "main.h"
+#include "cpu.h"
 int main() {
-	Mem mem;
-	CPU cpu;
-	cpu.reset(mem);
-	u8 cyclesExecuted = cpu.execute(1, mem);
+	Memory* mem = new Memory();
+	CPU* cpu = new CPU();
+	cpu->reset(mem);
+	u8 cyclesExecuted = cpu->execute(1, mem);
 	return 0;
 }
 
