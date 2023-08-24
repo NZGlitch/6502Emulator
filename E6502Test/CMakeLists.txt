@@ -33,8 +33,8 @@ set (E6502_SOURCES
 	"src/instruction_handler.cpp"
 	"src/cpu.cpp"
 
-	"src/instructions/abstract_instruction.cpp"	
-	"src/instructions/lda.cpp"	
+	"src/instructions/instruction_utils.cpp"
+	"src/instructions/lda.cpp"
 	)
 
 source_group("src" FILES ${E6502_SOURCES})

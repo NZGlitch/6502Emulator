@@ -8,7 +8,7 @@
 
 class CPU {
 private:
-	InstructionManager insManager;
+	InstructionManager* insManager;
 
 public:
 	// Internal Registers
@@ -27,10 +27,13 @@ public:
 	Byte O : 1;			// Overflow Flag			(6)
 	Byte N : 1;			// Negative Flag			(7)
 
+
+	/** Constructor */
+	CPU();
+
 	/* Resets the CPU state - Until this is called, CPU state is undefined */
 	void reset(Memory* memory);
 
-	
 	/* Helper method, allows setting all flags at once */
 	void setFlags(u8 flags);
 

@@ -20,9 +20,9 @@ set (E6502LIB_SOURCES
 	)
 
 set (E6502LIB_INSTRUCTIONS
-	"src/instructions/abstract_instruction.h"
+	"src/instructions/base.cpp"	
+	"src/instructions/instruction_utils.h"	
 	"src/instructions/lda.h"
-	"src/instructions/lda.cpp"
 )
 
 source_group("src" FILES ${E6502LIB_SOURCES})

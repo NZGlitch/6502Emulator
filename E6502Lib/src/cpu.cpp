@@ -8,6 +8,11 @@
 #include <stdlib.h>
 #include "cpu.h"
 
+/* Initialises CPU objects */
+CPU::CPU() {
+	insManager = new InstructionManager(&InstructionUtils::loader);
+}
+
 /* Resets the CPU state - Until this is called, CPU state is undefined */
 void CPU::reset(Memory* memory) {
 	D = 0;					// Clear decimal flag
@@ -46,7 +51,7 @@ u8 CPU::execute(u8 numInstructions, Memory* memory) {
 		cyclesUsed++;
 
 		//Get the handler for this instruction
-		const InstructionHandler* handler = insManager[instruction];
+		const InstructionHandler* handler = (*insManager)[instruction];
 		if (!handler->isLegal) {
 			printf("Executing illegal opcode 0x%02X\n", instruction);
 		}
