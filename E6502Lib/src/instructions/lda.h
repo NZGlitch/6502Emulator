@@ -81,7 +81,7 @@ namespace LDA {
 			}
 			default: {
 				//Shouldn't be here!
-				fprintf(stderr, "Attempting to use LDA instruction executor for non LDA instruction {:x}", opCode->code);
+				fprintf(stderr, "Attempting to use LDA instruction executor for non LDA instruction $%X\n", opCode->code);
 				// We won't change the state or use cycles
 				return (u8)0;
 		    }
