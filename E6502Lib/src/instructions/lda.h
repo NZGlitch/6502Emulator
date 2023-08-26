@@ -55,16 +55,6 @@ namespace LDA {
 				state->A = mem->readByte(cycles, state->incPC());
 				break;
 			}
-			case ABSOLUTE: {
-				// Read address from next two bytes (lsb first)
-				Byte lsb = mem->readByte(cycles, state->incPC());
-				Byte msb = mem->readByte(cycles, state->incPC());
-
-				// Calculate address and read memory into A
-				Word address = (msb << 8) | lsb;
-				state->A = mem->readByte(cycles, address);
-				break;
-			}
 			case INDIRECT_Y: {
 
 			}
@@ -80,23 +70,27 @@ namespace LDA {
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
+			// Absolute instructions have a lot of common code
+			case ABSOLUTE: 
+			case ABSOLUTE_X:
 			case ABSOLUTE_Y: {
-
-			}
-			case ABSOLUTE_X: {
 				// Read address from next two bytes (lsb first)
 				Byte lsb = mem->readByte(cycles, state->incPC());
 				Byte msb = mem->readByte(cycles, state->incPC());
+				Byte index = 0;
 
-				// Add X register to lsb
-				lsb += state->X;				// This does not seem to add a cycle?
+				// Get index
+				if (opCode->B == ABSOLUTE_X) index = state->X;
+				else if (opCode->B == ABSOLUTE_Y) index = state->Y;
 
-				// If the addition overflowed, need to increment msb (page boundry)
-				if (lsb < state->X) {
-					msb++; cycles++;			// Add operation takes a cycle
+				lsb += index;		//Doesn't seem to take a cycle?
+
+				//Check for page bouundry
+				if (lsb < index) {
+					msb++; cycles++;
 				}
 
-				// Calculate and read the value at address into A
+				// Calculate address and read memory into A
 				Word address = (msb << 8) | lsb;
 				state->A = mem->readByte(cycles, address);
 				break;

@@ -7,6 +7,9 @@ class TestLDAInstruction : public testing::Test {
 
 public:
 
+	const static bool ABS_IDX_X = true;;
+	const static bool ABS_IDX_Y = false;
+
 	CPUState* state;
 	Memory* memory;
 
@@ -27,6 +30,44 @@ public:
 		EXPECT_STREQ((*handler).name, name);
 		delete handler;
 	}
+
+
+	/** 
+	 * Helper method for all the abs mode tests
+	 * @param instruction		Instruction code to execude (From LDA::instructions)
+	 * @param lsb				least significant byte of base address
+	 * @param msb				most significant byre of base address
+	 * @param index				index to use
+	 * @param idx_mode			ABS_IDX_X if using X register, ABS_IDX_Y if using y register
+	 * @param expected_cycles	The number of cycles the execution should take
+	 * @param test_name			Name of the test (helps with debugging)
+	*/
+	void absXHelper(Byte instruction, Byte lsb, Byte msb, Byte index, u8 idx_mode, u8 expected_cycles, char* test_name) {
+		// Fixtures
+		Byte testValue = 0x42;			//TODO - maybe randomise?
+		Word targetAddress = (msb << 8) + lsb + index;
+		u8 cyclesUsed = 0;
+
+		// Load fixtures to memory
+		memory->data[0x000] = lsb;
+		memory->data[0x001] = msb;
+		memory->data[targetAddress] = testValue;
+
+		// Given:
+		state->A = ~testValue;			//TODO - consider - must be different from test value
+		state->PC = 0x0000;
+		if (idx_mode == ABS_IDX_X)
+			state->X = index;
+		else
+			state->Y = index;
+
+		// When:
+		cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(instruction));
+
+		// Then:
+		EXPECT_EQ(state->A, testValue) << "[" << test_name << "] LDA_ABS" << (idx_mode ? "X" : "Y:") << " Did not set Accumulator correctly";
+		EXPECT_EQ(cyclesUsed, expected_cycles);
+	}
 };
 
 /************************************************
@@ -38,8 +79,6 @@ public:
 * TODOS:
 IMMEDIATE
 INDIRECT_Y
-ABSOLUTE_Y
-ABSOLUTE_X
 */
 
 /* Tests setFlags */
@@ -227,70 +266,40 @@ TEST_F(TestLDAInstruction, TestLDAAbsolute) {
 
 /* Tests LDA Absolute,X Instruction */
 TEST_F(TestLDAInstruction, TestLDAAbsoluteX) {
-	// Fixtures - High: overflow/wraps | Low: Not page or high
-	Byte testValue = 0x42;		//TODO - maybe randomise?
 	Byte lsb = 0x84;			//TODO - maybe randomise?
 	Byte msb = 0xFF;			//TODO - maybe randomise?
-	Byte indexLow = 0x10;		//TODO - maybe randomise?
-	Byte indexHigh = 0xA5;		//TODO - maybe randomise?
-	Word targetAddressLow = 0xFF94;			// [msb,lsb] + indexLow		(no overflow)
-	Word targetAddressHigh = 0x0029;		// [msb,lsb] + indexHigh	(overflow)
+	Byte index = 0x00;
 	u8 cyclesUsed = 0;
 
-	// Load fixtures to memory
-	memory->data[0x000] = lsb;
-	memory->data[0x001] = msb;
-	memory->data[targetAddressLow] = testValue;
-	memory->data[targetAddressHigh] = testValue + 1;
+	index = 0x10;
+	absXHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 4, "LDA ABS (no overflow or page)");
 
-	// Given (no overflow):
-	state->PC = 0x0000;
-	state->X = indexLow;
-	state->A = ~testValue;			//TODO - consider - must be different fro test value
-	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ABSX));
-	// Then:
-	EXPECT_EQ(state->A, testValue) << "LDA_ABSX Did not set Accumulator correctly (no overflow)";
-	EXPECT_EQ(cyclesUsed, 4);
+	index = 0xA5;
+	absXHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 5, "LDA ABS (overflow)");
 
-	// Given (oveflow):	
-	state->PC = 0x0000;
-	state->X = indexHigh;
-	state->A = ~(testValue+1);		//TODO - consider - must be different fro test value
-	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ABSX));
-	// Then:
-	EXPECT_EQ(state->A, (testValue+1)) << "LDA_ABS Did not set Accumulator correctly (overflow)";
-	EXPECT_EQ(cyclesUsed, 5);		// Overflow also counts as a page boundary crossing
+	msb = 0x37;
+	index = 0xA1;
+	absXHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 5, "LDA ABS (page boundry)");
 }
 
-/* Tests LDA Absolute,X Instruction crossing a page boundry (no overflow) */
-TEST_F(TestLDAInstruction, TestLDAAbsoluteXPage) {
-	// Fixtures
-	Byte testValue = 0x42;		//TODO - maybe randomise?
+/* Tests LDA Absolute,Y Instruction */
+TEST_F(TestLDAInstruction, TestLDAAbsoluteY) {
 	Byte lsb = 0x84;			//TODO - maybe randomise?
-	Byte msb = 0x37;			//TODO - maybe randomise?
-	Byte index = 0xA1;			//TODO - maybe randomise?
-	Word targetAddress = 0x3825;			// [msb,lsb] + indexLow		(no overflow, page crossed)
+	Byte msb = 0xFF;			//TODO - maybe randomise?
+	Byte index = 0x00;
 	u8 cyclesUsed = 0;
 
-	// Load fixtures to memory
-	memory->data[0x000] = lsb;
-	memory->data[0x001] = msb;
-	memory->data[targetAddress] = testValue;
+	index = 0x10;
+	absXHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 4, "LDA ABS (no overflow or page)");
 
-	// Given (page boundry):
-	state->PC = 0x0000;
-	state->X = index;
-	state->A = ~testValue;			//TODO - consider - must be different fro test value
+	index = 0xA5;
+	absXHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 5, "LDA ABS (overflow)");
 
-	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ABSX));
-
-	// Then:
-	EXPECT_EQ(state->A, testValue) << "LDA_ABSX Did not set Accumulator correctly (page boundry)";
-	EXPECT_EQ(cyclesUsed, 5);		//Extra cycle for page crossing
+	msb = 0x37;
+	index = 0xA1;
+	absXHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 5, "LDA ABS (page boundry)");
 }
+
 
 /************************************************
 *              End Execution tests              *
