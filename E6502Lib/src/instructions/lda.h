@@ -69,14 +69,14 @@ namespace LDA {
 
 			}
 			case ZERO_PAGE_X: {
-				/* Read the next byte as the lsb for a zero page base address */
+				// Read the next byte as the lsb for a zero page base address
 				Byte address = mem->readByte(cycles, state->incPC());
 
-				/* Add X */
+				// Add X
 				address += state->X;
 				cycles++;
 
-				/* Read the value at address into A */
+				// Read the value at address into A
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
@@ -84,7 +84,22 @@ namespace LDA {
 
 			}
 			case ABSOLUTE_X: {
+				// Read address from next two bytes (lsb first)
+				Byte lsb = mem->readByte(cycles, state->incPC());
+				Byte msb = mem->readByte(cycles, state->incPC());
 
+				// Add X register to lsb
+				lsb += state->X;				// This does not seem to add a cycle?
+
+				// If the addition overflowed, need to increment msb (page boundry)
+				if (lsb < state->X) {
+					msb++; cycles++;			// Add operation takes a cycle
+				}
+
+				// Calculate and read the value at address into A
+				Word address = (msb << 8) | lsb;
+				state->A = mem->readByte(cycles, address);
+				break;
 			}
 			default: {
 				//Shouldn't be here!
