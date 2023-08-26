@@ -1,5 +1,5 @@
 #pragma once
-#include "../instruction_handler.h"
+#include "../types.h"
 
 /** LDA Instruction Opcodes */
 const static Byte INS_LDA_IMM = 0xA9;
@@ -19,7 +19,7 @@ namespace LDA {
 							INS_LDA_ABSX,INS_LDA_ABSY,INS_LDA_INDX,INS_LDA_INDY };
 
 	/** One function will handle the 'execute' method for all variants */
-	insHandlerFn LDAInstructionHandler = [](Memory* mem) { return 0;};
+	insHandlerFn LDAInstructionHandler = [](Memory* mem, CPUState* state) { return 0;};
 
 	/** Defines proprties common to all LDA instructions */
 	struct BASE : public InstructionHandler {
@@ -105,7 +105,6 @@ namespace LDA {
 		handlers[INS_LDA_INDY] = ((InstructionHandler*) new LDA_INDY);
 		
 	}
-
 }
-#endif 
 
+#endif 

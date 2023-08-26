@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include "instruction_handler.h"
+#include "types.h"
 
 /**
 * The Instruction Handle actually 'executes' instructions
@@ -34,6 +34,8 @@ TEST_F(TestInstructionHandler, TestDefaultHandler) {
 	ASSERT_EQ(sizeof(testHandler.name), sizeof(char*));
 
 	//execute
-	//TODO - test set and get
+	insHandlerFn testFun =  [](Memory* mem, CPUState* state) { return 0;} ;
+	testHandler.execute = testFun;
+	ASSERT_EQ(testHandler.execute, testFun);
 	ASSERT_EQ(sizeof(testHandler.execute), sizeof(insHandlerFn*));
 }

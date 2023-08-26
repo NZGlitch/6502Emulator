@@ -1,6 +1,9 @@
+/**
+* InstructionManager deals with handing execution to handlers defined in the instructions subdir
+*/ 
 #pragma once
+#include "types.h"
 #include "instructions/instruction_utils.h"
-#include "instruction_handler.h"
 
 /*
 Instruction Manager
@@ -19,7 +22,7 @@ private:
 
 public:
 	//Default handler for undefined instructions
-	InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem) { return 0;} };
+	InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem, CPUState* state) { return 0;} };
 
 	//Constructor
 	InstructionManager(InstructionUtils::InstructionLoader* loader);

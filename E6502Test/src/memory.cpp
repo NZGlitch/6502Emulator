@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include "memory.h"
+#include "types.h"
 
 /**
 * Test the memory structure

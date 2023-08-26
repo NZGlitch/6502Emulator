@@ -1,5 +1,5 @@
 #pragma once
-#include "../instruction_handler.h"
+#include "../types.h"
 #include "lda.h"
 /**
 * Common utilities for instruction definitions

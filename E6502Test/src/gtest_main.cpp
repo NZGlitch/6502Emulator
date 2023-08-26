@@ -31,9 +31,12 @@ GTEST_API_ int main(int argc, char** argv) {
 #else
 
 #include "cpu.h"
+#include "instructions/instruction_utils.h"
+
 int main() {
 	Memory* mem = new Memory();
-	CPU* cpu = new CPU();
+	CPUState cpuState;
+	CPU* cpu = new CPU(&cpuState);
 	cpu->reset(mem);
 	u8 cyclesExecuted = cpu->execute(1, mem);
 	return 0;

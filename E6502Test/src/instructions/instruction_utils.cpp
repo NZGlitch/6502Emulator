@@ -23,3 +23,4 @@ TEST_F(TestInstructionUtils, TestLDAInstructionDefs) {
 			EXPECT_EQ((inMan[opcode]->opcode), opcode);
 	}
 }
+

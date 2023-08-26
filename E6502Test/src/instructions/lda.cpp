@@ -40,7 +40,6 @@ TEST_F(TestLDAInstruction, TestLDAaddHandlers) {
 	}
 }
 
-
 TEST_F(TestLDAInstruction, TestLDAImmediateHandlerProps) {
 	// Given:
 	const LDA::LDA_IMM handler;
