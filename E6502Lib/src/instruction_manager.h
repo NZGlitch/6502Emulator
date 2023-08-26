@@ -22,7 +22,7 @@ private:
 
 public:
 	//Default handler for undefined instructions
-	InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem, CPUState* state) { return 0;} };
+	InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem, CPUState* state, InstructionCode*) { return (u8)0;} };
 
 	//Constructor
 	InstructionManager(InstructionUtils::InstructionLoader* loader);

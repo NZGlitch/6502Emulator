@@ -25,6 +25,50 @@ TEST_F(TestTypes, TestTypesCorrectLen) {
 	ASSERT_EQ(sizeof(s16), 2);
 }
 
+/** Instruction Code from Byte */
+TEST_F(TestTypes, TestInstructionCodeConsruct) {
+	// Given:
+	Byte testByte = 0b10101010;
+
+	// When:
+	InstructionCode code(testByte);
+
+	// Then
+	EXPECT_EQ(code.code, testByte);
+	EXPECT_EQ(code.A, 0b101);
+	EXPECT_EQ(code.B, 0b010);
+	EXPECT_EQ(code.C, 0b10);
+}
+
+/** Instruction Code = Byte */
+TEST_F(TestTypes, TestInstructionCodeToByte) {
+	// Given:
+	Byte initByte = 0b01010101;
+	Byte testByte = 0b10101010;
+
+	// When:
+	InstructionCode code(initByte);
+	code = testByte;
+
+	// Then
+	EXPECT_EQ(code.A, 0b101);
+	EXPECT_EQ(code.B, 0b010);
+	EXPECT_EQ(code.C, 0b10);
+}
+
+/** Byte = InstructionCode */
+TEST_F(TestTypes, TestByteToInstructionCode) {
+	// Given:
+	Byte testByte = 0b10101010;
+	InstructionCode code(testByte);
+
+	// When:
+	Byte result = code;
+
+	// Then
+	EXPECT_EQ(result, testByte);
+}
+
 /* Test unsigned types are indeed unsigned */
 TEST_F(TestTypes, TestTypesUnsigned) {
 	Byte testByte = -1;
@@ -47,4 +91,34 @@ TEST_F(TestTypes, TestTypesSigned) {
 
 	s16 test16 = -1;
 	ASSERT_TRUE(test16 < 0);
+}
+
+/* Test CPUState incPC gets and increments the PC */
+TEST_F(TestTypes, TestCPUincPC) {
+	// Given:
+	CPUState state;
+	Word testAddress = 0xABCD;	// TODO - randomise?
+	u8 testCycles = 0;			// TODO - randomise?
+	state.PC = testAddress;
+
+	// WHEN
+	Word PC = state.incPC(testCycles);
+
+	EXPECT_EQ(PC, testAddress);				/** Expect the return value to be what PC WAS) */
+	EXPECT_EQ(state.PC, testAddress+1);		/** Expect PC to be incremented */
+	EXPECT_EQ(testCycles, 1);				/** Expect cycles to be incremented */
+}
+
+/* Test CPUState setFlags/getFlags */
+TEST_F(TestTypes, TestCPUGetSetFlags) {
+	//Given:
+	CPUState state{ 0,0,0,0,0,0,0,0,0,0,0,0};
+	ASSERT_EQ(state.getFlags(), 0x00);
+	Byte testFlags = 0xCF;
+
+	//When:
+	state.setFlags(testFlags);
+
+	//Then:
+	EXPECT_EQ(state.getFlags(), testFlags);
 }

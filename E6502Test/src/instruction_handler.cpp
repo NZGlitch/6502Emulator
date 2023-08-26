@@ -34,7 +34,7 @@ TEST_F(TestInstructionHandler, TestDefaultHandler) {
 	ASSERT_EQ(sizeof(testHandler.name), sizeof(char*));
 
 	//execute
-	insHandlerFn testFun =  [](Memory* mem, CPUState* state) { return 0;} ;
+	insHandlerFn testFun =  [](Memory* mem, CPUState* state, InstructionCode* code) { return (u8)0;} ;
 	testHandler.execute = testFun;
 	ASSERT_EQ(testHandler.execute, testFun);
 	ASSERT_EQ(sizeof(testHandler.execute), sizeof(insHandlerFn*));

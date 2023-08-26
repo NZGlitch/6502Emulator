@@ -1,25 +1,83 @@
 #pragma once
 #include "../types.h"
 
-/** LDA Instruction Opcodes */
-const static Byte INS_LDA_IMM = 0xA9;
-const static Byte INS_LDA_ZP = 0xA5;
-const static Byte INS_LDA_ZPX = 0xB5;
-const static Byte INS_LDA_ABS = 0xAD;
-const static Byte INS_LDA_ABSX = 0xBD;
-const static Byte INS_LDA_ABSY = 0xB9;
+/** LDA Instruction Codes */
 const static Byte INS_LDA_INDX = 0xA1;
+const static Byte INS_LDA_ZP = 0xA5;
+const static Byte INS_LDA_IMM = 0xA9;
+const static Byte INS_LDA_ABS = 0xAD;
 const static Byte INS_LDA_INDY = 0xB1;
+const static Byte INS_LDA_ZPX = 0xB5;
+const static Byte INS_LDA_ABSY = 0xB9;
+const static Byte INS_LDA_ABSX = 0xBD;
 
 #ifndef LDA
 #define LDA
 namespace LDA {
+	/** LDA Adressing Modes */
+	const static Byte INDIRECT_X	= 0b000; // 101 000 01
+	const static Byte ZERO_PAGE		= 0b001; // 101 001 01
+	const static Byte IMMEDIATE		= 0b010; // 101 010 01
+	const static Byte ABSOLUTE		= 0b011; // 101 011 01
+	const static Byte INDIRECT_Y	= 0b100; // 101 100 01
+	const static Byte ZERO_PAGE_X	= 0b101; // 101 101 01
+	const static Byte ABSOLUTE_Y	= 0b110; // 101 110 01
+	const static Byte ABSOLUTE_X	= 0b111; // 101 111 01
+
 
 	Byte instructions[] = { INS_LDA_IMM, INS_LDA_ZP, INS_LDA_ZPX,INS_LDA_ABS,
 							INS_LDA_ABSX,INS_LDA_ABSY,INS_LDA_INDX,INS_LDA_INDY };
 
+
+	/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
+	void setFlags(CPUState* state) {
+		state->setFlags(
+			state->getFlags() | (state->A & 0x80) | (state->A == 0 ? 0x2 : 0x0)	// Set N flag (bit 7) if A is negative
+		);
+	}
+
 	/** One function will handle the 'execute' method for all variants */
-	insHandlerFn LDAInstructionHandler = [](Memory* mem, CPUState* state) { return 0;};
+	insHandlerFn LDAInstructionHandler = [](Memory* mem, CPUState* state, InstructionCode* opCode) {
+		u8 cycles = 0;
+		switch (opCode->B) {
+			case INDIRECT_X: {
+
+			}
+			case ZERO_PAGE: {
+				/* Read the next byte as the lsb for a zero page address */
+				//Byte lsb = mem->readByte(cycles, state->incPC(cycles));
+
+				//Word address = lsb << 8 | 0x0000;
+				//state->A = mem->readByte(cycles, address);
+			}
+			case IMMEDIATE: {
+				/* Read the next byte from PC and put into the accumulator */
+				state->A = mem->readByte(cycles, state->incPC(cycles));
+				// Immediate doesnt use any cycles above the base 2 used by the CPU
+				cycles -= 2;
+
+				setFlags(state);
+			
+			}
+			case ABSOLUTE: {
+
+			}
+			case INDIRECT_Y: {
+
+			}
+			case ZERO_PAGE_X: {
+
+			}
+			case ABSOLUTE_Y: {
+
+			}
+			case ABSOLUTE_X: {
+
+			}
+		}
+
+		return cycles;
+	};
 
 	/** Defines proprties common to all LDA instructions */
 	struct BASE : public InstructionHandler {
@@ -106,5 +164,4 @@ namespace LDA {
 		
 	}
 }
-
 #endif 

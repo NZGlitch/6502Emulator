@@ -61,3 +61,24 @@ TEST_F(TestMemory, TestMemWriteByte) {
 	EXPECT_EQ(cycles, 1);
 	EXPECT_EQ(memory.data[address], data);
 }
+
+TEST_F(TestMemory, TestLoadProgram) {
+	// Given:
+	const Word programSize = 0x1000;
+	Word loadAddress = 0xFF00;
+	Byte program[programSize] = {};
+	for (Word i = 0; i < programSize; i++) {
+		Byte ins = i;
+		program[i] = ins;
+	}
+
+	// When: 
+	memory.loadProgram(loadAddress, program, programSize);
+
+	// Then
+	for (u16 i = 0; i < programSize; i++) {
+		Word nextAddr = loadAddress + i;
+		Byte expect = i;
+		EXPECT_EQ(memory.data[nextAddr], expect);
+	}
+}

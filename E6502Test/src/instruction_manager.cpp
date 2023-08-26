@@ -37,10 +37,11 @@ TEST_F(TestInstructionManager, TestDefaultHandler) {
 	CPUState originalState = CPUState();
 	CPUState testState = CPUState();
 	Memory* mem = new Memory();
+	InstructionCode* code = new InstructionCode(0x00);
 	mem->initialise();
 
 	// Test execute function
-	Byte cycles = inMan->defaultHandler.execute(mem, &testState);
+	Byte cycles = inMan->defaultHandler.execute(mem, &testState, code);
 
 	// Should take no cycles
 	ASSERT_EQ(cycles, 0);
