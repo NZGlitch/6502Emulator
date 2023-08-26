@@ -75,14 +75,7 @@ public:
 * Tests the execute function operates correctly *
 *************************************************/
 
-/**
-* TODOS:
-IMMEDIATE
-INDIRECT_Y
-*/
-
 /* Tests setFlags */
-
 TEST_F(TestLDAInstruction, TestLDANoFlags) {
 	// Given
 	state->setFlags(0xFF);
@@ -300,6 +293,104 @@ TEST_F(TestLDAInstruction, TestLDAAbsoluteY) {
 	absXHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 5, "LDA ABS (page boundry)");
 }
 
+/* Tests LDA Indeirect,X Instruction */
+TEST_F(TestLDAInstruction, TestLDAIndirectX) {
+	Byte testValue = 0x42;
+	
+	Byte base = 0x20;
+	Byte index = 0x10;
+	Byte testIndirectAddress = 0x30;
+	Word targetAddress = 0xABCD;
+	
+	Byte indexWrap = 0xFF;
+	Byte testIndirectAddressWrap = 0x1F;
+	Word targetAddressWrap = 0xDCBA;
+
+	u8 cyclesUsed;
+
+	// Given:
+	state->PC = 0x0000;
+	state->X = index;
+	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	memory->data[0x0000] = base;
+	memory->data[testIndirectAddress] = targetAddress & 0xFF;
+	memory->data[testIndirectAddress+1] = (targetAddress >> 8) & 0xFF;
+	memory->data[targetAddress] = testValue;
+	
+
+	// When:
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDX));
+
+	// Then:
+	EXPECT_EQ(state->A, testValue);
+	EXPECT_EQ(cyclesUsed,6);
+
+	// Given (Wrap):
+	state->PC = 0x0000;
+	state->X = indexWrap;
+	state->A = ~(testValue+1);		//TODO - consider - must be different fro test value
+	memory->data[0x0000] = base;
+	memory->data[testIndirectAddressWrap] = targetAddressWrap & 0xFF;
+	memory->data[testIndirectAddressWrap + 1] = (targetAddressWrap >> 8) & 0xFF;
+	memory->data[targetAddressWrap] = (testValue+1);
+
+	// When:
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDX));
+
+	// Then:
+	EXPECT_EQ(state->A, (testValue+1));
+	EXPECT_EQ(cyclesUsed, 6);
+}
+
+/* Tests LDA Indeirect,Y Instruction */
+TEST_F(TestLDAInstruction, TestLDAIndirectY) {
+	Byte testValue = 0x42;
+
+	Byte base = 0x20;
+	Byte index = 0x10;
+	Byte testIndirectAddress = 0x30;
+	Word targetAddress = 0xABCD;
+
+	Byte indexWrap = 0xFF;
+	Byte testIndirectAddressWrap = 0x1F;
+	Word targetAddressWrap = 0xDCBA;		
+	Word targetAddressWrapCarry = 0xDDBA;	// The carry from 0x20+0xFF is added to the 'DC' in zp[20] to make the actual target DDBA
+
+	u8 cyclesUsed;
+
+	// Given:
+	state->PC = 0x0000;
+	state->Y = index;
+	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	memory->data[0x0000] = base;
+	memory->data[testIndirectAddress] = targetAddress & 0xFF;
+	memory->data[testIndirectAddress + 1] = (targetAddress >> 8) & 0xFF;
+	memory->data[targetAddress] = testValue;
+
+
+	// When:
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDY));
+
+	// Then:
+	EXPECT_EQ(state->A, testValue);
+	EXPECT_EQ(cyclesUsed, 6);
+
+	// Given (Wrap):
+	state->PC = 0x0000;
+	state->Y = indexWrap;
+	state->A = ~(testValue + 1);		//TODO - consider - must be different fro test value
+	memory->data[0x0000] = base;
+	memory->data[testIndirectAddressWrap] = targetAddressWrap & 0xFF;
+	memory->data[testIndirectAddressWrap + 1] = (targetAddressWrap >> 8) & 0xFF;
+	memory->data[targetAddressWrapCarry] = (testValue + 1);
+
+	// When:
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDY));
+
+	// Then:
+	EXPECT_EQ(state->A, (testValue + 1));
+	EXPECT_EQ(cyclesUsed, 6);
+}
 
 /************************************************
 *              End Execution tests              *

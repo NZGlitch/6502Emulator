@@ -41,7 +41,37 @@ namespace LDA {
 	insHandlerFn LDAInstructionHandler = [](Memory* mem, CPUState* state, InstructionCode* opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		switch (opCode->B) {
-			case INDIRECT_X: {
+			// Indirect X and Y are very similar
+			case INDIRECT_X:
+			case INDIRECT_Y: {
+				// Read the next byte as the base for a zero page address.
+				Byte baseAddress = mem->readByte(cycles, state->incPC());
+
+				//Get the index
+				Byte index = (opCode->B == INDIRECT_X ? state->X : state->Y);
+
+				// Base + Index (ignore carry for now)
+				Word indirectAddressLSB = baseAddress + index;
+				Word indirectAddress = (0x00FF & indirectAddressLSB);
+
+				// Read inderect address from zero page and construct target address
+				Byte lsb = mem->readByte(cycles, indirectAddress);
+				Byte msb = mem->readByte(cycles, indirectAddress+1);
+
+				if (opCode->B == INDIRECT_Y) {
+					// For Indirect Y only, if the earlier baseAddtess+Y caused a carry then we need to increment msb
+					if (indirectAddressLSB > 0xFF)
+						msb++; cycles++;
+				}
+				else {
+					cycles++;	//indirect x is always 6 cycels for some reason?
+				}
+
+				Word targetAddress = (msb << 8) | lsb;
+
+				// Set A register with value in target address
+				state->A = mem->readByte(cycles, targetAddress);
+				break;
 
 			}
 			case ZERO_PAGE: {
@@ -54,9 +84,6 @@ namespace LDA {
 				/* Read the next byte from PC and put into the accumulator */
 				state->A = mem->readByte(cycles, state->incPC());
 				break;
-			}
-			case INDIRECT_Y: {
-
 			}
 			case ZERO_PAGE_X: {
 				// Read the next byte as the lsb for a zero page base address
