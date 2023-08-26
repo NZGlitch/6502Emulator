@@ -39,31 +39,38 @@ namespace LDA {
 
 	/** One function will handle the 'execute' method for all variants */
 	insHandlerFn LDAInstructionHandler = [](Memory* mem, CPUState* state, InstructionCode* opCode) {
-		u8 cycles = 0;
+		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		switch (opCode->B) {
 			case INDIRECT_X: {
 
 			}
 			case ZERO_PAGE: {
 				/* Read the next byte as the lsb for a zero page address */
-				Byte address = mem->readByte(cycles, state->incPC(cycles));
+				Byte address = mem->readByte(cycles, state->incPC());
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
 			case IMMEDIATE: {
 				/* Read the next byte from PC and put into the accumulator */
-				state->A = mem->readByte(cycles, state->incPC(cycles));
+				state->A = mem->readByte(cycles, state->incPC());
 				break;
 			}
 			case ABSOLUTE: {
+				// Read address from next two bytes (lsb first)
+				Byte lsb = mem->readByte(cycles, state->incPC());
+				Byte msb = mem->readByte(cycles, state->incPC());
 
+				// Calculate address and read memory into A
+				Word address = (msb << 8) | lsb;
+				state->A = mem->readByte(cycles, address);
+				break;
 			}
 			case INDIRECT_Y: {
 
 			}
 			case ZERO_PAGE_X: {
 				/* Read the next byte as the lsb for a zero page base address */
-				Byte address = mem->readByte(cycles, state->incPC(cycles));
+				Byte address = mem->readByte(cycles, state->incPC());
 
 				/* Add X */
 				address += state->X;

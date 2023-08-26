@@ -17,12 +17,12 @@ public:
 
 /* Test types are the correct size */
 TEST_F(TestTypes, TestTypesCorrectLen) {
-	ASSERT_EQ(sizeof(Byte), 1);
-	ASSERT_EQ(sizeof(Word), 2);
-	ASSERT_EQ(sizeof(u8), 1);
-	ASSERT_EQ(sizeof(s8), 1);
-	ASSERT_EQ(sizeof(u16), 2);
-	ASSERT_EQ(sizeof(s16), 2);
+	EXPECT_EQ(sizeof(Byte), 1);
+	EXPECT_EQ(sizeof(Word), 2);
+	EXPECT_EQ(sizeof(u8), 1);
+	EXPECT_EQ(sizeof(s8), 1);
+	EXPECT_EQ(sizeof(u16), 2);
+	EXPECT_EQ(sizeof(s16), 2);
 }
 
 /** Instruction Code from Byte */
@@ -72,25 +72,25 @@ TEST_F(TestTypes, TestByteToInstructionCode) {
 /* Test unsigned types are indeed unsigned */
 TEST_F(TestTypes, TestTypesUnsigned) {
 	Byte testByte = -1;
-	ASSERT_TRUE(testByte >= 0);
+	EXPECT_TRUE(testByte >= 0);
 
 	Word testWord = -1;
-	ASSERT_TRUE(testWord >= 0);
+	EXPECT_TRUE(testWord >= 0);
 
 	u8 test8 = -1;
-	ASSERT_TRUE(test8 >= 0);
+	EXPECT_TRUE(test8 >= 0);
 
 	u16 test16 = -1;
-	ASSERT_TRUE(test16 >= 0);
+	EXPECT_TRUE(test16 >= 0);
 }
 
 /* Test signed types are indeed signed */
 TEST_F(TestTypes, TestTypesSigned) {
 	s8 test8 = -1;
-	ASSERT_TRUE(test8 < 0);
+	EXPECT_TRUE(test8 < 0);
 
 	s16 test16 = -1;
-	ASSERT_TRUE(test16 < 0);
+	EXPECT_TRUE(test16 < 0);
 }
 
 /* Test CPUState incPC gets and increments the PC */
@@ -98,22 +98,21 @@ TEST_F(TestTypes, TestCPUincPC) {
 	// Given:
 	CPUState state;
 	Word testAddress = 0xABCD;	// TODO - randomise?
-	u8 testCycles = 0;			// TODO - randomise?
 	state.PC = testAddress;
 
-	// WHEN
-	Word PC = state.incPC(testCycles);
+	// When:
+	Word PC = state.incPC();
 
+	// Then:
 	EXPECT_EQ(PC, testAddress);				/** Expect the return value to be what PC WAS) */
 	EXPECT_EQ(state.PC, testAddress+1);		/** Expect PC to be incremented */
-	EXPECT_EQ(testCycles, 1);				/** Expect cycles to be incremented */
 }
 
 /* Test CPUState setFlags/getFlags */
 TEST_F(TestTypes, TestCPUGetSetFlags) {
 	//Given:
 	CPUState state{ 0,0,0,0,0,0,0,0,0,0,0,0};
-	ASSERT_EQ(state.getFlags(), 0x00);
+	EXPECT_EQ(state.getFlags(), 0x00);
 	Byte testFlags = 0xCF;
 
 	//When:

@@ -36,11 +36,8 @@ public:
 
 /**
 * TODOS:
-ZERO_PAGE
 IMMEDIATE
-ABSOLUTE
 INDIRECT_Y
-ZERO_PAGE_X
 ABSOLUTE_Y
 ABSOLUTE_X
 */
@@ -198,6 +195,33 @@ TEST_F(TestLDAInstruction, TestLDAZeroPageOver) {
 
 	// Then:
 	EXPECT_EQ(state->A, testValue) << "LDA_ZPX Did not set Accumulator correctly";
+	EXPECT_EQ(cyclesUsed, 4);
+}
+
+/* Tests LDA Absolute Instruction */
+TEST_F(TestLDAInstruction, TestLDAAbsolute) {
+	// Fixtures
+	Byte testValue = 0x42;		//TODO - maybe randomise?
+	Byte lsb = 0x84;			//TODO - maybe randomise?
+	Byte msb = 0xBE;			//TODO - maybe randomise?
+	Word targetAddress = 0xBE84;
+	u8 cyclesUsed = 0;
+
+	// Load fixtures to memory
+	state->PC = 0x0000;
+	memory->data[0x000] = lsb;
+	memory->data[0x001] = msb;
+	memory->data[targetAddress] = testValue;
+
+
+	// Given:	
+	state->A = ~testValue;		//TODO - consider - must be different fro test value
+
+	// When:
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ABS));
+
+	// Then:
+	EXPECT_EQ(state->A, testValue) << "LDA_ABS Did not set Accumulator correctly";
 	EXPECT_EQ(cyclesUsed, 4);
 }
 

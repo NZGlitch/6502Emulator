@@ -60,8 +60,7 @@ struct CPUState {
 	Byte N : 1;			// Negative Flag			(7)	
 
 	/* Returns the current value of the PC and increments it by 1 */
-	Word incPC(u8& cycles) {
-		cycles++;
+	Word incPC() {
 		return PC++;
 	}
 
