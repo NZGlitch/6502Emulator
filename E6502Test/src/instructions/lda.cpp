@@ -45,55 +45,160 @@ ABSOLUTE_Y
 ABSOLUTE_X
 */
 
-/* All LDA instructions place a value in the accumulator */
-TEST_F(TestLDAInstruction, TestLDAImmeidate) {
+/* Tests setFlags */
+
+TEST_F(TestLDAInstruction, TestLDANoFlags) {
+	// Given
+	state->setFlags(0xFF);
+	state->A = 0x78;
+
+	// When
+	LDA::setFlags(state);
+	// Then
+	EXPECT_EQ(state->getFlags(), 0x5D);	// Unset Z and N flags
+
+	// Given
+	state->setFlags(0x00);
+	state->A = 0x78;
+
+	// When
+	LDA::setFlags(state);
+	// Then
+	EXPECT_EQ(state->getFlags(), 0x00); // Flags unchanges
+}
+
+TEST_F(TestLDAInstruction, TestLDAZeroFlags) {
+	// Given
+	state->setFlags(0x02);		//Z set
+	state->A = 0x78;
+
+	// When
+	LDA::setFlags(state);
+	// Then
+	EXPECT_EQ(state->getFlags(), 0x00);	// Expect Z Unset
+
+	// Given
+	state->setFlags(0x00);		//Z Unset
+	state->A = 0x00;
+
+	// When
+	LDA::setFlags(state);
+	// Then
+	EXPECT_EQ(state->getFlags(), 0x02); // Expect Z Set
+}
+
+TEST_F(TestLDAInstruction, TestLDANegFlags) {
+	// Given
+	state->setFlags(0xDD);		//N set
+	state->A = 0x78;
+
+	// When
+	LDA::setFlags(state);
+	// Then
+	EXPECT_EQ(state->getFlags(), 0x5D);	// Expect N Unset
+
+	// Given
+	state->setFlags(0x00);		//N Unset
+	state->A = 0x80;
+
+	// When
+	LDA::setFlags(state);
+	// Then
+	EXPECT_EQ(state->getFlags(), 0x80); // Expect N Set
+}
+
+/* Tests LDA  Immediate Instruction */
+TEST_F(TestLDAInstruction, TestLDAImmediate) {
 	// Fixtures
-	Byte testValueNorm = 0x55;		//TODO - maybe randomise?
-	Byte testValueNeg = 0xFB;		//TODO - maybe randomise?
-	Byte testValueZero = 0x00;
+	Byte testValue = 0x42;		//TODO - maybe randomise?
 	u8 cyclesUsed = 0;
 
 	// Load fixtures to memory
 	state->PC = 0x0000;
-	memory->data[0x0000] = testValueNorm;
-	memory->data[0x0001] = testValueNeg;
-	memory->data[0x0002] = testValueZero;
+	memory->data[0x0000] = testValue;
 
 	// Given:	
-	state->A = ~testValueNorm;		//TODO - consider - must be different fro test value
-	state->setFlags(0x00);
+	state->A = ~testValue;		//TODO - consider - must be different fro test value
 	
 	// When:
 	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_IMM));
 	
 	// Then:
-	EXPECT_EQ(state->A, testValueNorm) << "LDA_INDY Did not set Accumulator correctly";
-	EXPECT_EQ(state->getFlags(), 0b00000000) << "Expected no flags to be set";
-	EXPECT_EQ(cyclesUsed, 0);
+	EXPECT_EQ(state->A, testValue) << "LDA_IMM Did not set Accumulator correctly";
+	EXPECT_EQ(cyclesUsed, 2);
+}
+
+/* Tests LDA Zero Page Instruction */
+TEST_F(TestLDAInstruction, TestLDAZeroPage) {
+	// Fixtures
+	Byte testValue = 0x42;		//TODO - maybe randomise?
+	Byte insAddress = 0x84;		//TODO - maybe randmomise?
+	u8 cyclesUsed = 0;
+
+	// Load fixtures to memory
+	state->PC = 0x0000;
+	memory->data[0x0000] = insAddress;
+	memory->data[insAddress] = testValue;
 
 	// Given:	
-	state->A = ~testValueNeg;		//TODO - consider - must be different fro test value
-	state->setFlags(0x00);
+	state->A = ~testValue;		//TODO - consider - must be different fro test value
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_IMM));
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ZP));
 
 	// Then:
-	EXPECT_EQ(state->A, testValueNeg) << "LDA_INDY Did not set Accumulator correctly";
-	EXPECT_EQ(state->getFlags(), 0b10000000) << "Expected negative flag to be set";
-	EXPECT_EQ(cyclesUsed, 0);
+	EXPECT_EQ(state->A, testValue) << "LDA_ZP Did not set Accumulator correctly";
+	EXPECT_EQ(cyclesUsed, 3);
+}
+
+/* Tests LDA Zero Page,X Instruction (No overflow)*/
+TEST_F(TestLDAInstruction, TestLDAZeroPageNorm) {
+	// Fixtures
+	Byte baseAddress	= 0x84;			//TODO - maybe randmomise?
+	Byte testX			= 0x10;					//When this is X we will get 0x94
+	Byte testValue		= 0x42;			//TODO - maybe randomise?
+	u8 cyclesUsed = 0;
+
+	// Load fixtures to memory
+	state->PC = 0x0000;
+	memory->data[0x000] = baseAddress;
+	memory->data[0x94] = testValue;
 
 	// Given:	
-	state->A = ~testValueZero;		//TODO - consider - must be different fro test value
-	state->setFlags(0x00);
+	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->X = testX;
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_IMM));
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ZPX));
 
 	// Then:
-	EXPECT_EQ(state->A, testValueZero) << "LDA_INDY Did not set Accumulator correctly";
-	EXPECT_EQ(state->getFlags(), 0b00000010) << "Expected zero flag to be set";
-	EXPECT_EQ(cyclesUsed, 0);
+	EXPECT_EQ(state->A, testValue) << "LDA_ZPX Did not set Accumulator correctly";
+	EXPECT_EQ(cyclesUsed, 4);
+}
+
+/* Tests LDA Zero Page,X Instruction (With overflow) */
+TEST_F(TestLDAInstruction, TestLDAZeroPageOver) {
+	// Fixtures
+	Byte baseAddress = 0x84;			//TODO - maybe randmomise?
+	Byte testX = 0xBE;					//When this is X we will get 0x42 (0x84+0xBE = 0x142 --> 0x0042)
+	Byte testValue = 0x24;				//TODO - maybe randomise?
+	u8 cyclesUsed = 0;
+
+	// Load fixtures to memory
+	state->PC = 0x0000;
+	memory->data[0x000] = baseAddress;
+	memory->data[0x42] = testValue;
+
+	// Given:	
+	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->X = testX;
+
+	// When:
+	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ZPX));
+
+	// Then:
+	EXPECT_EQ(state->A, testValue) << "LDA_ZPX Did not set Accumulator correctly";
+	EXPECT_EQ(cyclesUsed, 4);
 }
 
 /************************************************

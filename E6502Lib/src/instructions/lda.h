@@ -1,5 +1,6 @@
 #pragma once
 #include "../types.h"
+#include <stdio.h>
 
 /** LDA Instruction Codes */
 const static Byte INS_LDA_INDX = 0xA1;
@@ -31,9 +32,9 @@ namespace LDA {
 
 	/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
 	void setFlags(CPUState* state) {
-		state->setFlags(
-			state->getFlags() | (state->A & 0x80) | (state->A == 0 ? 0x2 : 0x0)	// Set N flag (bit 7) if A is negative
-		);
+		Byte flags = state->getFlags() & 0b01011101;					// Get all the flags except N & Z
+		flags |= (state->A & 0x80) | (state->A == 0 ? 0x02 : 0x00);		// Set N & Z Flags
+		state->setFlags(flags);											// Update state
 	}
 
 	/** One function will handle the 'execute' method for all variants */
@@ -45,19 +46,14 @@ namespace LDA {
 			}
 			case ZERO_PAGE: {
 				/* Read the next byte as the lsb for a zero page address */
-				//Byte lsb = mem->readByte(cycles, state->incPC(cycles));
-
-				//Word address = lsb << 8 | 0x0000;
-				//state->A = mem->readByte(cycles, address);
+				Byte address = mem->readByte(cycles, state->incPC(cycles));
+				state->A = mem->readByte(cycles, address);
+				break;
 			}
 			case IMMEDIATE: {
 				/* Read the next byte from PC and put into the accumulator */
 				state->A = mem->readByte(cycles, state->incPC(cycles));
-				// Immediate doesnt use any cycles above the base 2 used by the CPU
-				cycles -= 2;
-
-				setFlags(state);
-			
+				break;
 			}
 			case ABSOLUTE: {
 
@@ -66,7 +62,16 @@ namespace LDA {
 
 			}
 			case ZERO_PAGE_X: {
+				/* Read the next byte as the lsb for a zero page base address */
+				Byte address = mem->readByte(cycles, state->incPC(cycles));
 
+				/* Add X */
+				address += state->X;
+				cycles++;
+
+				/* Read the value at address into A */
+				state->A = mem->readByte(cycles, address);
+				break;
 			}
 			case ABSOLUTE_Y: {
 
@@ -74,8 +79,14 @@ namespace LDA {
 			case ABSOLUTE_X: {
 
 			}
+			default: {
+				//Shouldn't be here!
+				fprintf(stderr, "Attempting to use LDA instruction executor for non LDA instruction {:x}", opCode->code);
+				// We won't change the state or use cycles
+				return (u8)0;
+		    }
 		}
-
+		setFlags(state);
 		return cycles;
 	};
 

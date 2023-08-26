@@ -88,7 +88,7 @@ TEST_F(TestCPU, TestCPUExecuteFunction) {
 	u16 cyclesExecuted = cpu->execute(1, mem);
 
 	//then
-	EXPECT_EQ(state->PC, (0xFFFC) + 1);	//PC should be incremented
-	EXPECT_EQ(cyclesExecuted, 2);
+	EXPECT_EQ(state->PC, (0xFFFC) + 1);			//PC should be incremented
+	EXPECT_EQ(cyclesExecuted, 2);				//NOP uses 2 cycles
 	EXPECT_EQ(initFlags, cpu->getFlags());
 };

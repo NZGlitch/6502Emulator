@@ -44,7 +44,7 @@ TEST_F(TestInstructionManager, TestDefaultHandler) {
 	Byte cycles = inMan->defaultHandler.execute(mem, &testState, code);
 
 	// Should take no cycles
-	ASSERT_EQ(cycles, 0);
+	EXPECT_EQ(cycles, 2);
 
 	// Should not affect CPU state
 	for (int i = 0; i <= 0xFF; i++) ASSERT_EQ(mem->data[i], 0x00);

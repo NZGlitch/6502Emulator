@@ -47,14 +47,15 @@ u8 CPU::execute(u8 numInstructions, Memory* memory) {
 	u8 cyclesUsed = 0;
 	while (numInstructions > 0) {
 		//Get the next instruction and increment PC
-		Byte code = memory->readByte(cyclesUsed, currentState->incPC(cyclesUsed));
+		Byte code = memory->data[currentState->PC];
+		currentState->PC++;
 		InstructionCode instruction(code);
 
 
 		//Get the handler for this instruction
 		const InstructionHandler* handler = (*insManager)[instruction];
 		if (!handler->isLegal) {
-			fprintf(stderr, "Executing illegal opcode 0x%02X\n", instruction);
+			fprintf(stderr, "Executing illegal opcode 0x%02X\n", instruction.code);
 		}
 		cyclesUsed += handler->execute(memory, currentState, &instruction);
 		numInstructions--;
