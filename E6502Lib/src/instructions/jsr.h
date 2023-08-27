@@ -2,7 +2,7 @@
 #include "../types.h"
 #include "base.h"
 
-/** JSR Instruction Codes -> struct that handles it */
+/** JSR Instruction Codes */
 const static Byte INS_JSR = 0x20;
 
 class JSR : public BaseInstruction {
@@ -26,7 +26,7 @@ struct JSR_BASE : public INSTRUCTION_BASE {
 	}
 };
 
-/** Defines properties forJSR Absolute instruction */
+/** Defines properties for JSR Absolute instruction */
 struct JSR_ABS : public JSR_BASE {
 	JSR_ABS() {
 		opcode = INS_JSR;

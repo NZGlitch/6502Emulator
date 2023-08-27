@@ -13,7 +13,7 @@ u8 JSR::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
 		}
 		default: {
 			//Shouldn't be here!
-			fprintf(stderr, "Attempting to use JSA instruction executor for non JSR instruction $%X\n", opCode->code);
+			fprintf(stderr, "Attempting to use JSR instruction executor for non JSR instruction $%X\n", opCode->code);
 			// We won't change the state or use cycles
 			return (u8)0;
 		}
