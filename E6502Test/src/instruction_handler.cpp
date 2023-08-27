@@ -1,12 +1,8 @@
 #include <gmock/gmock.h>
-#include "instruction_handler.h"
+#include "types.h"
 
-/**
-* The Instruction Handle actually 'executes' instructions
-*/
 class TestInstructionHandler : public testing::Test {
 public:
-
 	InstructionHandler testHandler = {};
 
 	virtual void SetUp() {
@@ -34,6 +30,8 @@ TEST_F(TestInstructionHandler, TestDefaultHandler) {
 	ASSERT_EQ(sizeof(testHandler.name), sizeof(char*));
 
 	//execute
-	//TODO - test set and get
+	insHandlerFn testFun =  [](Memory* mem, CPUState* state, InstructionCode* code) { return (u8)0;} ;
+	testHandler.execute = testFun;
+	ASSERT_EQ(testHandler.execute, testFun);
 	ASSERT_EQ(sizeof(testHandler.execute), sizeof(insHandlerFn*));
 }

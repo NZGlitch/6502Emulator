@@ -10,13 +10,14 @@ struct MockMem : public Memory {
 class TestCPU : public testing::Test {
 
 public:
-
+	CPUState* state = NULL;
 	Memory* mem = NULL;
 	MockMem* mMem = NULL;
 	CPU* cpu = NULL;
 
 	virtual void SetUp() {
-		cpu = new CPU();
+		state = new CPUState;
+		cpu = new CPU(state);
 		mem = new Memory();
 		mMem = new MockMem();
 	}
@@ -28,67 +29,66 @@ public:
 	}
 };
 
-
-/* Test reset function*/
+/* Test reset function */
 TEST_F(TestCPU, TestCPUReset) {
 	
-	//Given:
-	cpu->PC = 0x0000;
-	cpu->SP = 0x0000;
-	cpu->A = cpu->X = cpu->Y = 0x42;
-	cpu->D = 1;
-	cpu->I = 1;
+	// Given:
+	state->PC = 0x0000;
+	state->SP = 0x0000;
+	state->A = state->X = state->Y = 0x42;
+	state->D = 1;
+	state->I = 1;
 
 	// Memory is initialised
 	EXPECT_CALL(*mMem, initialise()).Times(1);
 
-	//When:
+	// When:
 	cpu->reset(mMem);
 
-	//Then:
-	ASSERT_EQ(cpu->PC, 0xFFFC);	// Program Counter set to correct address
-	ASSERT_EQ(cpu->D, 0);		// Clear Decimal Flag
-	ASSERT_EQ(cpu->I, 0);		// Clear Interrupt Disable Flag
-	ASSERT_EQ(cpu->SP, 0x0100);	// Set the stack pointer to the bottom of page 1
+	// Then:
+	EXPECT_EQ(state->PC, 0xFFFC);	// Program Counter set to correct address
+	EXPECT_EQ(state->D, 0);			// Clear Decimal Flag
+	EXPECT_EQ(state->I, 0);			// Clear Interrupt Disable Flag
+	EXPECT_EQ(state->SP, 0x0100);	// Set the stack pointer to the bottom of page 1
 
 	// Registers reset to 0
-	ASSERT_EQ(cpu->A, 0);
-	ASSERT_EQ(cpu->X, 0);
-	ASSERT_EQ(cpu->Y, 0);
+	EXPECT_EQ(state->A, 0);
+	EXPECT_EQ(state->X, 0);
+	EXPECT_EQ(state->Y, 0);
 };
 
+/* Test CPU Flags Getter & Setter */
 TEST_F(TestCPU, TestCPUSetAndGetFlags) {
 	// Given:
 	cpu->reset(mem);
-	Byte flagMask = 0b11011111;						//Bit 5 is never set
+	Byte flagMask = 0b11011111;		// Bit 5 is never set
 
 	for (u16 i = 0x00; i <= 0x00; i++) {
-		//when:
+		// When:
 		cpu->setFlags(i & 0xFF);
 
-		//then
+		// Then
 		EXPECT_EQ(i & flagMask & 0xFF, cpu->getFlags());
-		u8 flags = (cpu->C << 0) | (cpu->Z << 1) | (cpu->I << 2) | (cpu->D << 3) | (cpu->B << 4) | (cpu->O << 6) | (cpu->N << 7);
+		u8 flags = (state->C << 0) | (state->Z << 1) | (state->I << 2) | (state->D << 3) | (state->B << 4) | (state->O << 6) | (state->N << 7);
 		EXPECT_EQ(i & flagMask & 0xFF, flags);
 	}
 };
 
 TEST_F(TestCPU, TestCPUExecuteFunction) {
 	// Given:
-	Byte flagMask = 0b11011111;						//Bit 5 is never set
+	Byte flagMask = 0b11011111;		// Bit 5 is never set
 	cpu->reset(mem);
 	Byte initFlags = (rand() & 0xFF & flagMask);
 	cpu->setFlags(initFlags);
-	ASSERT_EQ(cpu->PC, 0xFFFC);
+	ASSERT_EQ(state->PC, 0xFFFC);
 	Byte cycles = 0;
-	mem->writeByte(cycles, 0xFFFC, 0xEA); // instruction 0xEA is a NOP
+	mem->writeByte(cycles, 0xFFFC, 0xEA); // Instruction 0xEA is a NOP - TODO replace with NOP instruction
 
 	//when:
 	u16 cyclesExecuted = cpu->execute(1, mem);
 
 	//then
-	EXPECT_EQ(cpu->PC, (0xFFFC) + 1);	//PC should be incremented
-	EXPECT_EQ(cyclesExecuted, 2);
-	EXPECT_EQ(initFlags, cpu->getFlags());
-
+	EXPECT_EQ(state->PC, (0xFFFC) + 1);			// PC should be incremented
+	EXPECT_EQ(cyclesExecuted, 2);				// NOP uses 2 cycles
+	EXPECT_EQ(initFlags, cpu->getFlags());		// Flags should not change
 };

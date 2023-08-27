@@ -1,5 +1,9 @@
+/**
+* InstructionManager deals with handing execution to handlers defined in the instructions subdir
+*/ 
 #pragma once
-#include "instruction_handler.h"
+#include "types.h"
+#include "instructions/instruction_utils.h"
 
 /*
 Instruction Manager
@@ -9,23 +13,20 @@ https://www.masswerk.at/nowgobang/2021/6502-illegal-opcodes
 */
 
 // Op Codes 
-static constexpr Byte INS_NOP = 0xEA;
+static constexpr Byte INS_NOP = 0xEA;		//NOP
 
 class InstructionManager {
 private:
 	//Handler Matrix
-	const InstructionHandler* handlers[0x100] = {};
-
-	//Needs to be called on initialisation of program
-	void initInstructionHandlers();
+	InstructionHandler* handlers[0x100] = {};
 
 public:
 	//Default handler for undefined instructions
-	const InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem) { return 0;} };
+	InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem, CPUState* state, InstructionCode*) { return (u8)2;} };
 
 	//Constructor
-	InstructionManager();
+	InstructionManager(InstructionUtils::InstructionLoader* loader);
 
 	//Array read access
-	const InstructionHandler* operator[](Byte instruction);
+	InstructionHandler* operator[](Byte instruction);
 };
