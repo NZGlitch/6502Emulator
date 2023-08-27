@@ -18,7 +18,7 @@ void CPU::reset(Memory* memory) {
 	currentState->D = 0;											// Clear decimal flag
 	currentState->I = 0;											// Clear interrupt flag
 	currentState->PC = 0xFFFC;										// Set Program Counter
-	currentState->SP = 0x100;										// Set Stack Pointer
+	currentState->setSP(0xFF);										// Set Stack Pointer
 	currentState->A = currentState->X = currentState->Y = 0;		// Reset registers
 	memory->initialise();	// Reset Memory
 }

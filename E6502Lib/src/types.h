@@ -42,12 +42,19 @@ public:
 };
 
 struct CPUState {
+private:
+	Word SP = 0x01FF;					// Stack Pointer - need to ensure it remains on page 01
+
+public:
+	CPUState() { setFlags(0x00); }		// Initialise flags to 0b00000000
+
 	// Internal Registers
-	Word PC;			// Program Counter
-	Byte SP;			// Stack Pointer
+	Word PC = 0xFFFC;					// Program Counter
 
 	// Registers
-	Byte A,X,Y;
+	Byte A = 0;
+	Byte X = 0;
+	Byte Y = 0;
 
 	// Status Flags
 	Byte C : 1;			// Carry Flag				(0)
@@ -61,6 +68,30 @@ struct CPUState {
 	/* Returns the current value of the PC and increments it by 1 */
 	Word incPC() {
 		return PC++;
+	}
+
+	/* Returns the value of the current SP then decrements */
+	Word pushSP() {
+		Word res = SP--;
+		if (SP < 0x0100) SP = 0x01FF;
+		return res;
+	}
+
+	/* increments the stack, then returns its new value */
+	Word popSP() {
+		if (++SP > 0x01FF) SP = 0x0100;
+		Word res = SP;
+		return res;
+	}
+
+	/* Returns current SP value without decrementing */
+	Word getSP() {
+		return SP;
+	}
+
+	/* Sets low order bits of SP */
+	void setSP(Byte value) {
+		SP = 0x0100 | value;
 	}
 
 	bool operator==(CPUState other) const {
@@ -104,6 +135,19 @@ struct Memory {
 	Byte readByte(u8& cycles, Word address) {
 		cycles++;
 		return data[address];
+	}
+
+	/** 
+	 * Emulate reading a word from memory. 
+	 * @param cycles will be incremented by the number of cycles taken (2)
+	 * NOTE: reading is little endian, i.e. if address = 0x1234, result[lsb] = 0x1234 and result[msb] = 0x1235
+	 */
+	Word readWord(u8& cycles, Word address) {
+		Byte lsb = data[address];
+		cycles++;
+		Word result = (data[(address+1)&0xFFFF] <<8) | lsb;
+		cycles++;
+		return result;
 	}
 
 	/** Emulate writing a byte to memory. @cycles will be incremented by the number of cycles taken */

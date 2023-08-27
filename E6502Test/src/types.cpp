@@ -108,10 +108,51 @@ TEST_F(TestTypes, TestCPUincPC) {
 	EXPECT_EQ(state.PC, testAddress+1);		// Expect PC to be incremented
 }
 
+/* Test CPUState pushSP gets and decrements the SP */
+TEST_F(TestTypes, TestCPUpushSP) {
+	// Given:
+	CPUState state;
+	Byte testAddress = 0x01;	// TODO - randomise?
+	state.setSP(testAddress);
+	ASSERT_EQ(state.getSP(), 0x0101);
+
+	// When:
+	Word sp01 = state.pushSP();
+	Word sp00 = state.pushSP();
+	Word spff = state.pushSP();
+
+	// Then:
+	EXPECT_EQ(sp01, 0x0101);				// First call should return 0x0101
+	EXPECT_EQ(sp00, 0x0100);				// Next call should return 0x0100 (prev - 1)
+	EXPECT_EQ(spff, 0x01FF);				// Last all should return 0x01FF (prev - 1, underflow wrap)
+	EXPECT_EQ(state.getSP(), 0x01FE);		// Stack pointer should now be at 0x01F8
+}
+
+/* Test CPUState popSP increments then gets the SP */
+TEST_F(TestTypes, TestCPUpopSP) {
+	// Given:
+	CPUState state;
+	Byte testAddress = 0xFE;	// TODO - randomise?
+	state.setSP(testAddress);
+	ASSERT_EQ(state.getSP(), 0x01FE);
+
+	// When:
+	Word spff = state.popSP();
+	Word sp00 = state.popSP();
+	Word sp01 = state.popSP();
+
+	// Then:
+	
+	EXPECT_EQ(spff, 0x01FF);				// First all should return 0x01FF (prev + 1)
+	EXPECT_EQ(sp00, 0x0100);				// Next call should return 0x0100 (prev + 1 overflow/wrap)
+	EXPECT_EQ(sp01, 0x0101);				// Last call should return 0x0101
+	EXPECT_EQ(state.getSP(), 0x0101);		// Stack pointer should now be at 0x0101
+}
+
 /* Test CPUState setFlags/getFlags */
 TEST_F(TestTypes, TestCPUGetSetFlags) {
 	//Given:
-	CPUState state{ 0,0,0,0,0,0,0,0,0,0,0,0};
+	CPUState state;
 	EXPECT_EQ(state.getFlags(), 0x00);
 	Byte testFlags = 0xCF;
 
@@ -120,4 +161,12 @@ TEST_F(TestTypes, TestCPUGetSetFlags) {
 
 	//Then:
 	EXPECT_EQ(state.getFlags(), testFlags);
+}
+
+/* Test CPUState setSP/getSP */
+TEST_F(TestTypes, TestCPUGetSP) {
+	CPUState state;
+	state.setSP(0x12);		//TODO - randomise
+
+	EXPECT_EQ(state.getSP(), 0x0112);
 }
