@@ -1,15 +1,16 @@
 #include "lda.h"
 
-/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
-void LDA::setFlags(CPUState* state) {
-	state->Z = (state->A == 0);
-	state->N = (state->A >> 7);
-}
+namespace E6502 {
+	/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
+	void LDA::setFlags(CPUState* state) {
+		state->Z = (state->A == 0);
+		state->N = (state->A >> 7);
+	}
 
-/** One function will handle the 'execute' method for all variants */
-u8 LDA::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
-	u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-	switch (opCode->B) {
+	/** One function will handle the 'execute' method for all variants */
+	u8 LDA::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+		switch (opCode->B) {
 		case INDIRECT_X:
 		case INDIRECT_Y: {
 			// Read the next byte as the base for a zero page address.
@@ -93,19 +94,20 @@ u8 LDA::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
 			// We won't change the state or use cycles
 			return (u8)0;
 		}
-	}
-	LDA::setFlags(state);
-	return cycles;
-};
+		}
+		LDA::setFlags(state);
+		return cycles;
+	};
 
-/** Called to add LDA Instruction handlers to the emulator */
-void LDA::addHandlers(InstructionHandler* handlers[]) {
-	handlers[INS_LDA_IMM] = ((InstructionHandler*) new LDA_IMM);
-	handlers[INS_LDA_ZP] = ((InstructionHandler*) new LDA_ZP);
-	handlers[INS_LDA_ZPX] = ((InstructionHandler*) new LDA_ZPX);
-	handlers[INS_LDA_ABS] = ((InstructionHandler*) new LDA_ABS);
-	handlers[INS_LDA_ABSX] = ((InstructionHandler*) new LDA_ABSX);
-	handlers[INS_LDA_ABSY] = ((InstructionHandler*) new LDA_ABSY);
-	handlers[INS_LDA_INDX] = ((InstructionHandler*) new LDA_INDX);
-	handlers[INS_LDA_INDY] = ((InstructionHandler*) new LDA_INDY);
-};
+	/** Called to add LDA Instruction handlers to the emulator */
+	void LDA::addHandlers(InstructionHandler* handlers[]) {
+		handlers[INS_LDA_IMM] = ((InstructionHandler*) new LDA_IMM);
+		handlers[INS_LDA_ZP] = ((InstructionHandler*) new LDA_ZP);
+		handlers[INS_LDA_ZPX] = ((InstructionHandler*) new LDA_ZPX);
+		handlers[INS_LDA_ABS] = ((InstructionHandler*) new LDA_ABS);
+		handlers[INS_LDA_ABSX] = ((InstructionHandler*) new LDA_ABSX);
+		handlers[INS_LDA_ABSY] = ((InstructionHandler*) new LDA_ABSY);
+		handlers[INS_LDA_INDX] = ((InstructionHandler*) new LDA_INDX);
+		handlers[INS_LDA_INDY] = ((InstructionHandler*) new LDA_INDY);
+	};
+}

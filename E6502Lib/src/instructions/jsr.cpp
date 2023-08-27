@@ -1,8 +1,9 @@
 #include "jsr.h"
 
-u8 JSR::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
-	u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-	switch (opCode->code) {
+namespace E6502 {
+	u8 JSR::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+		switch (opCode->code) {
 		case INS_JSR: {
 			Byte lsb = mem->readByte(cycles, state->incPC());						// Get the lsb of the target address
 			mem->writeByte(cycles, state->pushSP(), ((state->PC >> 8) & 0xFF));		// Copy the high order bits of PC to stack
@@ -17,11 +18,12 @@ u8 JSR::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
 			// We won't change the state or use cycles
 			return (u8)0;
 		}
-	}
-	return cycles;
-};
+		}
+		return cycles;
+	};
 
-/** Implementation of addhandlers needs to be after the struct defs */
-void JSR::addHandlers(InstructionHandler* handlers[]) {
-	handlers[INS_JSR] = ((InstructionHandler*) new JSR_ABS);
+	/** Implementation of addhandlers needs to be after the struct defs */
+	void JSR::addHandlers(InstructionHandler* handlers[]) {
+		handlers[INS_JSR] = ((InstructionHandler*) new JSR_ABS);
+	}
 }
