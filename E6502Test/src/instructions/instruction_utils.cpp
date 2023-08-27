@@ -5,35 +5,38 @@
 #include "instructions/jsr.h"
 #include "instructions/lda.h"
 
-class TestInstructionUtils : public testing::Test {
+namespace E6502 {
 
-public:
-	virtual void SetUp() {
-	}
+	class TestInstructionUtils : public testing::Test {
 
-	virtual void TearDown() {
-	}
-};
+	public:
+		virtual void SetUp() {
+		}
+
+		virtual void TearDown() {
+		}
+	};
 
 
-/* Test all instructions are correctly added */
-TEST_F(TestInstructionUtils, TestInstructionDefs) {
-	// Given:
-	InstructionHandler* handlers[0x100];
-	for (int i = 0; i < 0x100; i++) handlers[i] = nullptr;
+	/* Test all instructions are correctly added */
+	TEST_F(TestInstructionUtils, TestInstructionDefs) {
+		// Given:
+		InstructionHandler* handlers[0x100];
+		for (int i = 0; i < 0x100; i++) handlers[i] = nullptr;
 
-	// When:
-	InstructionUtils::loader.load(handlers);
+		// When:
+		InstructionUtils::loader.load(handlers);
 
-	// Then (LDA):
-	for (const Byte& opcode : LDA::instructions) {
-		ASSERT_FALSE(handlers[opcode] == nullptr);
-		EXPECT_EQ((handlers[opcode]->opcode), opcode);
-	}
+		// Then (LDA):
+		for (const Byte& opcode : LDA::instructions) {
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		}
 
-	// Then (JSR):
-	for (const Byte& opcode : JSR::instructions) {
-		ASSERT_FALSE(handlers[opcode] == nullptr);
-		EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		// Then (JSR):
+		for (const Byte& opcode : JSR::instructions) {
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		}
 	}
 }

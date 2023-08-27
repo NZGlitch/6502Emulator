@@ -1,3 +1,5 @@
 #include "base.h"
 
-BaseInstruction::BaseInstruction() {}
+namespace E6502 {
+	BaseInstruction::BaseInstruction() {}
+}

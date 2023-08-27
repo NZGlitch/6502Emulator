@@ -2,129 +2,132 @@
 #include "types.h"
 #include "cpu.h"
 
-class TestProgram : public testing::Test {
-public:
+namespace E6502 {
 
-	/** Address to load program to */
-	Byte pamsb = 0x12;
-	Byte palsb = 0x34;
-	Word programAddress = (pamsb<<8) | palsb;
+	class TestProgram : public testing::Test {
+	public:
 
-	// Where to write the data section
-	Word dataSectionAddress = 0x4284;
+		/** Address to load program to */
+		Byte pamsb = 0x12;
+		Byte palsb = 0x34;
+		Word programAddress = (pamsb << 8) | palsb;
 
-	/** Loaded at #FFFC jumps to 'program' - MUST be 4 bytes long*/
-	Byte initProgram[4] = {INS_JSR, palsb, pamsb, 0x00};
+		// Where to write the data section
+		Word dataSectionAddress = 0x4284;
 
-	/* Size of program */
-	const static Word programSize = 0x12;
+		/** Loaded at #FFFC jumps to 'program' - MUST be 4 bytes long*/
+		Byte initProgram[4] = { INS_JSR, palsb, pamsb, 0x00 };
 
-	/* Sample program to test */
-	Byte program[programSize] = {
-		// Test out LDA instructions by loading data into the A register
-		INS_LDA_ABS,	0x84,	0x42,		// Load the first byte from the data section (0x12)
-		INS_LDA_ABSX,	0x84,	0x42,		// Load data[x] - cant be set, if 0 then A = 0x12
-		INS_LDA_ABSY,	0x84,	0x42,		// Load data[y] - cant be set, if 0 then A = 0x12
-		INS_LDA_IMM,	0x42,				// Load 0x42 into A
-		INS_LDA_ZP,		0x02,				// load zp[02] = 0xDD into A
-		INS_LDA_ZPX,	0x08,				// load (zp+0x08)[x] - cant be set, if 0 then A = 0x77
-		//TODO - indirect instructions
-		INS_JSR,		palsb,	pamsb,		// GOTO 10 - infinite loop
-	};
+		/* Size of program */
+		const static Word programSize = 0x12;
 
-	/* Size of data section */
-	const static Word dataSize = 0x08;
+		/* Sample program to test */
+		Byte program[programSize] = {
+			// Test out LDA instructions by loading data into the A register
+			INS_LDA_ABS,	0x84,	0x42,		// Load the first byte from the data section (0x12)
+			INS_LDA_ABSX,	0x84,	0x42,		// Load data[x] - cant be set, if 0 then A = 0x12
+			INS_LDA_ABSY,	0x84,	0x42,		// Load data[y] - cant be set, if 0 then A = 0x12
+			INS_LDA_IMM,	0x42,				// Load 0x42 into A
+			INS_LDA_ZP,		0x02,				// load zp[02] = 0xDD into A
+			INS_LDA_ZPX,	0x08,				// load (zp+0x08)[x] - cant be set, if 0 then A = 0x77
+			//TODO - indirect instructions
+			INS_JSR,		palsb,	pamsb,		// GOTO 10 - infinite loop
+		};
 
-	// Heap the progam can use for stuff
-	Byte dataSection[dataSize] = {
-		0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF		//0x0000 -> 0x0007
-	};
+		/* Size of data section */
+		const static Word dataSize = 0x08;
 
-	/* Size of ZP section */
-	const static Word zpSize = 0x10;
+		// Heap the progam can use for stuff
+		Byte dataSection[dataSize] = {
+			0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF		//0x0000 -> 0x0007
+		};
 
-	// Heap the progam can use for stuff
-	Byte zpSection[zpSize] = {
-		0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88,		//0x00 -> 0x07
-		0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00,		//0x08 -> 0x0F
-	};
+		/* Size of ZP section */
+		const static Word zpSize = 0x10;
 
-	
+		// Heap the progam can use for stuff
+		Byte zpSection[zpSize] = {
+			0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88,		//0x00 -> 0x07
+			0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00,		//0x08 -> 0x0F
+		};
 
-	virtual void SetUp() {
-	}
 
-	virtual void TearDown() {
-	}
 
-};
-
-/* Test the memory initialisation function */
-TEST_F(TestProgram, TestProgram1) {
-	// Initialise objects
-	Memory* mem = new Memory();
-	CPUState cpuState;
-	CPU* cpu = new CPU(&cpuState);
-	cpu->reset(mem);
-	u8 cyclesExecuted = 0;
-
-	// Clock stuff
-	s8 clockSpeedMhz = 1;		// 1 instruction per microsecond
-	
-	u8 insToExecute = 8;		// initProgram(1) + program(7) = 8
-
-	// boot routine @ 0xFFFC
-	mem->loadProgram(0xFFFC, initProgram, 4);
-
-	// zero page @ 0x0000
-	mem->loadProgram(0x0000, zpSection, zpSize);
-
-	// program section 
-	mem->loadProgram(programAddress, program, programSize);
-
-	// data section
-	mem->loadProgram(dataSectionAddress, dataSection, dataSize);
-
-	auto start_time = std::chrono::high_resolution_clock::now();
-	auto end_time = std::chrono::high_resolution_clock::now();
-	auto time = end_time - start_time;
-
-	while (insToExecute > 0) {
-		// Execute One instruction
-		u8 numExec = (insToExecute < 20 ? insToExecute : 50);	//20 at a time?
-		cyclesExecuted = cpu->execute(numExec, mem);
-
-		// Calculate delay if required
-		s8 timeToTake = cyclesExecuted * clockSpeedMhz;
-		end_time = std::chrono::high_resolution_clock::now();
-		auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
-
-		if (elapsed > timeToTake) {
-			// Took too long
-			//printf("%d cycles took %d microseconds to elapse - too long!\n", cyclesExecuted, elapsed);
+		virtual void SetUp() {
 		}
-		else {
-			//printf("%d cycles took %d microseconds to elapse - sleeping...\n", cyclesExecuted, elapsed);
-			// Sleep 1us at a time until required time is taken
-			while (elapsed < timeToTake) {
-				std::this_thread::sleep_for(std::chrono::microseconds(1));
-				end_time = std::chrono::high_resolution_clock::now();
-				elapsed = (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time)).count();
+
+		virtual void TearDown() {
+		}
+
+	};
+
+	/* Test the memory initialisation function */
+	TEST_F(TestProgram, TestProgram1) {
+		// Initialise objects
+		Memory* mem = new Memory();
+		CPUState cpuState;
+		CPU* cpu = new CPU(&cpuState);
+		cpu->reset(mem);
+		u8 cyclesExecuted = 0;
+
+		// Clock stuff
+		s8 clockSpeedMhz = 1;		// 1 instruction per microsecond
+
+		u8 insToExecute = 8;		// initProgram(1) + program(7) = 8
+
+		// boot routine @ 0xFFFC
+		mem->loadProgram(0xFFFC, initProgram, 4);
+
+		// zero page @ 0x0000
+		mem->loadProgram(0x0000, zpSection, zpSize);
+
+		// program section 
+		mem->loadProgram(programAddress, program, programSize);
+
+		// data section
+		mem->loadProgram(dataSectionAddress, dataSection, dataSize);
+
+		auto start_time = std::chrono::high_resolution_clock::now();
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto time = end_time - start_time;
+
+		while (insToExecute > 0) {
+			// Execute One instruction
+			u8 numExec = (insToExecute < 20 ? insToExecute : 50);	//20 at a time?
+			cyclesExecuted = cpu->execute(numExec, mem);
+
+			// Calculate delay if required
+			s8 timeToTake = cyclesExecuted * clockSpeedMhz;
+			end_time = std::chrono::high_resolution_clock::now();
+			auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
+
+			if (elapsed > timeToTake) {
+				// Took too long
+				//printf("%d cycles took %d microseconds to elapse - too long!\n", cyclesExecuted, elapsed);
 			}
+			else {
+				//printf("%d cycles took %d microseconds to elapse - sleeping...\n", cyclesExecuted, elapsed);
+				// Sleep 1us at a time until required time is taken
+				while (elapsed < timeToTake) {
+					std::this_thread::sleep_for(std::chrono::microseconds(1));
+					end_time = std::chrono::high_resolution_clock::now();
+					elapsed = (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time)).count();
+				}
+			}
+
+			//Reset clock & cycles
+			insToExecute -= numExec;
+			cyclesExecuted = 0;
+			start_time = end_time;
 		}
 
-		//Reset clock & cycles
-		insToExecute-=numExec;
-		cyclesExecuted = 0;
-		start_time = end_time;
+		EXPECT_EQ(cpuState.PC, 0x1234);	// Last instruction (JSR) sets this
+		EXPECT_EQ(cpuState.A, 0x77);	// Last LDA instruction sets this
+
+		// Return address of stack should be programAddr + 0x11 (i.e. the last byte of the program)
+		Byte slsb = mem->readByte(cyclesExecuted, cpuState.popSP());
+		Byte smsb = mem->readByte(cyclesExecuted, cpuState.popSP());
+		Word stackAddr = (smsb << 8) | slsb;
+		EXPECT_EQ(stackAddr, programAddress + 0x11);
 	}
-
-	EXPECT_EQ(cpuState.PC, 0x1234);	// Last instruction (JSR) sets this
-	EXPECT_EQ(cpuState.A, 0x77);	// Last LDA instruction sets this
-
-	// Return address of stack should be programAddr + 0x11 (i.e. the last byte of the program)
-	Byte slsb = mem->readByte(cyclesExecuted, cpuState.popSP());
-	Byte smsb = mem->readByte(cyclesExecuted, cpuState.popSP());
-	Word stackAddr = (smsb << 8) | slsb;
-	EXPECT_EQ(stackAddr, programAddress + 0x11);
 }
