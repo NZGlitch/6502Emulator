@@ -1,12 +1,8 @@
 #include <gmock/gmock.h>
 #include "types.h"
 
-/**
-* The Instruction Handle actually 'executes' instructions
-*/
 class TestInstructionHandler : public testing::Test {
 public:
-
 	InstructionHandler testHandler = {};
 
 	virtual void SetUp() {

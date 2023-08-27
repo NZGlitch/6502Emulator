@@ -7,8 +7,6 @@
 class TestInstructionUtils : public testing::Test {
 
 public:
-	InstructionManager inMan = InstructionManager(&InstructionUtils::loader);
-
 	virtual void SetUp() {
 	}
 
@@ -17,10 +15,16 @@ public:
 };
 
 
-/* Example test */
+/* Test all LDA instructions are correctly added */
 TEST_F(TestInstructionUtils, TestLDAInstructionDefs) {
+	// Given:
+	InstructionHandler* handlers[0x100];
+
+	// When:
+	InstructionUtils::loader.load(handlers);
+
+	// Then:
 	for (Byte& opcode : LDA::instructions) {
-			EXPECT_EQ((inMan[opcode]->opcode), opcode);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 	}
 }
-

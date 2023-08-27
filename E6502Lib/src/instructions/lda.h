@@ -15,6 +15,7 @@ const static Byte INS_LDA_ABSX = 0xBD;
 #ifndef LDA
 #define LDA
 namespace LDA {
+
 	/** LDA Adressing Modes */
 	const static Byte INDIRECT_X	= 0b000; // 101 000 01
 	const static Byte ZERO_PAGE		= 0b001; // 101 001 01
@@ -32,16 +33,14 @@ namespace LDA {
 
 	/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
 	void setFlags(CPUState* state) {
-		Byte flags = state->getFlags() & 0b01011101;					// Get all the flags except N & Z
-		flags |= (state->A & 0x80) | (state->A == 0 ? 0x02 : 0x00);		// Set N & Z Flags
-		state->setFlags(flags);											// Update state
+		state->Z = (state->A == 0);
+		state->N = (state->A >> 7);
 	}
 
 	/** One function will handle the 'execute' method for all variants */
 	insHandlerFn LDAInstructionHandler = [](Memory* mem, CPUState* state, InstructionCode* opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		switch (opCode->B) {
-			// Indirect X and Y are very similar
 			case INDIRECT_X:
 			case INDIRECT_Y: {
 				// Read the next byte as the base for a zero page address.
@@ -59,7 +58,7 @@ namespace LDA {
 				Byte msb = mem->readByte(cycles, indirectAddress+1);
 
 				if (opCode->B == INDIRECT_Y) {
-					// For Indirect Y only, if the earlier baseAddtess+Y caused a carry then we need to increment msb
+					// For Indirect Y only, if the earlier baseAddress+Y caused a carry then we need to increment msb
 					if (indirectAddressLSB > 0xFF)
 						msb++; cycles++;
 				}
@@ -67,12 +66,10 @@ namespace LDA {
 					cycles++;	//indirect x is always 6 cycels for some reason?
 				}
 
-				Word targetAddress = (msb << 8) | lsb;
-
 				// Set A register with value in target address
+				Word targetAddress = (msb << 8) | lsb;
 				state->A = mem->readByte(cycles, targetAddress);
 				break;
-
 			}
 			case ZERO_PAGE: {
 				/* Read the next byte as the lsb for a zero page address */
@@ -97,7 +94,6 @@ namespace LDA {
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
-			// Absolute instructions have a lot of common code
 			case ABSOLUTE: 
 			case ABSOLUTE_X:
 			case ABSOLUTE_Y: {
@@ -133,7 +129,7 @@ namespace LDA {
 		return cycles;
 	};
 
-	/** Defines proprties common to all LDA instructions */
+	/** Defines properties common to all LDA instructions */
 	struct BASE : public InstructionHandler {
 		BASE() {
 			isLegal = true;
@@ -214,8 +210,7 @@ namespace LDA {
 		handlers[INS_LDA_ABSX] = ((InstructionHandler*) new LDA_ABSX);
 		handlers[INS_LDA_ABSY] = ((InstructionHandler*) new LDA_ABSY);
 		handlers[INS_LDA_INDX] = ((InstructionHandler*) new LDA_INDX);
-		handlers[INS_LDA_INDY] = ((InstructionHandler*) new LDA_INDY);
-		
+		handlers[INS_LDA_INDY] = ((InstructionHandler*) new LDA_INDY);	
 	}
 }
 #endif 

@@ -25,13 +25,13 @@ void CPU::reset(Memory* memory) {
 
 /* Helper method, allows setting all flags at once */
 void CPU::setFlags(u8 flags) {
-	currentState->C = (flags & 0b00000001) >> 0;
-	currentState->Z = (flags & 0b00000010) >> 1;
-	currentState->I = (flags & 0b00000100) >> 2;
-	currentState->D = (flags & 0b00001000) >> 3;
-	currentState->B = (flags & 0b00010000) >> 4;
-	currentState->O = (flags & 0b01000000) >> 6;
-	currentState->N = (flags & 0b10000000) >> 7;
+	currentState->C = (flags & 0b00000001) > 0;
+	currentState->Z = (flags & 0b00000010) > 1;
+	currentState->I = (flags & 0b00000100) > 2;
+	currentState->D = (flags & 0b00001000) > 3;
+	currentState->B = (flags & 0b00010000) > 4;
+	currentState->O = (flags & 0b01000000) > 6;
+	currentState->N = (flags & 0b10000000) > 7;
 }
 
 /* Allows getting all flags in a single byte */

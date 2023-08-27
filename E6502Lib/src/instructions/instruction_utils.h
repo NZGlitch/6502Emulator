@@ -1,10 +1,10 @@
 #pragma once
 #include "../types.h"
 #include "lda.h"
+
 /**
 * Common utilities for instruction definitions
 */
-
 #ifndef INSTRUCTIONUTILS
 #define INSTRUCTIONUTILS
 namespace InstructionUtils {

@@ -2,7 +2,7 @@
 #include "types.h"
 
 /**
-* Tests data types in types.h are correct - note this is isystem dependent, so
+* Tests data types in types.h are correct - note this is is system dependent, so
 * even if these test pass, compiling the code on a different system may lead
 * to failure
 */
@@ -50,7 +50,7 @@ TEST_F(TestTypes, TestInstructionCodeToByte) {
 	InstructionCode code(initByte);
 	code = testByte;
 
-	// Then
+	// Then:
 	EXPECT_EQ(code.A, 0b101);
 	EXPECT_EQ(code.B, 0b010);
 	EXPECT_EQ(code.C, 0b10);
@@ -65,7 +65,7 @@ TEST_F(TestTypes, TestByteToInstructionCode) {
 	// When:
 	Byte result = code;
 
-	// Then
+	// Then:
 	EXPECT_EQ(result, testByte);
 }
 
@@ -104,8 +104,8 @@ TEST_F(TestTypes, TestCPUincPC) {
 	Word PC = state.incPC();
 
 	// Then:
-	EXPECT_EQ(PC, testAddress);				/** Expect the return value to be what PC WAS) */
-	EXPECT_EQ(state.PC, testAddress+1);		/** Expect PC to be incremented */
+	EXPECT_EQ(PC, testAddress);				// Expect the return value to be what PC WAS)
+	EXPECT_EQ(state.PC, testAddress+1);		// Expect PC to be incremented
 }
 
 /* Test CPUState setFlags/getFlags */

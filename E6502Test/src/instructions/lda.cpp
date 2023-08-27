@@ -4,11 +4,10 @@
 #include "lda.h"
 
 class TestLDAInstruction : public testing::Test {
-
 public:
 
-	const static bool ABS_IDX_X = true;;
-	const static bool ABS_IDX_Y = false;
+	const static bool ABS_IDX_X = true;		// Used by absRegHelper to indicate register X should be used
+	const static bool ABS_IDX_Y = false;	// Used by absRegHelper to indicate register Y should be used
 
 	CPUState* state;
 	Memory* memory;
@@ -31,7 +30,6 @@ public:
 		delete handler;
 	}
 
-
 	/** 
 	 * Helper method for all the abs mode tests
 	 * @param instruction		Instruction code to execude (From LDA::instructions)
@@ -42,7 +40,7 @@ public:
 	 * @param expected_cycles	The number of cycles the execution should take
 	 * @param test_name			Name of the test (helps with debugging)
 	*/
-	void absXHelper(Byte instruction, Byte lsb, Byte msb, Byte index, u8 idx_mode, u8 expected_cycles, char* test_name) {
+	void absRegHelper(Byte instruction, Byte lsb, Byte msb, Byte index, u8 idx_mode, u8 expected_cycles, char* test_name) {
 		// Fixtures
 		Byte testValue = 0x42;			//TODO - maybe randomise?
 		Word targetAddress = (msb << 8) + lsb + index;
@@ -75,71 +73,78 @@ public:
 * Tests the execute function operates correctly *
 *************************************************/
 
-/* Tests setFlags */
+/* Tests setFlags when N and Z flags 0 */
 TEST_F(TestLDAInstruction, TestLDANoFlags) {
-	// Given
+	// Given:
 	state->setFlags(0xFF);
 	state->A = 0x78;
 
-	// When
+	// When:
 	LDA::setFlags(state);
+
 	// Then
 	EXPECT_EQ(state->getFlags(), 0x5D);	// Unset Z and N flags
 
-	// Given
+	// Given:
 	state->setFlags(0x00);
 	state->A = 0x78;
 
-	// When
+	// When:
 	LDA::setFlags(state);
-	// Then
+
+	// Then:
 	EXPECT_EQ(state->getFlags(), 0x00); // Flags unchanges
 }
 
+/* Tests setFlags when Z flag changes */
 TEST_F(TestLDAInstruction, TestLDAZeroFlags) {
-	// Given
-	state->setFlags(0x02);		//Z set
+	// Given:
+	state->setFlags(0x02); // Z set
 	state->A = 0x78;
 
-	// When
+	// When:
 	LDA::setFlags(state);
-	// Then
+
+	// Then:
 	EXPECT_EQ(state->getFlags(), 0x00);	// Expect Z Unset
 
-	// Given
-	state->setFlags(0x00);		//Z Unset
+	// Given:
+	state->setFlags(0x00); // Z Unset
 	state->A = 0x00;
 
-	// When
+	// When:
 	LDA::setFlags(state);
-	// Then
+	
+	// Then:
 	EXPECT_EQ(state->getFlags(), 0x02); // Expect Z Set
 }
 
+/* Tests setFlags when N flag changes */
 TEST_F(TestLDAInstruction, TestLDANegFlags) {
 	// Given
-	state->setFlags(0xDD);		//N set
+	state->setFlags(0xDD); //N set
 	state->A = 0x78;
 
-	// When
+	// When:
 	LDA::setFlags(state);
 	// Then
 	EXPECT_EQ(state->getFlags(), 0x5D);	// Expect N Unset
 
-	// Given
-	state->setFlags(0x00);		//N Unset
+	// Given:
+	state->setFlags(0x00); //N Unset
 	state->A = 0x80;
 
-	// When
+	// When:
 	LDA::setFlags(state);
-	// Then
+
+	// Then:
 	EXPECT_EQ(state->getFlags(), 0x80); // Expect N Set
 }
 
 /* Tests LDA  Immediate Instruction */
 TEST_F(TestLDAInstruction, TestLDAImmediate) {
 	// Fixtures
-	Byte testValue = 0x42;		//TODO - maybe randomise?
+	Byte testValue = 0x42;		// TODO - maybe randomise?
 	u8 cyclesUsed = 0;
 
 	// Load fixtures to memory
@@ -147,7 +152,7 @@ TEST_F(TestLDAInstruction, TestLDAImmediate) {
 	memory->data[0x0000] = testValue;
 
 	// Given:	
-	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->A = ~testValue;		// TODO - consider - must be different fro test value
 	
 	// When:
 	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_IMM));
@@ -160,8 +165,8 @@ TEST_F(TestLDAInstruction, TestLDAImmediate) {
 /* Tests LDA Zero Page Instruction */
 TEST_F(TestLDAInstruction, TestLDAZeroPage) {
 	// Fixtures
-	Byte testValue = 0x42;		//TODO - maybe randomise?
-	Byte insAddress = 0x84;		//TODO - maybe randmomise?
+	Byte testValue = 0x42;		// TODO - maybe randomise?
+	Byte insAddress = 0x84;		// TODO - maybe randmomise?
 	u8 cyclesUsed = 0;
 
 	// Load fixtures to memory
@@ -170,7 +175,7 @@ TEST_F(TestLDAInstruction, TestLDAZeroPage) {
 	memory->data[insAddress] = testValue;
 
 	// Given:	
-	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->A = ~testValue;		// TODO - consider - must be different fro test value
 
 	// When:
 	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ZP));
@@ -180,12 +185,12 @@ TEST_F(TestLDAInstruction, TestLDAZeroPage) {
 	EXPECT_EQ(cyclesUsed, 3);
 }
 
-/* Tests LDA Zero Page,X Instruction (No overflow)*/
+/* Tests LDA Zero Page,X Instruction (No overflow) */
 TEST_F(TestLDAInstruction, TestLDAZeroPageNorm) {
 	// Fixtures
-	Byte baseAddress	= 0x84;			//TODO - maybe randmomise?
-	Byte testX			= 0x10;					//When this is X we will get 0x94
-	Byte testValue		= 0x42;			//TODO - maybe randomise?
+	Byte baseAddress	= 0x84;			// TODO - maybe randmomise?
+	Byte testX			= 0x10;			// When this is X we will get 0x94
+	Byte testValue		= 0x42;			// TODO - maybe randomise?
 	u8 cyclesUsed = 0;
 
 	// Load fixtures to memory
@@ -194,7 +199,7 @@ TEST_F(TestLDAInstruction, TestLDAZeroPageNorm) {
 	memory->data[0x94] = testValue;
 
 	// Given:	
-	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->A = ~testValue;				// TODO - consider - must be different fro test value
 	state->X = testX;
 
 	// When:
@@ -219,7 +224,7 @@ TEST_F(TestLDAInstruction, TestLDAZeroPageOver) {
 	memory->data[0x42] = testValue;
 
 	// Given:	
-	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->A = ~testValue;				//TODO - consider - must be different fro test value
 	state->X = testX;
 
 	// When:
@@ -265,14 +270,14 @@ TEST_F(TestLDAInstruction, TestLDAAbsoluteX) {
 	u8 cyclesUsed = 0;
 
 	index = 0x10;
-	absXHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 4, "LDA ABS (no overflow or page)");
+	absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 4, "LDA ABSX (no overflow or page)");
 
 	index = 0xA5;
-	absXHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 5, "LDA ABS (overflow)");
+	absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 5, "LDA ABSX (overflow)");
 
 	msb = 0x37;
 	index = 0xA1;
-	absXHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 5, "LDA ABS (page boundry)");
+	absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, 5, "LDA ABSX (page boundry)");
 }
 
 /* Tests LDA Absolute,Y Instruction */
@@ -283,14 +288,14 @@ TEST_F(TestLDAInstruction, TestLDAAbsoluteY) {
 	u8 cyclesUsed = 0;
 
 	index = 0x10;
-	absXHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 4, "LDA ABS (no overflow or page)");
+	absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 4, "LDA ABSY (no overflow or page)");
 
 	index = 0xA5;
-	absXHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 5, "LDA ABS (overflow)");
+	absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 5, "LDA ABSY (overflow)");
 
 	msb = 0x37;
 	index = 0xA1;
-	absXHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 5, "LDA ABS (page boundry)");
+	absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, 5, "LDA ABSY (page boundry)");
 }
 
 /* Tests LDA Indeirect,X Instruction */
@@ -311,12 +316,11 @@ TEST_F(TestLDAInstruction, TestLDAIndirectX) {
 	// Given:
 	state->PC = 0x0000;
 	state->X = index;
-	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->A = ~testValue;				// TODO - consider - must be different fro test value
 	memory->data[0x0000] = base;
 	memory->data[testIndirectAddress] = targetAddress & 0xFF;
 	memory->data[testIndirectAddress+1] = (targetAddress >> 8) & 0xFF;
 	memory->data[targetAddress] = testValue;
-	
 
 	// When:
 	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDX));
@@ -328,7 +332,7 @@ TEST_F(TestLDAInstruction, TestLDAIndirectX) {
 	// Given (Wrap):
 	state->PC = 0x0000;
 	state->X = indexWrap;
-	state->A = ~(testValue+1);		//TODO - consider - must be different fro test value
+	state->A = ~(testValue+1);			// TODO - consider - must be different fro test value
 	memory->data[0x0000] = base;
 	memory->data[testIndirectAddressWrap] = targetAddressWrap & 0xFF;
 	memory->data[testIndirectAddressWrap + 1] = (targetAddressWrap >> 8) & 0xFF;
@@ -361,7 +365,7 @@ TEST_F(TestLDAInstruction, TestLDAIndirectY) {
 	// Given:
 	state->PC = 0x0000;
 	state->Y = index;
-	state->A = ~testValue;		//TODO - consider - must be different fro test value
+	state->A = ~testValue;					// TODO - consider - must be different fro test value
 	memory->data[0x0000] = base;
 	memory->data[testIndirectAddress] = targetAddress & 0xFF;
 	memory->data[testIndirectAddress + 1] = (targetAddress >> 8) & 0xFF;
@@ -378,7 +382,7 @@ TEST_F(TestLDAInstruction, TestLDAIndirectY) {
 	// Given (Wrap):
 	state->PC = 0x0000;
 	state->Y = indexWrap;
-	state->A = ~(testValue + 1);		//TODO - consider - must be different fro test value
+	state->A = ~(testValue + 1);			// TODO - consider - must be different fro test value
 	memory->data[0x0000] = base;
 	memory->data[testIndirectAddressWrap] = targetAddressWrap & 0xFF;
 	memory->data[testIndirectAddressWrap + 1] = (targetAddressWrap >> 8) & 0xFF;
@@ -396,7 +400,6 @@ TEST_F(TestLDAInstruction, TestLDAIndirectY) {
 *              End Execution tests              *
 *************************************************
 
-
 /* Test correct OpCodes */
 TEST_F(TestLDAInstruction, TestInstructionDefs) {
 	EXPECT_EQ(INS_LDA_IMM, 0xA9);
@@ -409,9 +412,10 @@ TEST_F(TestLDAInstruction, TestInstructionDefs) {
 	EXPECT_EQ(INS_LDA_INDY, 0xB1);
 }
 
+/* Test addHandlers func adds all LDA handlers */
 TEST_F(TestLDAInstruction, TestLDAaddHandlers) {
 	// Given:
-	InstructionHandler* handlers[0x100] = {nullptr};
+	InstructionHandler* handlers[0x100] = { nullptr };
 
 	// When:
 	LDA::addHandlers(handlers);
@@ -422,6 +426,7 @@ TEST_F(TestLDAInstruction, TestLDAaddHandlers) {
 		EXPECT_EQ(((*handlers[opcode]).opcode), opcode);
 	}
 }
+
 /*********************************************
 *				Handler Tests				 *
 * Check each handler is configured correctly *

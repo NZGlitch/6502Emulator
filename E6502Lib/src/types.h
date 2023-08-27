@@ -1,4 +1,3 @@
-/** Defines all the main types used by the emulator */
 #pragma once
 
 // Data types used by the CPU
@@ -14,7 +13,7 @@ using s16 = signed short;
 struct InstructionCode {
 
 protected:
-	/* Sets IC values from given Byte */
+	/* Sets InstructionCode values from given Byte */
 	void set(Byte b) {
 		this->code = b;
 		this->A = (b >> 5) & 0x7;
@@ -66,21 +65,14 @@ struct CPUState {
 
 	bool operator==(CPUState other) const {
 		return (
-			PC == other.PC &&
-			SP == other.SP &&
-			A == other.A &&
-			X == other.X &&
-			Y == other.Y &&
-			C == other.C &&
-			Z == other.Z &&
-			I == other.I &&
-			D == other.D &&
-			B == other.B &&
-			O == other.O &&
-			N == other.N
-			);
+			PC == other.PC && SP == other.SP &&
+			A == other.A && X == other.X && Y == other.Y &&
+			C == other.C && Z == other.Z && I == other.I &&
+			D == other.D && B == other.B && O == other.O &&
+			N == other.N);
 	}
 
+	/* Set the status from the provided Byte - bit 5 is ignored */
 	void setFlags(Byte flags) {
 		C = (flags & (1 << 0)) > 0;
 		Z = (flags & (1 << 1)) > 0;
@@ -91,6 +83,7 @@ struct CPUState {
 		N = (flags & (1 << 7)) > 0;
 	}
 
+	/* Get the status flags as a Byte - bit 5 is always 0 */
 	Byte getFlags() {
 		return (C << 0) | (Z << 1) | (I << 2) | (D << 3) | (B << 4) | (O << 6) | (N << 7);
 	}
@@ -99,7 +92,6 @@ struct CPUState {
 // System Memory
 struct Memory {
 	static constexpr int MAX_MEM = 0x10000;	// Maximum addressable meory
-
 	Byte data[MAX_MEM] = {};	//Actual data
 
 	/* Reset memory to all 0's */
@@ -133,6 +125,7 @@ struct Memory {
 
 };
 
+/* A function that can handle execution of a single instruction */
 typedef u8 (*insHandlerFn)(Memory*, CPUState*, InstructionCode*);
 
 struct InstructionHandler {

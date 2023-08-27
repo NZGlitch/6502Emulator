@@ -1,9 +1,6 @@
 #include <gmock/gmock.h>
 #include "types.h"
 
-/**
-* Test the memory structure
-*/
 class TestMemory : public testing::Test {
 public:
 	Memory memory;
@@ -62,6 +59,7 @@ TEST_F(TestMemory, TestMemWriteByte) {
 	EXPECT_EQ(memory.data[address], data);
 }
 
+/* Test the loadProgram function */
 TEST_F(TestMemory, TestLoadProgram) {
 	// Given:
 	const Word programSize = 0x1000;

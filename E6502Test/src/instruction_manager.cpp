@@ -3,16 +3,12 @@
 #include <gmock/gmock.h>
 #include "instruction_manager.h"
 
-
 using::testing::_;
 
 struct MockLoader : public InstructionUtils::InstructionLoader {
 	MOCK_METHOD(void, load, (InstructionHandler* handlers[]));
 };
 
-/**
-* The Instruction Manager contains all the handlers for the various instructions
-*/
 class TestInstructionManager : public testing::Test {
 public:
 	InstructionManager* inMan; 
@@ -33,23 +29,22 @@ TEST_F(TestInstructionManager, TestDefaultHandler) {
 	ASSERT_EQ(inMan->defaultHandler.isLegal, false);
 	ASSERT_STREQ(inMan->defaultHandler.name, "Unsupported OP");
 	
-	// Memory & State should be unchanged
+	// Given:
 	CPUState originalState = CPUState();
 	CPUState testState = CPUState();
 	Memory* mem = new Memory();
 	InstructionCode* code = new InstructionCode(0x00);
 	mem->initialise();
 
-	// Test execute function
+	// When:
 	Byte cycles = inMan->defaultHandler.execute(mem, &testState, code);
 
-	// Should take no cycles
+	// Then:
 	EXPECT_EQ(cycles, 2);
-
-	// Should not affect CPU state
-	for (int i = 0; i <= 0xFF; i++) ASSERT_EQ(mem->data[i], 0x00);
+	for (int i = 0; i <= 0xFF; i++) EXPECT_EQ(mem->data[i], 0x00);
 	EXPECT_EQ(originalState, testState);
 
+	// Cleanup
 	delete mem;
 }
 
