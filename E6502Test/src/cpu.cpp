@@ -49,7 +49,7 @@ TEST_F(TestCPU, TestCPUReset) {
 	EXPECT_EQ(state->PC, 0xFFFC);	// Program Counter set to correct address
 	EXPECT_EQ(state->D, 0);			// Clear Decimal Flag
 	EXPECT_EQ(state->I, 0);			// Clear Interrupt Disable Flag
-	EXPECT_EQ(state->SP, 0x0100);	// Set the stack pointer to the bottom of page 1
+	EXPECT_EQ(state->SP, 0x00);		// Set the stack pointer to the bottom of page 1
 
 	// Registers reset to 0
 	EXPECT_EQ(state->A, 0);

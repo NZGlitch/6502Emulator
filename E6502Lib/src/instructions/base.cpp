@@ -1,1 +1,3 @@
-/* This file exists so the compiler knows this folder contains c++ files */
+#include "base.h"
+
+BaseInstruction::BaseInstruction() {}

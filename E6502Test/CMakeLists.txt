@@ -31,6 +31,7 @@ set (E6502_SOURCES
 
 	"src/instructions/instruction_utils.cpp"
 	"src/instructions/lda.cpp"
+	"src/instructions/jsr.cpp"
 
 	"src/test_program.cpp"
 	)
