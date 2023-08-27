@@ -34,7 +34,7 @@ TEST_F(TestCPU, TestCPUReset) {
 	
 	// Given:
 	state->PC = 0x0000;
-	state->SP = 0x0000;
+	state->setSP(0x0100);
 	state->A = state->X = state->Y = 0x42;
 	state->D = 1;
 	state->I = 1;
@@ -46,10 +46,10 @@ TEST_F(TestCPU, TestCPUReset) {
 	cpu->reset(mMem);
 
 	// Then:
-	EXPECT_EQ(state->PC, 0xFFFC);	// Program Counter set to correct address
-	EXPECT_EQ(state->D, 0);			// Clear Decimal Flag
-	EXPECT_EQ(state->I, 0);			// Clear Interrupt Disable Flag
-	EXPECT_EQ(state->SP, 0x0100);	// Set the stack pointer to the bottom of page 1
+	EXPECT_EQ(state->PC, 0xFFFC);		// Program Counter set to correct address
+	EXPECT_EQ(state->D, 0);				// Clear Decimal Flag
+	EXPECT_EQ(state->I, 0);				// Clear Interrupt Disable Flag
+	EXPECT_EQ(state->getSP(), 0x01FF);	// Set the stack pointer to the top of page 1
 
 	// Registers reset to 0
 	EXPECT_EQ(state->A, 0);

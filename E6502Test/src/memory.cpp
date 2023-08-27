@@ -43,6 +43,25 @@ TEST_F(TestMemory, TestMemReadByte) {
 	EXPECT_EQ(result, data);
 }
 
+/* Test the readWord function */
+TEST_F(TestMemory, TestMemReadWord) {
+	// Given:
+	u8 cycles = 0;
+	Word address = (rand() & 0xFFFF);
+	Byte lsb = rand() & 0xFF;
+	Byte msb = rand() & 0xFF;
+	memory.data[address] = lsb;
+	memory.data[(address+1) & 0xFFFF] = msb;
+
+	// When:
+	Word result = memory.readWord(cycles, address);
+
+	// Then:
+	Word expectResult = (msb << 8) | lsb;
+	EXPECT_EQ(cycles, 2);
+	EXPECT_EQ(expectResult, result);
+}
+
 /* Test the writeByte function */
 TEST_F(TestMemory, TestMemWriteByte) {
 	// Given:

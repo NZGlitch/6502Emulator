@@ -60,7 +60,7 @@ public:
 			state->Y = index;
 
 		// When:
-		cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(instruction));
+		cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(instruction));
 
 		// Then:
 		EXPECT_EQ(state->A, testValue) << "[" << test_name << "] LDA_ABS" << (idx_mode ? "X" : "Y:") << " Did not set Accumulator correctly";
@@ -155,7 +155,7 @@ TEST_F(TestLDAInstruction, TestLDAImmediate) {
 	state->A = ~testValue;		// TODO - consider - must be different fro test value
 	
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_IMM));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_IMM));
 	
 	// Then:
 	EXPECT_EQ(state->A, testValue) << "LDA_IMM Did not set Accumulator correctly";
@@ -178,7 +178,7 @@ TEST_F(TestLDAInstruction, TestLDAZeroPage) {
 	state->A = ~testValue;		// TODO - consider - must be different fro test value
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ZP));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_ZP));
 
 	// Then:
 	EXPECT_EQ(state->A, testValue) << "LDA_ZP Did not set Accumulator correctly";
@@ -203,7 +203,7 @@ TEST_F(TestLDAInstruction, TestLDAZeroPageNorm) {
 	state->X = testX;
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ZPX));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_ZPX));
 
 	// Then:
 	EXPECT_EQ(state->A, testValue) << "LDA_ZPX Did not set Accumulator correctly";
@@ -228,7 +228,7 @@ TEST_F(TestLDAInstruction, TestLDAZeroPageOver) {
 	state->X = testX;
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ZPX));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_ZPX));
 
 	// Then:
 	EXPECT_EQ(state->A, testValue) << "LDA_ZPX Did not set Accumulator correctly";
@@ -255,7 +255,7 @@ TEST_F(TestLDAInstruction, TestLDAAbsolute) {
 	state->A = ~testValue;		//TODO - consider - must be different fro test value
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_ABS));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_ABS));
 
 	// Then:
 	EXPECT_EQ(state->A, testValue) << "LDA_ABS Did not set Accumulator correctly";
@@ -323,7 +323,7 @@ TEST_F(TestLDAInstruction, TestLDAIndirectX) {
 	memory->data[targetAddress] = testValue;
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDX));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_INDX));
 
 	// Then:
 	EXPECT_EQ(state->A, testValue);
@@ -339,7 +339,7 @@ TEST_F(TestLDAInstruction, TestLDAIndirectX) {
 	memory->data[targetAddressWrap] = (testValue+1);
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDX));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_INDX));
 
 	// Then:
 	EXPECT_EQ(state->A, (testValue+1));
@@ -373,7 +373,7 @@ TEST_F(TestLDAInstruction, TestLDAIndirectY) {
 
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDY));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_INDY));
 
 	// Then:
 	EXPECT_EQ(state->A, testValue);
@@ -389,7 +389,7 @@ TEST_F(TestLDAInstruction, TestLDAIndirectY) {
 	memory->data[targetAddressWrapCarry] = (testValue + 1);
 
 	// When:
-	cyclesUsed = LDA::LDAInstructionHandler(memory, state, &InstructionCode(INS_LDA_INDY));
+	cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_INDY));
 
 	// Then:
 	EXPECT_EQ(state->A, (testValue + 1));
@@ -421,7 +421,7 @@ TEST_F(TestLDAInstruction, TestLDAaddHandlers) {
 	LDA::addHandlers(handlers);
 
 	// Then: For all LDA instructions, Expect *handlers[opcode] to point to a handler with the same opcode
-	for (Byte& opcode : LDA::instructions) {
+	for (const Byte& opcode : LDA::instructions) {
 		ASSERT_FALSE(handlers[opcode] == nullptr);
 		EXPECT_EQ(((*handlers[opcode]).opcode), opcode);
 	}
@@ -433,36 +433,36 @@ TEST_F(TestLDAInstruction, TestLDAaddHandlers) {
 **********************************************/
 
 TEST_F(TestLDAInstruction, TestLDAImmediateHandlerProps) {
-	testPropsAndDelete(new LDA::LDA_IMM, INS_LDA_IMM, "LDA - Load Accumulator [Immediate]");
+	testPropsAndDelete(new LDA_IMM, INS_LDA_IMM, "LDA - Load Accumulator [Immediate]");
 }
 
 TEST_F(TestLDAInstruction, TestLDAZeroPageHandlerProps) {
-	testPropsAndDelete(new LDA::LDA_ZP, INS_LDA_ZP, "LDA - Load Accumulator [ZeroPage]");
+	testPropsAndDelete(new LDA_ZP, INS_LDA_ZP, "LDA - Load Accumulator [ZeroPage]");
 }
 
 TEST_F(TestLDAInstruction, TestLDAZeroPageXHandlerProps) {
-	testPropsAndDelete(new LDA::LDA_ZPX, INS_LDA_ZPX, "LDA - Load Accumulator [ZeroPage-X]");
+	testPropsAndDelete(new LDA_ZPX, INS_LDA_ZPX, "LDA - Load Accumulator [ZeroPage-X]");
 }
 
 TEST_F(TestLDAInstruction, TestLDAAbsolteHandlerProps) {
 	// Given:
-	testPropsAndDelete(new LDA::LDA_ABS, INS_LDA_ABS, "LDA - Load Accumulator [Absolute]");
+	testPropsAndDelete(new LDA_ABS, INS_LDA_ABS, "LDA - Load Accumulator [Absolute]");
 }
 
 TEST_F(TestLDAInstruction, TestLDAAbsoluteXHandlerProps) {
-	testPropsAndDelete(new LDA::LDA_ABSX, INS_LDA_ABSX, "LDA - Load Accumulator [Absolute-X]");
+	testPropsAndDelete(new LDA_ABSX, INS_LDA_ABSX, "LDA - Load Accumulator [Absolute-X]");
 }
 
 TEST_F(TestLDAInstruction, TestLDAAbsoluteYHandlerProps) {
-	testPropsAndDelete(new LDA::LDA_ABSY, INS_LDA_ABSY, "LDA - Load Accumulator [Absolute-Y]");
+	testPropsAndDelete(new LDA_ABSY, INS_LDA_ABSY, "LDA - Load Accumulator [Absolute-Y]");
 }
 
 TEST_F(TestLDAInstruction, TestLDAIndirectXHandlerProps) {
-	testPropsAndDelete(new LDA::LDA_INDX, INS_LDA_INDX, "LDA - Load Accumulator [Indirect-X]");
+	testPropsAndDelete(new LDA_INDX, INS_LDA_INDX, "LDA - Load Accumulator [Indirect-X]");
 }
 
 TEST_F(TestLDAInstruction, TestLDAIndirectYHandlerProps) {
-	testPropsAndDelete(new LDA::LDA_INDY, INS_LDA_INDY, "LDA - Load Accumulator [Indirect-Y]");
+	testPropsAndDelete(new LDA_INDY, INS_LDA_INDY, "LDA - Load Accumulator [Indirect-Y]");
 }
 /*********************************************
 *			End of Handler Tests			 *
