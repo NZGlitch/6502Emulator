@@ -3,7 +3,7 @@
 #include "instruction_manager.h"
 #include "instructions/instruction_utils.h"
 #include "instructions/jsr.h"
-#include "instructions/lda.h"
+#include "instructions/ldaxy.h"
 
 namespace E6502 {
 

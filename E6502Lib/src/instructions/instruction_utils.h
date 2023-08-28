@@ -1,7 +1,7 @@
 #pragma once
 #include "../types.h"
 #include "jsr.h"
-#include "lda.h"
+#include "ldaxy.h"
 
 namespace E6502 {
 	/**

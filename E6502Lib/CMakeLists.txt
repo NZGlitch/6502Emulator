@@ -21,8 +21,8 @@ set (E6502LIB_INSTRUCTIONS
 	"src/instructions/base.h"	
 	"src/instructions/base.cpp"	
 	"src/instructions/instruction_utils.h"	
-	"src/instructions/lda.h"
-	"src/instructions/lda.cpp"
+	"src/instructions/ldaxy.h"
+	"src/instructions/ldaxy.cpp"
 	"src/instructions/jsr.h"
 	"src/instructions/jsr.cpp"
 )
