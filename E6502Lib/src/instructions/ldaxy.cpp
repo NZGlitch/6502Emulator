@@ -2,17 +2,17 @@
 
 namespace E6502 {
 	/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
-	void LDA::setFlags(CPUState* state) {
+	void LDAXY::setFlags(CPUState* state) {
 		state->Z = (state->A == 0);
 		state->N = (state->A >> 7);
 	}
 
 	/** One function will handle the 'execute' method for all variants */
-	u8 LDA::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+	u8 LDAXY::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		switch (opCode->B) {
-			case INDIRECT_X:
-			case INDIRECT_Y: {
+		switch (opCode->code) {
+			case INS_LDA_INDX:
+			case INS_LDA_INDY: {
 
 				/**
 				 Indirect modes are a bit confusing, heres a high level explanation.
@@ -68,18 +68,30 @@ namespace E6502 {
 				state->A = mem->readByte(cycles, targetAddress);
 				break;
 			}
-			case ZERO_PAGE: {
+			case INS_LDA_ZP: {
 				/* Read the next byte as the lsb for a zero page address */
 				Byte address = mem->readByte(cycles, state->incPC());
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
-			case IMMEDIATE: {
-				/* Read the next byte from PC and put into the accumulator */
-				state->A = mem->readByte(cycles, state->incPC());
+			case INS_LDA_IMM:
+			case INS_LDX_IMM:
+			case INS_LDY_IMM: {
+				/* Read the next byte from PC and put into the appropriate register */
+				Byte value = mem->readByte(cycles, state->incPC());
+				switch (opCode->C) {
+					case 0: state->saveToReg(CPUState::REGISTER_Y, value); break;
+					case 1: state->saveToReg(CPUState::REGISTER_A, value); break;
+					case 2: state->saveToReg(CPUState::REGISTER_X, value); break;
+					default: {
+						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
+						// We won't change the state or use cycles
+						return 0;
+					}
+				}
 				break;
 			}
-			case ZERO_PAGE_X: {
+			case INS_LDA_ZPX: {
 				// Read the next byte as the lsb for a zero page base address
 				Byte address = mem->readByte(cycles, state->incPC());
 
@@ -91,9 +103,9 @@ namespace E6502 {
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
-			case ABSOLUTE:
-			case ABSOLUTE_X:
-			case ABSOLUTE_Y: {
+			case INS_LDA_ABS:
+			case INS_LDA_ABSX:
+			case INS_LDA_ABSY: {
 				// Read address from next two bytes (lsb first)
 				Byte lsb = mem->readByte(cycles, state->incPC());
 				Byte msb = mem->readByte(cycles, state->incPC());
@@ -116,24 +128,27 @@ namespace E6502 {
 			}
 			default: {
 				//Shouldn't be here!
-				fprintf(stderr, "Attempting to use LDA instruction executor for non LDA instruction $%X\n", opCode->code);
+				fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
 				// We won't change the state or use cycles
 				return (u8)0;
 			}
 		}
-		LDA::setFlags(state);
+		LDAXY::setFlags(state);
 		return cycles;
 	};
 
 	/** Called to add LDA Instruction handlers to the emulator */
-	void LDA::addHandlers(InstructionHandler* handlers[]) {
-		handlers[INS_LDA_IMM] = ((InstructionHandler*) new LDA_IMM);
-		handlers[INS_LDA_ZP] = ((InstructionHandler*) new LDA_ZP);
-		handlers[INS_LDA_ZPX] = ((InstructionHandler*) new LDA_ZPX);
-		handlers[INS_LDA_ABS] = ((InstructionHandler*) new LDA_ABS);
-		handlers[INS_LDA_ABSX] = ((InstructionHandler*) new LDA_ABSX);
-		handlers[INS_LDA_ABSY] = ((InstructionHandler*) new LDA_ABSY);
-		handlers[INS_LDA_INDX] = ((InstructionHandler*) new LDA_INDX);
-		handlers[INS_LDA_INDY] = ((InstructionHandler*) new LDA_INDY);
+	void LDAXY::addHandlers(InstructionHandler* handlers[]) {
+		handlers[INS_LDA_IMM]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_IMM);
+		handlers[INS_LDX_IMM]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_IMM);
+		handlers[INS_LDY_IMM]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_IMM);
+
+		handlers[INS_LDA_ZP]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ZP);
+		handlers[INS_LDA_ZPX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ZPX);
+		handlers[INS_LDA_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABS);
+		handlers[INS_LDA_ABSX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSX);
+		handlers[INS_LDA_ABSY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSY);
+		handlers[INS_LDA_INDX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDX);
+		handlers[INS_LDA_INDY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDY);
 	};
 }

@@ -13,7 +13,7 @@ namespace E6502 {
 			/** Adds all known insturctions to the given handler array */
 			virtual void load(InstructionHandler* handlers[]) {
 				JSR::addHandlers(handlers);		/* JSR Instructions */
-				LDA::addHandlers(handlers);		/* LDA Instructions */
+				LDAXY::addHandlers(handlers);	/* LDA Instructions */
 			}
 		};
 

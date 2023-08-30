@@ -4,14 +4,11 @@
 #include "ldaxy.h"
 
 namespace E6502 {
-	class TestLDAInstruction : public testing::Test {
+	class TestLDAXYInstruction : public testing::Test {
 	public:
 
 		const static u8 ABS_IDX_X	= 0;		// Used by absRegHelper to indicate register X should be used for index
 		const static u8 ABS_IDX_Y	= 1;		// Used by absRegHelper to indicate register Y should be used for index
-		const static u8 REGISTER_A	= 2;		// Used by helpers to specify register A
-		const static u8 REGISTER_X	= 3;		// Used by helpers to specify register X
-		const static u8 REGISTER_Y	= 4;		// Used by helpers to specify register Y
 
 		CPUState* state;
 		Memory* memory;
@@ -38,11 +35,11 @@ namespace E6502 {
 		void testSave(u8 save_reg, Byte testValue, char* test_name) {
 			Byte regValue = !testValue;		//TODO confirm this is valid
 			switch (save_reg) {
-				case REGISTER_A:
+				case CPUState::REGISTER_A:
 					regValue = state->A; break;
-				case REGISTER_X:
+				case CPUState::REGISTER_X:
 					regValue = state->X; break;
-				case REGISTER_Y:
+				case CPUState::REGISTER_Y:
 					regValue = state->Y; break;
 				default: {
 					EXPECT_TRUE(false) << test_name << ": testSave() -> invalid target register provided";
@@ -59,11 +56,11 @@ namespace E6502 {
 				testValue = 0x42; //TODO randomise?
 			}
 			switch (targetReg) {
-				case REGISTER_A:
+				case CPUState::REGISTER_A:
 					state->A = ~testValue; break;
-				case REGISTER_X:
+				case CPUState::REGISTER_X:
 					state->X = ~testValue; break;
-				case REGISTER_Y:
+				case CPUState::REGISTER_Y:
 					state->Y = ~testValue; break;
 				default: {
 					fprintf(stderr, "LD(AXY) Test: invalid target register provided");
@@ -106,7 +103,7 @@ namespace E6502 {
 				state->Y = index;
 
 			// When:
-			cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(instruction));
+			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:'
 			testSave(targetReg, testValue, test_name);
@@ -125,7 +122,7 @@ namespace E6502 {
 			memory->data[0x0000] = testValue;
 
 			// When:
-			cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(instruction));
+			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
 			testSave(targetReg, testValue, test_name);
@@ -146,7 +143,7 @@ namespace E6502 {
 			memory->data[insAddress] = testValue;
 
 			// When:
-			cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_ZP));
+			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(INS_LDA_ZP));
 
 			// Then:
 			testSave(targetReg, testValue, test_name);
@@ -170,8 +167,8 @@ namespace E6502 {
 
 				// Given:
 				switch (indexReg) {
-					case REGISTER_X: state->X = testIndex[i]; break;
-					case REGISTER_Y: state->Y = testIndex[i]; break;
+					case CPUState::REGISTER_X: state->X = testIndex[i]; break;
+					case CPUState::REGISTER_Y: state->Y = testIndex[i]; break;
 					default: {
 						EXPECT_TRUE(false) << test_name << ": testZeroPageIndex() -> invalid index register provided";
 					}
@@ -179,7 +176,7 @@ namespace E6502 {
 				genTestValAndClearTargetReg(targetReg, testValue[i]);
 				
 				// When:
-				cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(instruction));
+				cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 				// Then:
 				testSave(targetReg, testValue[i], test_name);
@@ -204,14 +201,14 @@ namespace E6502 {
 				genTestValAndClearTargetReg(targetReg, testValues[i]);
 				memory->data[dataAddress[i]] = testValues[i];
 
-				if (indexReg == REGISTER_X) {
+				if (indexReg == CPUState::REGISTER_X) {
 					// If IndirectX, store dataAddress in ZP[zpBaseAddress + X]
 					state->X = testArguments[i];
 					Byte zpAddr = zpBaseAddress + testArguments[i];
 					memory->data[zpAddr] = dataAddress[i] & 0x00FF;
 					memory->data[zpAddr + 1] = dataAddress[i] >> 8;
 				}
-				else if (indexReg == REGISTER_Y) {
+				else if (indexReg == CPUState::REGISTER_Y) {
 					// Else if indirectY, store [dataAddress-Y] in ZP[arg]
 					state->Y = testArguments[i];
 					Word unIndexed = dataAddress[i] - testArguments[i];
@@ -225,7 +222,7 @@ namespace E6502 {
 				}
 
 				// When:
-				cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(instruction));
+				cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 				//Then:
 				testSave(targetReg, testValues[i], test_name);
@@ -240,22 +237,26 @@ namespace E6502 {
 	* Tests the execute function operates correctly *
 	*************************************************/
 	/* Tests LDA Immediate Instruction */
-	TEST_F(TestLDAInstruction, TestLDAImmediate) {
-		testImmediate(INS_LDA_IMM, REGISTER_A, 2, "LDA_IMM");
+	TEST_F(TestLDAXYInstruction, TestLDAImmediate) {
+		testImmediate(INS_LDA_IMM, CPUState::REGISTER_A, 2, "LDA_IMM");
+		testImmediate(INS_LDX_IMM, CPUState::REGISTER_X, 2, "LDX_IMM");
+		testImmediate(INS_LDY_IMM, CPUState::REGISTER_Y, 2, "LDY_IMM");
 	}
 
-	/* Tests LDA Zero Page Instruction */
-	TEST_F(TestLDAInstruction, TestLDAZeroPage) {
-		testZeroPage(INS_LDA_ZP, REGISTER_A, 3, "LDA_ZP");
+	/* Tests LD(A/X/Y) Zero Page Instruction */
+	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPage) {
+		testZeroPage(INS_LDA_ZP, CPUState::REGISTER_A, 3, "LDA_ZP");
+		//testZeroPage(INS_LDX_ZP, CPU::REGISTER_X, 3, "LDX_ZP");
+		//testZeroPage(INS_LDY_ZP, CPU::REGISTER_Y, 3, "LDY_ZP");
 	}
 
 	/* Tests LDA Zero Page,X Instruction */
-	TEST_F(TestLDAInstruction, TestLDAZeroPageNorm) {
-		testZeroPageIndex(INS_LDA_ZPX, REGISTER_X, REGISTER_A, 4, "LDA_ZPX");
+	TEST_F(TestLDAXYInstruction, TestLDAZeroPageNorm) {
+		testZeroPageIndex(INS_LDA_ZPX, CPUState::REGISTER_X, CPUState::REGISTER_A, 4, "LDA_ZPX");
 	}
 
 	/* Tests LDA Absolute Instruction */
-	TEST_F(TestLDAInstruction, TestLDAAbsolute) {
+	TEST_F(TestLDAXYInstruction, TestLDAAbsolute) {
 		// Fixtures
 		Byte testValue = 0x42;		//TODO - maybe randomise?
 		Byte lsb = 0x84;			//TODO - maybe randomise?
@@ -274,7 +275,7 @@ namespace E6502 {
 		state->A = ~testValue;		//TODO - consider - must be different fro test value
 
 		// When:
-		cyclesUsed = LDA::executeHandler(memory, state, &InstructionCode(INS_LDA_ABS));
+		cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(INS_LDA_ABS));
 
 		// Then:
 		EXPECT_EQ(state->A, testValue) << "LDA_ABS Did not set Accumulator correctly";
@@ -282,59 +283,59 @@ namespace E6502 {
 	}
 
 	/* Tests LDA Absolute,X Instruction */
-	TEST_F(TestLDAInstruction, TestLDAAbsoluteX) {
+	TEST_F(TestLDAXYInstruction, TestLDAAbsoluteX) {
 		Byte lsb = 0x84;			//TODO - maybe randomise?
 		Byte msb = 0xFF;			//TODO - maybe randomise?
 		Byte index = 0x00;
 		u8 cyclesUsed = 0;
 
 		index = 0x10;
-		absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, REGISTER_A, 4, "LDA ABSX (no overflow or page)");
+		absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, CPUState::REGISTER_A, 4, "LDA ABSX (no overflow or page)");
 
 		index = 0xA5;
-		absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, REGISTER_A, 5, "LDA ABSX (overflow)");
+		absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, CPUState::REGISTER_A, 5, "LDA ABSX (overflow)");
 
 		msb = 0x37;
 		index = 0xA1;
-		absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, REGISTER_A, 5, "LDA ABSX (page boundry)");
+		absRegHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, CPUState::REGISTER_A, 5, "LDA ABSX (page boundry)");
 	}
 
 	/* Tests LDA Absolute,Y Instruction */
-	TEST_F(TestLDAInstruction, TestLDAAbsoluteY) {
+	TEST_F(TestLDAXYInstruction, TestLDAAbsoluteY) {
 		Byte lsb = 0x84;			//TODO - maybe randomise?
 		Byte msb = 0xFF;			//TODO - maybe randomise?
 		Byte index = 0x00;
 		u8 cyclesUsed = 0;
 
 		index = 0x10;
-		absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, REGISTER_A, 4, "LDA ABSY (no overflow or page)");
+		absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, CPUState::REGISTER_A, 4, "LDA ABSY (no overflow or page)");
 
 		index = 0xA5;
-		absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, REGISTER_A, 5, "LDA ABSY (overflow)");
+		absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, CPUState::REGISTER_A, 5, "LDA ABSY (overflow)");
 
 		msb = 0x37;
 		index = 0xA1;
-		absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, REGISTER_A, 5, "LDA ABSY (page boundry)");
+		absRegHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, CPUState::REGISTER_A, 5, "LDA ABSY (page boundry)");
 	}
 
 	/* Tests LDA Indeirect,X Instruction */
-	TEST_F(TestLDAInstruction, TestLDAIndirectX) {
-		testIndirectIndex(INS_LDA_INDX, REGISTER_X, REGISTER_A, 6, "LDA_INDX");
+	TEST_F(TestLDAXYInstruction, TestLDAIndirectX) {
+		testIndirectIndex(INS_LDA_INDX, CPUState::REGISTER_X, CPUState::REGISTER_A, 6, "LDA_INDX");
 	}
 
 	/* Tests LDA Indeirect,Y Instruction */
-	TEST_F(TestLDAInstruction, TestLDAIndirectY) {
-		testIndirectIndex(INS_LDA_INDY, REGISTER_Y, REGISTER_A, 5, "LDA_INDY");
+	TEST_F(TestLDAXYInstruction, TestLDAIndirectY) {
+		testIndirectIndex(INS_LDA_INDY, CPUState::REGISTER_Y, CPUState::REGISTER_A, 5, "LDA_INDY");
 	}
 
 	/* Tests setFlags when N and Z flags 0 */
-	TEST_F(TestLDAInstruction, TestLDANoFlags) {
+	TEST_F(TestLDAXYInstruction, TestLDANoFlags) {
 		// Given:
 		state->setFlags(0xFF);
 		state->A = 0x78;
 
 		// When:
-		LDA::setFlags(state);
+		LDAXY::setFlags(state);
 
 		// Then
 		EXPECT_EQ(state->getFlags(), 0x5D);	// Unset Z and N flags
@@ -344,20 +345,20 @@ namespace E6502 {
 		state->A = 0x78;
 
 		// When:
-		LDA::setFlags(state);
+		LDAXY::setFlags(state);
 
 		// Then:
 		EXPECT_EQ(state->getFlags(), 0x00); // Flags unchanges
 	}
 
 	/* Tests setFlags when Z flag changes */
-	TEST_F(TestLDAInstruction, TestLDAZeroFlags) {
+	TEST_F(TestLDAXYInstruction, TestLDAZeroFlags) {
 		// Given:
 		state->setFlags(0x02); // Z set
 		state->A = 0x78;
 
 		// When:
-		LDA::setFlags(state);
+		LDAXY::setFlags(state);
 
 		// Then:
 		EXPECT_EQ(state->getFlags(), 0x00);	// Expect Z Unset
@@ -367,20 +368,20 @@ namespace E6502 {
 		state->A = 0x00;
 
 		// When:
-		LDA::setFlags(state);
+		LDAXY::setFlags(state);
 
 		// Then:
 		EXPECT_EQ(state->getFlags(), 0x02); // Expect Z Set
 	}
 
 	/* Tests setFlags when N flag changes */
-	TEST_F(TestLDAInstruction, TestLDANegFlags) {
+	TEST_F(TestLDAXYInstruction, TestLDANegFlags) {
 		// Given
 		state->setFlags(0xDD); //N set
 		state->A = 0x78;
 
 		// When:
-		LDA::setFlags(state);
+		LDAXY::setFlags(state);
 		// Then
 		EXPECT_EQ(state->getFlags(), 0x5D);	// Expect N Unset
 
@@ -389,17 +390,18 @@ namespace E6502 {
 		state->A = 0x80;
 
 		// When:
-		LDA::setFlags(state);
+		LDAXY::setFlags(state);
 
 		// Then:
 		EXPECT_EQ(state->getFlags(), 0x80); // Expect N Set
 	}
+
 	/************************************************
 	*              End Execution tests              *
 	*************************************************
 
 	/* Test correct OpCodes */
-	TEST_F(TestLDAInstruction, TestInstructionDefs) {
+	TEST_F(TestLDAXYInstruction, TestInstructionDefs) {
 		EXPECT_EQ(INS_LDA_IMM, 0xA9);
 		EXPECT_EQ(INS_LDA_ZP, 0xA5);
 		EXPECT_EQ(INS_LDA_ZPX, 0xB5);
@@ -411,15 +413,15 @@ namespace E6502 {
 	}
 
 	/* Test addHandlers func adds all LDA handlers */
-	TEST_F(TestLDAInstruction, TestLDAaddHandlers) {
+	TEST_F(TestLDAXYInstruction, TestLDAaddHandlers) {
 		// Given:
 		InstructionHandler* handlers[0x100] = { nullptr };
 
 		// When:
-		LDA::addHandlers(handlers);
+		LDAXY::addHandlers(handlers);
 
 		// Then: For all LDA instructions, Expect *handlers[opcode] to point to a handler with the same opcode
-		for (const Byte& opcode : LDA::instructions) {
+		for (const Byte& opcode : LDAXY::instructions) {
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ(((*handlers[opcode]).opcode), opcode);
 		}
@@ -430,37 +432,38 @@ namespace E6502 {
 	* Check each handler is configured correctly *
 	**********************************************/
 
-	TEST_F(TestLDAInstruction, TestLDAImmediateHandlerProps) {
-		testPropsAndDelete(new LDA_IMM, INS_LDA_IMM, "LDA - Load Accumulator [Immediate]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYImmediateHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_IMM), INS_LDA_IMM, "LDA - Load Accumulator [Immediate]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDX_IMM), INS_LDX_IMM, "LDX - Load Accumulator [Immediate]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDY_IMM), INS_LDY_IMM, "LDY - Load Accumulator [Immediate]");
 	}
 
-	TEST_F(TestLDAInstruction, TestLDAZeroPageHandlerProps) {
-		testPropsAndDelete(new LDA_ZP, INS_LDA_ZP, "LDA - Load Accumulator [ZeroPage]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_ZP), INS_LDA_ZP, "LDA - Load Accumulator [Zero Page]");
 	}
 
-	TEST_F(TestLDAInstruction, TestLDAZeroPageXHandlerProps) {
-		testPropsAndDelete(new LDA_ZPX, INS_LDA_ZPX, "LDA - Load Accumulator [ZeroPage-X]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageXHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_ZPX), INS_LDA_ZPX, "LDA - Load Accumulator [X-Indexed Zero Page]");
 	}
 
-	TEST_F(TestLDAInstruction, TestLDAAbsolteHandlerProps) {
-		// Given:
-		testPropsAndDelete(new LDA_ABS, INS_LDA_ABS, "LDA - Load Accumulator [Absolute]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYAbsolteHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABS), INS_LDA_ABS, "LDA - Load Accumulator [Absolute]");
 	}
 
-	TEST_F(TestLDAInstruction, TestLDAAbsoluteXHandlerProps) {
-		testPropsAndDelete(new LDA_ABSX, INS_LDA_ABSX, "LDA - Load Accumulator [Absolute-X]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABSX), INS_LDA_ABSX, "LDA - Load Accumulator [X-Indexed Absolute]");
 	}
 
-	TEST_F(TestLDAInstruction, TestLDAAbsoluteYHandlerProps) {
-		testPropsAndDelete(new LDA_ABSY, INS_LDA_ABSY, "LDA - Load Accumulator [Absolute-Y]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteYHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABSY), INS_LDA_ABSY, "LDA - Load Accumulator [Y-Indexed Absolute]");
 	}
 
-	TEST_F(TestLDAInstruction, TestLDAIndirectXHandlerProps) {
-		testPropsAndDelete(new LDA_INDX, INS_LDA_INDX, "LDA - Load Accumulator [Indirect-X]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectXHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_INDX), INS_LDA_INDX, "LDA - Load Accumulator [X-Indexed Zero Page Indirect]");
 	}
 
-	TEST_F(TestLDAInstruction, TestLDAIndirectYHandlerProps) {
-		testPropsAndDelete(new LDA_INDY, INS_LDA_INDY, "LDA - Load Accumulator [Indirect-Y]");
+	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectYHandlerProps) {
+		testPropsAndDelete(new LDAXYHandler(INS_LDA_INDY), INS_LDA_INDY, "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]");
 	}
 	/*********************************************
 	*			End of Handler Tests			 *

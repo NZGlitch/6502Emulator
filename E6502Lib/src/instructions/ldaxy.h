@@ -4,20 +4,40 @@
 
 namespace E6502 {
 
+	/** Imediate Instructions */
+	const static Byte INS_LDY_IMM = 0xA0;	//10 100 000
+	const static Byte INS_LDA_IMM = 0xA9;	//10 101 001
+	const static Byte INS_LDX_IMM = 0xA2;	//10 100 010
+	
+
 	/** LDA Instruction Codes */
 	const static Byte INS_LDA_INDX = 0xA1;
 	const static Byte INS_LDA_ZP = 0xA5;
-	const static Byte INS_LDA_IMM = 0xA9;
+	
 	const static Byte INS_LDA_ABS = 0xAD;
 	const static Byte INS_LDA_INDY = 0xB1;
 	const static Byte INS_LDA_ZPX = 0xB5;
 	const static Byte INS_LDA_ABSY = 0xB9;
 	const static Byte INS_LDA_ABSX = 0xBD;
 
-	class LDA : public BaseInstruction {
+	/** LDX Instruction Codes */
+	//const static Byte INS_LDX_ZP = 0xA6;
+
+	/** LDY Instruction Codes */
+	//const static Byte INS_LDY_ZP = 0xA4;
+
+	class LDAXY : public BaseInstruction {
 	public:
-		static constexpr Byte instructions[] = { INS_LDA_IMM, INS_LDA_ZP, INS_LDA_ZPX,INS_LDA_ABS,
-								INS_LDA_ABSX,INS_LDA_ABSY,INS_LDA_INDX,INS_LDA_INDY };
+		static constexpr Byte instructions[] = { 
+			INS_LDA_IMM, INS_LDX_IMM, INS_LDY_IMM,
+			INS_LDA_ZP, 
+			INS_LDA_ZPX,
+			INS_LDA_ABS,
+			INS_LDA_ABSX,
+			INS_LDA_ABSY,
+			INS_LDA_INDX,
+			INS_LDA_INDY
+		};
 
 		/** One function will handle the 'execute' method for all variants */
 		static const insHandlerFn JSRInstructionHandler;
@@ -33,73 +53,24 @@ namespace E6502 {
 	};
 
 	/** Defines properties common to all LDA instructions */
-	struct LDA_BASE : public INSTRUCTION_BASE {
-		LDA_BASE() {
-			execute = LDA::executeHandler;
-		}
-	};
+	struct LDAXYHandler : public INSTRUCTION_BASE {
+		LDAXYHandler(Byte opcode_) {
+			opcode = opcode_;
+			execute = LDAXY::executeHandler;
+			switch (opcode_) {
+				case INS_LDA_IMM: name = "LDA - Load Accumulator [Immediate]"; break;
+				case INS_LDX_IMM: name = "LDX - Load Accumulator [Immediate]"; break;
+				case INS_LDY_IMM: name = "LDY - Load Accumulator [Immediate]"; break;
 
-	/** Defines properties for LDA Immediate instruction */
-	struct LDA_IMM : public LDA_BASE {
-		LDA_IMM() {
-			opcode = INS_LDA_IMM;
-			name = "LDA - Load Accumulator [Immediate]";
-		}
-	};
-
-	/** Defines properties for LDA ZeroPage instruction */
-	struct LDA_ZP : public LDA_BASE {
-		LDA_ZP() {
-			opcode = INS_LDA_ZP;
-			name = "LDA - Load Accumulator [ZeroPage]";
-		}
-	};
-
-	/** Defines properties for LDA ZeroPage(X) instruction */
-	struct LDA_ZPX : public LDA_BASE {
-		LDA_ZPX() {
-			opcode = INS_LDA_ZPX;
-			name = "LDA - Load Accumulator [ZeroPage-X]";
-		}
-	};
-
-	/** Defines properties for LDA Absolute instruction */
-	struct LDA_ABS : public LDA_BASE {
-		LDA_ABS() {
-			opcode = INS_LDA_ABS;
-			name = "LDA - Load Accumulator [Absolute]";
-		}
-	};
-
-	/** Defines properties for LDA Absolute(X) instruction */
-	struct LDA_ABSX : public LDA_BASE {
-		LDA_ABSX() {
-			opcode = INS_LDA_ABSX;
-			name = "LDA - Load Accumulator [Absolute-X]";
-		}
-	};
-
-	/** Defines properties for LDA Absolute(Y) instruction */
-	struct LDA_ABSY : public LDA_BASE {
-		LDA_ABSY() {
-			opcode = INS_LDA_ABSY;
-			name = "LDA - Load Accumulator [Absolute-Y]";
-		}
-	};
-
-	/** Defines properties for LDA Indirect(X) instruction */
-	struct LDA_INDX : public LDA_BASE {
-		LDA_INDX() {
-			opcode = INS_LDA_INDX;
-			name = "LDA - Load Accumulator [Indirect-X]";
-		}
-	};
-
-	/** Defines properties for LDA Indirect(Y) instruction */
-	struct LDA_INDY : public LDA_BASE {
-		LDA_INDY() {
-			opcode = INS_LDA_INDY;
-			name = "LDA - Load Accumulator [Indirect-Y]";
+				case INS_LDA_ZP: name = "LDA - Load Accumulator [Zero Page]"; break;
+				case INS_LDA_ZPX: name = "LDA - Load Accumulator [X-Indexed Zero Page]"; break;
+				case INS_LDA_ABS: name = "LDA - Load Accumulator [Absolute]"; break;
+				case INS_LDA_ABSX: name = "LDA - Load Accumulator [X-Indexed Absolute]"; break;
+				case INS_LDA_ABSY: name = "LDA - Load Accumulator [Y-Indexed Absolute]"; break;
+				case INS_LDA_INDX: name = "LDA - Load Accumulator [X-Indexed Zero Page Indirect]"; break;
+				case INS_LDA_INDY: name = "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]"; break;
+				default: name = "Unknown opcode used to instantiate LDAXYHandler"; break;
+			}
 		}
 	};
 }

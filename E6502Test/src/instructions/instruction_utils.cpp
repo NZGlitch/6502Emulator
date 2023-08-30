@@ -27,8 +27,8 @@ namespace E6502 {
 		// When:
 		InstructionUtils::loader.load(handlers);
 
-		// Then (LDA):
-		for (const Byte& opcode : LDA::instructions) {
+		// Then (LDAXY):
+		for (const Byte& opcode : LDAXY::instructions) {
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}

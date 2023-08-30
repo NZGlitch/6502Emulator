@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 
 namespace E6502 {
 	// Data types used by the CPU
@@ -48,6 +49,12 @@ namespace E6502 {
 
 	public:
 		CPUState() { setFlags(0x00); }		// Initialise flags to 0b00000000
+
+		/** Identifiers for the registers are sometimes useful */
+		const static u8 REGISTER_A = 0;
+		const static u8 REGISTER_X = 1;
+		const static u8 REGISTER_Y = 2;
+
 
 		// Internal Registers
 		Word PC = 0xFFFC;					// Program Counter
@@ -118,6 +125,18 @@ namespace E6502 {
 		/* Get the status flags as a Byte - bit 5 is always 0 */
 		Byte getFlags() {
 			return (C << 0) | (Z << 1) | (I << 2) | (D << 3) | (B << 4) | (O << 6) | (N << 7);
+		}
+
+		void saveToReg(u8 REGISTER, Byte value) {
+			switch (REGISTER) {
+				case REGISTER_A: A = value; break;
+				case REGISTER_X: X = value; break;
+				case REGISTER_Y: Y = value; break;
+				default: {
+					fprintf(stderr, "Attempt to call CPUState->saveToReg with invalid register");
+					break;
+				}
+			}
 		}
 	};
 
