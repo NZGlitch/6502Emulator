@@ -5,22 +5,24 @@
 namespace E6502 {
 
 	/** Imediate Instructions */
-	const static Byte INS_LDY_IMM = 0xA0;	//10 100 000
 	const static Byte INS_LDA_IMM = 0xA9;	//10 101 001
 	const static Byte INS_LDX_IMM = 0xA2;	//10 100 010
+	const static Byte INS_LDY_IMM = 0xA0;	//10 100 000
 	
 	/** Zero Page instructions */
-	const static Byte INS_LDY_ZP = 0xA4;	//10 100 100
 	const static Byte INS_LDA_ZP = 0xA5;	//10 100 101
 	const static Byte INS_LDX_ZP = 0xA6;	//10 100 110
+	const static Byte INS_LDY_ZP = 0xA4;	//10 100 100
+
+	/** Zero Page Indexed (X/Y) Instructions */
+	const static Byte INS_LDA_ZPX = 0xB5;	//10 110 101
+	const static Byte INS_LDX_ZPY = 0xB6;	//10 110 110
+	const static Byte INS_LDY_ZPX = 0xB4;	//10 110 100
 
 	/** LDA Instruction Codes */
 	const static Byte INS_LDA_INDX = 0xA1;
-	
-	
-	const static Byte INS_LDA_ABS = 0xAD;
+	const static Byte INS_LDA_ABS  = 0xAD;
 	const static Byte INS_LDA_INDY = 0xB1;
-	const static Byte INS_LDA_ZPX = 0xB5;
 	const static Byte INS_LDA_ABSY = 0xB9;
 	const static Byte INS_LDA_ABSX = 0xBD;
 
@@ -35,7 +37,7 @@ namespace E6502 {
 		static constexpr Byte instructions[] = { 
 			INS_LDA_IMM, INS_LDX_IMM, INS_LDY_IMM,
 			INS_LDA_ZP, INS_LDX_ZP, INS_LDY_ZP,
-			INS_LDA_ZPX,
+			INS_LDA_ZPX,INS_LDX_ZPY,INS_LDY_ZPX,
 			INS_LDA_ABS,
 			INS_LDA_ABSX,
 			INS_LDA_ABSY,
@@ -71,6 +73,9 @@ namespace E6502 {
 				case INS_LDY_ZP: name = "LDY - Load Index Register Y [Zero Page]"; break;
 
 				case INS_LDA_ZPX: name = "LDA - Load Accumulator [X-Indexed Zero Page]"; break;
+				case INS_LDX_ZPY: name = "LDX - Load Index Register X [Y-Indexed Zero Page]"; break;
+				case INS_LDY_ZPX: name = "LDY - Load Index Register Y [X-Indexed Zero Page]"; break;
+
 				case INS_LDA_ABS: name = "LDA - Load Accumulator [Absolute]"; break;
 				case INS_LDA_ABSX: name = "LDA - Load Accumulator [X-Indexed Absolute]"; break;
 				case INS_LDA_ABSY: name = "LDA - Load Accumulator [Y-Indexed Absolute]"; break;

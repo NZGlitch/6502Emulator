@@ -250,9 +250,11 @@ namespace E6502 {
 		testZeroPage(INS_LDY_ZP, CPUState::REGISTER_Y, 3, "LDY_ZP");
 	}
 
-	/* Tests LDA Zero Page,X Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAZeroPageNorm) {
+	/* Tests LDA Zero Page,X/Y Instruction */
+	TEST_F(TestLDAXYInstruction, TestLDAZeroPageX) {
 		testZeroPageIndex(INS_LDA_ZPX, CPUState::REGISTER_X, CPUState::REGISTER_A, 4, "LDA_ZPX");
+		testZeroPageIndex(INS_LDY_ZPX, CPUState::REGISTER_X, CPUState::REGISTER_Y, 4, "LDY_ZPX");
+		testZeroPageIndex(INS_LDX_ZPY, CPUState::REGISTER_Y, CPUState::REGISTER_X, 4, "LDX_ZPY");
 	}
 
 	/* Tests LDA Absolute Instruction */
@@ -444,8 +446,10 @@ namespace E6502 {
 		testPropsAndDelete(new LDAXYHandler(INS_LDY_ZP), INS_LDY_ZP, "LDY - Load Index Register Y [Zero Page]");
 	}
 
-	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageXHandlerProps) {
+	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageXYHandlerProps) {
 		testPropsAndDelete(new LDAXYHandler(INS_LDA_ZPX), INS_LDA_ZPX, "LDA - Load Accumulator [X-Indexed Zero Page]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDX_ZPY), INS_LDX_ZPY, "LDX - Load Index Register X [Y-Indexed Zero Page]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDY_ZPX), INS_LDY_ZPX, "LDY - Load Index Register Y [X-Indexed Zero Page]");
 	}
 
 	TEST_F(TestLDAXYInstruction, TestLDAXYAbsolteHandlerProps) {
