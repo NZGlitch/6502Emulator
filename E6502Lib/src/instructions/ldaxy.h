@@ -30,7 +30,6 @@ namespace E6502 {
 	const static Byte INS_LDX_ABSY = 0xBE;	//10 111 110
 	const static Byte INS_LDY_ABSX = 0xBC;	//10 111 100
 
-
 	/** Indirect Instructions */
 	const static Byte INS_LDA_INDX = 0xA1;
 	const static Byte INS_LDA_INDY = 0xB1;
