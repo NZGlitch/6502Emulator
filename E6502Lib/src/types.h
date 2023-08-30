@@ -55,7 +55,6 @@ namespace E6502 {
 		const static u8 REGISTER_X = 1;
 		const static u8 REGISTER_Y = 2;
 
-
 		// Internal Registers
 		Word PC = 0xFFFC;					// Program Counter
 

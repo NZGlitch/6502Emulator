@@ -288,7 +288,6 @@ namespace E6502 {
 		}
 	};
 
-
 	/************************************************
 	*                Execution tests                *
 	* Tests the execute function operates correctly *
@@ -473,6 +472,7 @@ namespace E6502 {
 	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectYHandlerProps) {
 		testPropsAndDelete(new LDAXYHandler(INS_LDA_INDY), INS_LDA_INDY, "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]");
 	}
+
 	/*********************************************
 	*			End of Handler Tests			 *
 	**********************************************/

@@ -31,16 +31,9 @@ namespace E6502 {
 	const static Byte INS_LDY_ABSX = 0xBC;	//10 111 100
 
 
-	/** LDA Instruction Codes */
+	/** Indirect Instructions */
 	const static Byte INS_LDA_INDX = 0xA1;
 	const static Byte INS_LDA_INDY = 0xB1;
-	
-
-	/** LDX Instruction Codes */
-	//const static Byte INS_LDX_ZP = 0xA6;
-
-	/** LDY Instruction Codes */
-	//const static Byte INS_LDY_ZP = 0xA4;
 
 	class LDAXY : public BaseInstruction {
 	public:
