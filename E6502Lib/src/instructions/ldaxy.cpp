@@ -142,6 +142,8 @@ namespace E6502 {
 
 
 			case INS_LDA_ABS:
+			case INS_LDX_ABS:
+			case INS_LDY_ABS:
 			case INS_LDA_ABSX:
 			case INS_LDA_ABSY: {
 				// Read address from next two bytes (lsb first)
@@ -161,7 +163,28 @@ namespace E6502 {
 
 				// Calculate address and read memory into A
 				Word address = (msb << 8) | lsb;
-				state->A = mem->readByte(cycles, address);
+
+				// Read the value at address into register
+				Byte value = mem->readByte(cycles, address);
+				switch (opCode->code) {
+					case INS_LDA_ABS: case INS_LDA_ABSX: case INS_LDA_ABSY: 
+						state->saveToReg(CPUState::REGISTER_A, value); affectedRegister = CPUState::REGISTER_A; 
+						affectedRegister = CPUState::REGISTER_A;
+						break;
+					case INS_LDX_ABS: 
+						state->saveToReg(CPUState::REGISTER_X, value); affectedRegister = CPUState::REGISTER_X; 
+						affectedRegister = CPUState::REGISTER_X;
+						break;
+					case INS_LDY_ABS: 
+						state->saveToReg(CPUState::REGISTER_Y, value); affectedRegister = CPUState::REGISTER_Y; 
+						affectedRegister = CPUState::REGISTER_Y;
+						break;
+					default: {
+						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
+						// We won't change the state or use cycles
+						return 0;
+					}
+				}
 				break;
 			}
 
@@ -191,6 +214,9 @@ namespace E6502 {
 		handlers[INS_LDY_ZPX]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ZPX);
 
 		handlers[INS_LDA_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABS);
+		handlers[INS_LDX_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_ABS);
+		handlers[INS_LDY_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ABS);
+
 		handlers[INS_LDA_ABSX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSX);
 		handlers[INS_LDA_ABSY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSY);
 		handlers[INS_LDA_INDX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDX);

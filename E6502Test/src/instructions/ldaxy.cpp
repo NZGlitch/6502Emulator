@@ -3,6 +3,8 @@
 #include "cpu.h"
 #include "ldaxy.h"
 
+// TODO - Im not happy with flag checks, there is no test that actually checks instructions set flags correctly
+
 namespace E6502 {
 	class TestLDAXYInstruction : public testing::Test {
 	public:
@@ -308,8 +310,8 @@ namespace E6502 {
 	/* Tests LDA Absolute Instruction */
 	TEST_F(TestLDAXYInstruction, TestLDAAbsolute) {
 		testAbsolute(INS_LDA_ABS, CPUState::REGISTER_A, 4, "LDA_ABS");
-//		testAbsolute(INS_LDX_ABS, CPUState::REGISTER_X, 4, "LDX_ABS");
-//		testAbsolute(INS_LDY_ABS, CPUState::REGISTER_Y, 4, "LDY_ABS");
+		testAbsolute(INS_LDX_ABS, CPUState::REGISTER_X, 4, "LDX_ABS");
+		testAbsolute(INS_LDY_ABS, CPUState::REGISTER_Y, 4, "LDY_ABS");
 	}
 
 	/* Tests LDA Absolute,X Instruction */
@@ -453,8 +455,8 @@ namespace E6502 {
 
 	TEST_F(TestLDAXYInstruction, TestLDAXYAbsolteHandlerProps) {
 		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABS), INS_LDA_ABS, "LDA - Load Accumulator [Absolute]");
-//		testPropsAndDelete(new LDAXYHandler(INS_LDX_ABS), INS_LDA_ABS, "LDX - Load Accumulator [Absolute]");
-//		testPropsAndDelete(new LDAXYHandler(INS_LDY_ABS), INS_LDA_ABS, "LDY - Load Accumulator [Absolute]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDX_ABS), INS_LDX_ABS, "LDX - Load Index Register X [Absolute]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDY_ABS), INS_LDY_ABS, "LDY - Load Index Register Y [Absolute]");
 	}
 
 	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXHandlerProps) {
