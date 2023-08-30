@@ -8,20 +8,13 @@
 namespace E6502 {
 	class TestLDAXYInstruction : public testing::Test {
 	public:
-
-		const static u8 ABS_IDX_X	= 0;		// Used by absIndexedHelper to indicate register X should be used for index
-		const static u8 ABS_IDX_Y	= 1;		// Used by absIndexedHelper to indicate register Y should be used for index
-
-		CPUState* state;
 		Memory* memory;
 
 		virtual void SetUp() {
-			state = new CPUState;
 			memory = new Memory;
 		}
 
 		virtual void TearDown() {
-			delete state;
 			delete memory;
 		}
 
@@ -34,15 +27,15 @@ namespace E6502 {
 		}
 
 		/* Helper to test if a given values was saved to a gien register */
-		void testSave(u8 save_reg, Byte testValue, char* test_name) {
+		void testSave(u8 save_reg, Byte testValue, CPUState* testState, char* test_name) {
 			Byte regValue = !testValue;		//TODO confirm this is valid
 			switch (save_reg) {
 				case CPUState::REGISTER_A:
-					regValue = state->A; break;
+					regValue = testState->A; break;
 				case CPUState::REGISTER_X:
-					regValue = state->X; break;
+					regValue = testState->X; break;
 				case CPUState::REGISTER_Y:
-					regValue = state->Y; break;
+					regValue = testState->Y; break;
 				default: {
 					EXPECT_TRUE(false) << test_name << ": testSave() -> invalid target register provided";
 				}
@@ -52,18 +45,18 @@ namespace E6502 {
 		}
 
 		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
-		Byte genTestValAndClearTargetReg(u8 targetReg, Byte testValue=0x00) {
+		Byte genTestValAndClearTargetReg(u8 targetReg, CPUState* testState, Byte testValue = 0x00) {
 			if (testValue == 0x00) {
 				// Either no value was provided or 0 was. 0 is not a good option for testing
 				testValue = 0x42; //TODO randomise?
 			}
 			switch (targetReg) {
 				case CPUState::REGISTER_A:
-					state->A = ~testValue; break;
+					testState->A = ~testValue; break;
 				case CPUState::REGISTER_X:
-					state->X = ~testValue; break;
+					testState->X = ~testValue; break;
 				case CPUState::REGISTER_Y:
-					state->Y = ~testValue; break;
+					testState->Y = ~testValue; break;
 				default: {
 					fprintf(stderr, "LD(AXY) Test: invalid target register provided");
 					EXPECT_TRUE(false);
@@ -83,33 +76,36 @@ namespace E6502 {
 		 * @param expected_cycles	The number of cycles the execution should take
 		 * @param test_name			Name of the test (helps with debugging)
 		*/
-		void absIndexedHelper(Byte instruction, Byte lsb, Byte msb, Byte index, u8 idx_mode, u8 targetReg, u8 expected_cycles, char* test_name) {
+		void absIndexedHelper(Byte instruction, Byte lsb, Byte msb, Byte index, u8 indexReg, u8 targetReg, u8 expected_cycles, char* test_name) {
 			// Fixtures
 			Byte testValue = 0;
 			Word targetAddress = (msb << 8) + lsb + index;
 			u8 cyclesUsed = 0;
+			CPUState* testState = new CPUState;		//need a new one each time to avoid contamination between tests
 
 			// Load fixtures to memory
 			memory->data[0x000] = lsb;
 			memory->data[0x001] = msb;
-			testValue = genTestValAndClearTargetReg(targetReg);
+			testValue = genTestValAndClearTargetReg(targetReg, testState);
 
 			// Given:
 			memory->data[targetAddress] = testValue;	
 
-			state->PC = 0x0000;
+			testState->PC = 0x0000;
 			// Set the X or Y register if needed
-			if (idx_mode == ABS_IDX_X)
-				state->X = index;
-			else if (idx_mode == ABS_IDX_Y)
-				state->Y = index;
+			if (indexReg == CPUState::REGISTER_X)
+				testState->X = index;
+			else if (indexReg == CPUState::REGISTER_Y)
+				testState->Y = index;
 
 			// When:
-			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+			cyclesUsed = LDAXY::executeHandler(memory, testState, &InstructionCode(instruction));
 
 			// Then:'
-			testSave(targetReg, testValue, test_name);
+			testSave(targetReg, testValue, testState, test_name);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
+
+			delete testState;
 		}
 
 		/* Helper function ro test Absolute instructions */
@@ -119,10 +115,11 @@ namespace E6502 {
 			Byte msb = 0xBE;			//TODO - maybe randomise?
 			Word targetAddress = 0xBE84;
 			u8 cyclesUsed = 0;
+			CPUState* state = new CPUState;
 
 			// Given:
 			state->PC = 0x0000;
-			Byte testValue = genTestValAndClearTargetReg(targetReg);
+			Byte testValue = genTestValAndClearTargetReg(targetReg, state);
 			memory->data[0x000] = lsb;
 			memory->data[0x001] = msb;
 			memory->data[targetAddress] = testValue;
@@ -132,8 +129,9 @@ namespace E6502 {
 			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
-			testSave(targetReg, testValue, test_name);
+			testSave(targetReg, testValue, state, test_name);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
+			delete state;
 		}
 		
 		/* Helper fucntion to test Immediate instructions */
@@ -141,18 +139,20 @@ namespace E6502 {
 			// Fixtures
 			Byte testValue = 0;
 			u8 cyclesUsed = 0;
+			CPUState* state = new CPUState;
 
 			// Given:
 			state->PC = 0x0000;
-			testValue = genTestValAndClearTargetReg(targetReg);
+			testValue = genTestValAndClearTargetReg(targetReg, state);
 			memory->data[0x0000] = testValue;
 
 			// When:
 			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
-			testSave(targetReg, testValue, test_name);
+			testSave(targetReg, testValue, state, test_name);
 			EXPECT_EQ(cyclesUsed, 2);
+			delete state;
 		}
 
 		/** Helper function for zero page instructions */
@@ -161,10 +161,11 @@ namespace E6502 {
 			Byte testValue = 0;
 			Byte insAddress = 0x84;		// TODO - maybe randmomise?
 			u8 cyclesUsed = 0;
+			CPUState* state = new CPUState;
 
 			// Given:
 			state->PC = 0x0000;
-			testValue = genTestValAndClearTargetReg(targetReg);
+			testValue = genTestValAndClearTargetReg(targetReg, state);
 			memory->data[0x0000] = insAddress;
 			memory->data[insAddress] = testValue;
 
@@ -172,8 +173,9 @@ namespace E6502 {
 			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
-			testSave(targetReg, testValue, test_name);
+			testSave(targetReg, testValue, state, test_name);
 			EXPECT_EQ(cyclesUsed, 3);
+			delete state;
 		}
 
 		/** Helper method for zero page index instructions */
@@ -186,6 +188,7 @@ namespace E6502 {
 			u8 cyclesUsed = 0;
 
 			for (u8 i = 0; i < 3; i++) {
+				CPUState* state = new CPUState;
 				// Load fixtures to memory
 				state->PC = 0x0000;
 				memory->data[0x000] = baseAddress[i];
@@ -199,14 +202,15 @@ namespace E6502 {
 						EXPECT_TRUE(false) << test_name << ": testZeroPageIndex() -> invalid index register provided";
 					}
 				}
-				genTestValAndClearTargetReg(targetReg, testValue[i]);
+				genTestValAndClearTargetReg(targetReg, state, testValue[i]);
 				
 				// When:
 				cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 				// Then:
-				testSave(targetReg, testValue[i], test_name);
+				testSave(targetReg, testValue[i], state, test_name);
 				EXPECT_EQ(cyclesUsed, expected_cycles);
+				delete state;
 			}
 		}
 
@@ -218,13 +222,15 @@ namespace E6502 {
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
 			Byte cyclePageCorrection[] = { 0 , 1 };			//Add 1 to expected cycles for INDY when crossing page
 			u8 cyclesUsed;
+			
 			memory->data[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
+				CPUState* state = new CPUState;
 				u8 testCycles = expectedCycles;
 				// Given:
 				state->PC = 0x0000;
-				genTestValAndClearTargetReg(targetReg, testValues[i]);
+				genTestValAndClearTargetReg(targetReg, state, testValues[i]);
 				memory->data[dataAddress[i]] = testValues[i];
 
 				if (indexReg == CPUState::REGISTER_X) {
@@ -251,8 +257,9 @@ namespace E6502 {
 				cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 				//Then:
-				testSave(targetReg, testValues[i], test_name);
+				testSave(targetReg, testValues[i], state, test_name);
 				EXPECT_EQ(cyclesUsed, testCycles);
+				delete state;
 			}
 		}
 
@@ -308,46 +315,37 @@ namespace E6502 {
 	}
 
 	/* Tests LDA Absolute Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAAbsolute) {
+	TEST_F(TestLDAXYInstruction, TestLDAXYAbsolute) {
 		testAbsolute(INS_LDA_ABS, CPUState::REGISTER_A, 4, "LDA_ABS");
 		testAbsolute(INS_LDX_ABS, CPUState::REGISTER_X, 4, "LDX_ABS");
 		testAbsolute(INS_LDY_ABS, CPUState::REGISTER_Y, 4, "LDY_ABS");
 	}
 
 	/* Tests LDA Absolute,X Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAAbsoluteX) {
+	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXY) {
 		Byte lsb = 0x84;			//TODO - maybe randomise?
 		Byte msb = 0xFF;			//TODO - maybe randomise?
 		Byte index = 0x00;
 		u8 cyclesUsed = 0;
 
 		index = 0x10;
-		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, CPUState::REGISTER_A, 4, "LDA ABSX (no overflow or page)");
+		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, CPUState::REGISTER_X, CPUState::REGISTER_A, 4, "LDA ABSX (no overflow or page)");
+		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, CPUState::REGISTER_Y, CPUState::REGISTER_A, 4, "LDA ABSY (no overflow or page)");
+		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, CPUState::REGISTER_Y, CPUState::REGISTER_X, 4, "LDX ABSY (no overflow or page)");
+		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, CPUState::REGISTER_X, CPUState::REGISTER_Y, 4, "LDY ABSX (no overflow or page)");
 
 		index = 0xA5;
-		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, CPUState::REGISTER_A, 5, "LDA ABSX (overflow)");
+		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, CPUState::REGISTER_X, CPUState::REGISTER_A, 5, "LDA ABSX (overflow)");
+		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, CPUState::REGISTER_Y, CPUState::REGISTER_A, 5, "LDA ABSY (overflow)");
+		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, CPUState::REGISTER_Y, CPUState::REGISTER_X, 5, "LDX ABSY (overflow)");
+		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, CPUState::REGISTER_X, CPUState::REGISTER_Y, 5, "LDY ABSX (overflow)");
 
 		msb = 0x37;
 		index = 0xA1;
-		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, ABS_IDX_X, CPUState::REGISTER_A, 5, "LDA ABSX (page boundry)");
-	}
-
-	/* Tests LDA Absolute,Y Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAAbsoluteY) {
-		Byte lsb = 0x84;			//TODO - maybe randomise?
-		Byte msb = 0xFF;			//TODO - maybe randomise?
-		Byte index = 0x00;
-		u8 cyclesUsed = 0;
-
-		index = 0x10;
-		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, CPUState::REGISTER_A, 4, "LDA ABSY (no overflow or page)");
-
-		index = 0xA5;
-		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, CPUState::REGISTER_A, 5, "LDA ABSY (overflow)");
-
-		msb = 0x37;
-		index = 0xA1;
-		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, ABS_IDX_Y, CPUState::REGISTER_A, 5, "LDA ABSY (page boundry)");
+		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, CPUState::REGISTER_X, CPUState::REGISTER_A, 5, "LDA ABSX (page boundry)");
+		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, CPUState::REGISTER_Y, CPUState::REGISTER_A, 5, "LDA ABSY (page boundry)");
+		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, CPUState::REGISTER_Y, CPUState::REGISTER_X, 5, "LDX ABSY (page boundry)");
+		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, CPUState::REGISTER_X, CPUState::REGISTER_Y, 5, "LDY ABSX (page boundry)");
 	}
 
 	/* Tests LDA Indeirect,X Instruction */
@@ -459,12 +457,13 @@ namespace E6502 {
 		testPropsAndDelete(new LDAXYHandler(INS_LDY_ABS), INS_LDY_ABS, "LDY - Load Index Register Y [Absolute]");
 	}
 
-	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXHandlerProps) {
+	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXYHandlerProps) {
 		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABSX), INS_LDA_ABSX, "LDA - Load Accumulator [X-Indexed Absolute]");
-	}
-
-	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteYHandlerProps) {
 		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABSY), INS_LDA_ABSY, "LDA - Load Accumulator [Y-Indexed Absolute]");
+
+		testPropsAndDelete(new LDAXYHandler(INS_LDX_ABSY), INS_LDX_ABSY, "LDX - Load Accumulator [Y-Indexed Absolute]");
+
+		testPropsAndDelete(new LDAXYHandler(INS_LDY_ABSX), INS_LDY_ABSX, "LDY - Load Accumulator [X-Indexed Absolute]");
 	}
 
 	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectXHandlerProps) {

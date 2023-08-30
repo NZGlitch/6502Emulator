@@ -141,9 +141,12 @@ namespace E6502 {
 			}
 
 
-			case INS_LDA_ABS:
+			
 			case INS_LDX_ABS:
+			case INS_LDX_ABSY:
 			case INS_LDY_ABS:
+			case INS_LDY_ABSX:
+			case INS_LDA_ABS:
 			case INS_LDA_ABSX:
 			case INS_LDA_ABSY: {
 				// Read address from next two bytes (lsb first)
@@ -152,8 +155,16 @@ namespace E6502 {
 				Byte index = 0;
 
 				// Get index
-				if (opCode->B == ABSOLUTE_X) index = state->X;
-				else if (opCode->B == ABSOLUTE_Y) index = state->Y;
+				switch (opCode->code) {
+					case INS_LDA_ABSX:
+					case INS_LDY_ABSX:
+						index = state->X;
+						break;
+					case INS_LDA_ABSY:
+					case INS_LDX_ABSY:
+						index = state->Y;
+						break;
+				}
 				lsb += index;		//Doesn't seem to take a cycle?
 
 				//Check for page bouundry
@@ -167,16 +178,20 @@ namespace E6502 {
 				// Read the value at address into register
 				Byte value = mem->readByte(cycles, address);
 				switch (opCode->code) {
-					case INS_LDA_ABS: case INS_LDA_ABSX: case INS_LDA_ABSY: 
-						state->saveToReg(CPUState::REGISTER_A, value); affectedRegister = CPUState::REGISTER_A; 
+					case INS_LDA_ABS: 
+					case INS_LDA_ABSX: 
+					case INS_LDA_ABSY: 
+						state->saveToReg(CPUState::REGISTER_A, value);
 						affectedRegister = CPUState::REGISTER_A;
 						break;
 					case INS_LDX_ABS: 
-						state->saveToReg(CPUState::REGISTER_X, value); affectedRegister = CPUState::REGISTER_X; 
+					case INS_LDX_ABSY:
+						state->saveToReg(CPUState::REGISTER_X, value);
 						affectedRegister = CPUState::REGISTER_X;
 						break;
 					case INS_LDY_ABS: 
-						state->saveToReg(CPUState::REGISTER_Y, value); affectedRegister = CPUState::REGISTER_Y; 
+					case INS_LDY_ABSX:
+						state->saveToReg(CPUState::REGISTER_Y, value);
 						affectedRegister = CPUState::REGISTER_Y;
 						break;
 					default: {
@@ -219,6 +234,10 @@ namespace E6502 {
 
 		handlers[INS_LDA_ABSX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSX);
 		handlers[INS_LDA_ABSY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSY);
+		handlers[INS_LDX_ABSY]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_ABSY);
+		handlers[INS_LDY_ABSX]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ABSX);
+
+
 		handlers[INS_LDA_INDX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDX);
 		handlers[INS_LDA_INDY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDY);
 	};
