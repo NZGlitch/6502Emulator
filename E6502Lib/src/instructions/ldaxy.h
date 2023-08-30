@@ -9,10 +9,14 @@ namespace E6502 {
 	const static Byte INS_LDA_IMM = 0xA9;	//10 101 001
 	const static Byte INS_LDX_IMM = 0xA2;	//10 100 010
 	
+	/** Zero Page instructions */
+	const static Byte INS_LDY_ZP = 0xA4;	//10 100 100
+	const static Byte INS_LDA_ZP = 0xA5;	//10 100 101
+	const static Byte INS_LDX_ZP = 0xA6;	//10 100 110
 
 	/** LDA Instruction Codes */
 	const static Byte INS_LDA_INDX = 0xA1;
-	const static Byte INS_LDA_ZP = 0xA5;
+	
 	
 	const static Byte INS_LDA_ABS = 0xAD;
 	const static Byte INS_LDA_INDY = 0xB1;
@@ -30,7 +34,7 @@ namespace E6502 {
 	public:
 		static constexpr Byte instructions[] = { 
 			INS_LDA_IMM, INS_LDX_IMM, INS_LDY_IMM,
-			INS_LDA_ZP, 
+			INS_LDA_ZP, INS_LDX_ZP, INS_LDY_ZP,
 			INS_LDA_ZPX,
 			INS_LDA_ABS,
 			INS_LDA_ABSX,
@@ -59,10 +63,13 @@ namespace E6502 {
 			execute = LDAXY::executeHandler;
 			switch (opcode_) {
 				case INS_LDA_IMM: name = "LDA - Load Accumulator [Immediate]"; break;
-				case INS_LDX_IMM: name = "LDX - Load Accumulator [Immediate]"; break;
-				case INS_LDY_IMM: name = "LDY - Load Accumulator [Immediate]"; break;
+				case INS_LDX_IMM: name = "LDX - Load Index Register X [Immediate]"; break;
+				case INS_LDY_IMM: name = "LDY - Load Index Register Y [Immediate]"; break;
 
 				case INS_LDA_ZP: name = "LDA - Load Accumulator [Zero Page]"; break;
+				case INS_LDX_ZP: name = "LDX - Load Index Register X [Zero Page]"; break;
+				case INS_LDY_ZP: name = "LDY - Load Index Register Y [Zero Page]"; break;
+
 				case INS_LDA_ZPX: name = "LDA - Load Accumulator [X-Indexed Zero Page]"; break;
 				case INS_LDA_ABS: name = "LDA - Load Accumulator [Absolute]"; break;
 				case INS_LDA_ABSX: name = "LDA - Load Accumulator [X-Indexed Absolute]"; break;

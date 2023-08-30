@@ -143,7 +143,7 @@ namespace E6502 {
 			memory->data[insAddress] = testValue;
 
 			// When:
-			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(INS_LDA_ZP));
+			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
 			testSave(targetReg, testValue, test_name);
@@ -246,8 +246,8 @@ namespace E6502 {
 	/* Tests LD(A/X/Y) Zero Page Instruction */
 	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPage) {
 		testZeroPage(INS_LDA_ZP, CPUState::REGISTER_A, 3, "LDA_ZP");
-		//testZeroPage(INS_LDX_ZP, CPU::REGISTER_X, 3, "LDX_ZP");
-		//testZeroPage(INS_LDY_ZP, CPU::REGISTER_Y, 3, "LDY_ZP");
+		testZeroPage(INS_LDX_ZP, CPUState::REGISTER_X, 3, "LDX_ZP");
+		testZeroPage(INS_LDY_ZP, CPUState::REGISTER_Y, 3, "LDY_ZP");
 	}
 
 	/* Tests LDA Zero Page,X Instruction */
@@ -434,12 +434,14 @@ namespace E6502 {
 
 	TEST_F(TestLDAXYInstruction, TestLDAXYImmediateHandlerProps) {
 		testPropsAndDelete(new LDAXYHandler(INS_LDA_IMM), INS_LDA_IMM, "LDA - Load Accumulator [Immediate]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDX_IMM), INS_LDX_IMM, "LDX - Load Accumulator [Immediate]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDY_IMM), INS_LDY_IMM, "LDY - Load Accumulator [Immediate]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDX_IMM), INS_LDX_IMM, "LDX - Load Index Register X [Immediate]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDY_IMM), INS_LDY_IMM, "LDY - Load Index Register Y [Immediate]");
 	}
 
 	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageHandlerProps) {
 		testPropsAndDelete(new LDAXYHandler(INS_LDA_ZP), INS_LDA_ZP, "LDA - Load Accumulator [Zero Page]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDX_ZP), INS_LDX_ZP, "LDX - Load Index Register X [Zero Page]");
+		testPropsAndDelete(new LDAXYHandler(INS_LDY_ZP), INS_LDY_ZP, "LDY - Load Index Register Y [Zero Page]");
 	}
 
 	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageXHandlerProps) {

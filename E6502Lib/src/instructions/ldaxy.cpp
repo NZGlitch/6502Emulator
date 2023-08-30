@@ -68,21 +68,18 @@ namespace E6502 {
 				state->A = mem->readByte(cycles, targetAddress);
 				break;
 			}
-			case INS_LDA_ZP: {
+			
+			/* Zero Page Instructions */
+			case INS_LDA_ZP:
+			case INS_LDX_ZP: 
+			case INS_LDY_ZP: {
 				/* Read the next byte as the lsb for a zero page address */
 				Byte address = mem->readByte(cycles, state->incPC());
-				state->A = mem->readByte(cycles, address);
-				break;
-			}
-			case INS_LDA_IMM:
-			case INS_LDX_IMM:
-			case INS_LDY_IMM: {
-				/* Read the next byte from PC and put into the appropriate register */
-				Byte value = mem->readByte(cycles, state->incPC());
-				switch (opCode->C) {
-					case 0: state->saveToReg(CPUState::REGISTER_Y, value); break;
-					case 1: state->saveToReg(CPUState::REGISTER_A, value); break;
-					case 2: state->saveToReg(CPUState::REGISTER_X, value); break;
+				Byte value = mem->readByte(cycles, address);
+				switch (opCode->code) {
+					case INS_LDA_ZP: state->saveToReg(CPUState::REGISTER_A, value); break;
+					case INS_LDX_ZP: state->saveToReg(CPUState::REGISTER_X, value); break;
+					case INS_LDY_ZP: state->saveToReg(CPUState::REGISTER_Y, value); break;
 					default: {
 						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
 						// We won't change the state or use cycles
@@ -91,6 +88,26 @@ namespace E6502 {
 				}
 				break;
 			}
+			
+			/* Immeidate Instructions */
+			case INS_LDA_IMM:
+			case INS_LDX_IMM:
+			case INS_LDY_IMM: {
+				/* Read the next byte from PC and put into the appropriate register */
+				Byte value = mem->readByte(cycles, state->incPC());
+				switch (opCode->code) {
+					case INS_LDA_IMM: state->saveToReg(CPUState::REGISTER_A, value); break;
+					case INS_LDX_IMM: state->saveToReg(CPUState::REGISTER_X, value); break;
+					case INS_LDY_IMM: state->saveToReg(CPUState::REGISTER_Y, value); break;
+					default: {
+						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
+						// We won't change the state or use cycles
+						return 0;
+					}
+				}
+				break;
+			}
+
 			case INS_LDA_ZPX: {
 				// Read the next byte as the lsb for a zero page base address
 				Byte address = mem->readByte(cycles, state->incPC());
@@ -103,8 +120,11 @@ namespace E6502 {
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
+
 			case INS_LDA_ABS:
+
 			case INS_LDA_ABSX:
+
 			case INS_LDA_ABSY: {
 				// Read address from next two bytes (lsb first)
 				Byte lsb = mem->readByte(cycles, state->incPC());
@@ -126,6 +146,7 @@ namespace E6502 {
 				state->A = mem->readByte(cycles, address);
 				break;
 			}
+
 			default: {
 				//Shouldn't be here!
 				fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
@@ -144,6 +165,9 @@ namespace E6502 {
 		handlers[INS_LDY_IMM]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_IMM);
 
 		handlers[INS_LDA_ZP]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ZP);
+		handlers[INS_LDX_ZP]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_ZP);
+		handlers[INS_LDY_ZP]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ZP);
+
 		handlers[INS_LDA_ZPX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ZPX);
 		handlers[INS_LDA_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABS);
 		handlers[INS_LDA_ABSX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSX);
