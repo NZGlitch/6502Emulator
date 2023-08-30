@@ -171,4 +171,24 @@ namespace E6502 {
 
 		EXPECT_EQ(state.getSP(), 0x0112);
 	}
+
+	/* Test values are saved to the correct register */
+	TEST_F(TestTypes, TestCPUSaveToReg) {
+		CPUState state;
+
+		// Given:
+		Byte regA = 0x21;
+		Byte regX = 0x42;
+		Byte regY = 0x84;
+
+		// When:
+		state.saveToReg(CPUState::REGISTER_A, regA);
+		state.saveToReg(CPUState::REGISTER_X, regX);
+		state.saveToReg(CPUState::REGISTER_Y, regY);
+
+		// Then:
+		EXPECT_EQ(state.A, regA);
+		EXPECT_EQ(state.X, regX);
+		EXPECT_EQ(state.Y, regY);
+	}
 }

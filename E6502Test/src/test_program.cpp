@@ -19,17 +19,19 @@ namespace E6502 {
 		Byte initProgram[4] = { INS_JSR, palsb, pamsb, 0x00 };
 
 		/* Size of program */
-		const static Word programSize = 0x12;
+		const static Word programSize = 0x16;
 
 		/* Sample program to test */
 		Byte program[programSize] = {
 			// Test out LDA instructions by loading data into the A register
+			INS_LDX_IMM,	0x01,				// Set the X-Index register to 01
+			INS_LDY_IMM,	0x02,				// Set the y-Index register to 02
 			INS_LDA_ABS,	0x84,	0x42,		// Load the first byte from the data section (0x12)
-			INS_LDA_ABSX,	0x84,	0x42,		// Load data[x] - cant be set, if 0 then A = 0x12
-			INS_LDA_ABSY,	0x84,	0x42,		// Load data[y] - cant be set, if 0 then A = 0x12
+			INS_LDA_ABSX,	0x84,	0x42,		// Load data[x] - A = 0x34
+			INS_LDA_ABSY,	0x84,	0x42,		// Load data[y] - A = 0x56
 			INS_LDA_IMM,	0x42,				// Load 0x42 into A
 			INS_LDA_ZP,		0x02,				// load zp[02] = 0xDD into A
-			INS_LDA_ZPX,	0x08,				// load (zp+0x08)[x] - cant be set, if 0 then A = 0x77
+			INS_LDA_ZPX,	0x08,				// load (zp+0x08)[x] - A = 0x66
 			//TODO - indirect instructions
 			INS_JSR,		palsb,	pamsb,		// GOTO 10 - infinite loop
 		};
@@ -73,7 +75,7 @@ namespace E6502 {
 		// Clock stuff
 		s8 clockSpeedMhz = 1;		// 1 instruction per microsecond
 
-		u8 insToExecute = 8;		// initProgram(1) + program(7) = 8
+		u8 insToExecute = 10;		// initProgram(1) + program(9) = 10
 
 		// boot routine @ 0xFFFC
 		mem->loadProgram(0xFFFC, initProgram, 4);
@@ -122,12 +124,14 @@ namespace E6502 {
 		}
 
 		EXPECT_EQ(cpuState.PC, 0x1234);	// Last instruction (JSR) sets this
-		EXPECT_EQ(cpuState.A, 0x77);	// Last LDA instruction sets this
+		EXPECT_EQ(cpuState.A, 0x66);	// Last LDA instruction sets this
+		EXPECT_EQ(cpuState.X, 0x01);
+		EXPECT_EQ(cpuState.Y, 0x02);
 
 		// Return address of stack should be programAddr + 0x11 (i.e. the last byte of the program)
 		Byte slsb = mem->readByte(cyclesExecuted, cpuState.popSP());
 		Byte smsb = mem->readByte(cyclesExecuted, cpuState.popSP());
 		Word stackAddr = (smsb << 8) | slsb;
-		EXPECT_EQ(stackAddr, programAddress + 0x11);
+		EXPECT_EQ(stackAddr, programAddress + 0x15);
 	}
 }

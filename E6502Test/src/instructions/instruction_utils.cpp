@@ -3,7 +3,7 @@
 #include "instruction_manager.h"
 #include "instructions/instruction_utils.h"
 #include "instructions/jsr.h"
-#include "instructions/lda.h"
+#include "instructions/ldaxy.h"
 
 namespace E6502 {
 
@@ -27,8 +27,8 @@ namespace E6502 {
 		// When:
 		InstructionUtils::loader.load(handlers);
 
-		// Then (LDA):
-		for (const Byte& opcode : LDA::instructions) {
+		// Then (LDAXY):
+		for (const Byte& opcode : LDAXY::instructions) {
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}
