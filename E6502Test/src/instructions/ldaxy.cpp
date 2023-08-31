@@ -35,7 +35,7 @@ namespace E6502 {
 			delete handler;
 		}
 
-		/* Helper to test if a given values was saved to a given register 
+		/* Helper to test if a given values was saved to a given register
 		void testSave(u8 save_reg, Byte testValue, CPUState* testState, char* test_name) {
 			Byte regValue = !testValue;		//TODO confirm this is valid
 			switch (save_reg) {
@@ -88,18 +88,14 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// Given:
-			memory->data[targetAddress] = testValue;	
-
+			memory->data[targetAddress] = testValue;
 			state->PC = 0x0000;
-			
-			// Set the index register if
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+			cyclesUsed = LDAXY::absoluteHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:'
-			//testSave(targetReg, testValue, testState, test_name);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
 
@@ -120,15 +116,15 @@ namespace E6502 {
 
 			// Expected call
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
-			
+
 
 			// When:
-			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+			cyclesUsed = LDAXY::absoluteHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
-		
+
 		/* Helper fucntion to test Immediate instructions */
 		void testImmediate(Byte instruction, Byte* targetReg, u8 expected_cycles, char* test_name) {
 			// Fixtures
@@ -144,7 +140,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+			cyclesUsed = LDAXY::immediateHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 2);
@@ -167,7 +163,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+			cyclesUsed = LDAXY::zeroPageHandler(memory, state, &InstructionCode(instruction));
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 3);
@@ -176,14 +172,14 @@ namespace E6502 {
 		/** Helper method for zero page index instructions */
 		void testZeroPageIndex(Byte instruction, Byte* indexReg, Byte* targetReg, u8 expected_cycles, char* test_name) {
 			// Fixtures
-			Byte baseAddress[]		= { 0x84, 0x12, 0x44 };			// TODO - maybe randmomise?
-			Byte testIndex[]		= { 0x10, 0xFF, 0x00 };			// TODO - maybe randmomise?
-			Word targetAddress[]	= { 0x0094, 0x0011, 0x0044 };	// = baseAddress[i] + testX[i] | 0xFF
-			Byte testValue[]		= { 0x42, 0xF0, 0x01 };			// TODO - maybe randomise?
+			Byte baseAddress[] = { 0x84, 0x12, 0x44 };			// TODO - maybe randmomise?
+			Byte testIndex[] = { 0x10, 0xFF, 0x00 };			// TODO - maybe randmomise?
+			Word targetAddress[] = { 0x0094, 0x0011, 0x0044 };	// = baseAddress[i] + testX[i] | 0xFF
+			Byte testValue[] = { 0x42, 0xF0, 0x01 };			// TODO - maybe randomise?
 			u8 cyclesUsed = 0;
 
 			for (u8 i = 0; i < 3; i++) {
-				
+
 				// Load fixtures to memory
 				state->PC = 0x0000;
 				memory->data[0x000] = baseAddress[i];
@@ -195,13 +191,13 @@ namespace E6502 {
 
 				// Expected call
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue[i])).Times(1);
-				
+
 				// When:
-				cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+				cyclesUsed = LDAXY::zeroPageIndexedHandler(memory, state, &InstructionCode(instruction));
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, expected_cycles);
-				
+
 			}
 		}
 
@@ -212,7 +208,7 @@ namespace E6502 {
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
 			u8 cyclesUsed;
-			
+
 			memory->data[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
@@ -366,59 +362,53 @@ namespace E6502 {
 		LDAXY::addHandlers(handlers);
 
 		// Then: For all LDA instructions, Expect *handlers[opcode] to point to a handler with the same opcode
-		for (const Byte& opcode : LDAXY::instructions) {
+		for (const InstructionHandler handler : LDAXY::instructions) {
+			Byte opcode = handler.opcode;
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ(((*handlers[opcode]).opcode), opcode);
 		}
 	}
 
-	/*********************************************
-	*				Handler Tests				 *
-	* Check each handler is configured correctly *
-	**********************************************/
+	/* Test  fetchAndSaveToRegister */ //(u8* cycles, Memory* memory, Byte* reg);
+	TEST_F(TestLDAXYInstruction, TestfetchAndSave){
+		Byte* registers[] = { &state->A, &state->X, &state->Y };
+		Byte testValues[] = { 0x21, 0x42, 0x84 };
+		Word testAddresses[] = { 0x1234, 0xf167, 0x0200 };
 
-	TEST_F(TestLDAXYInstruction, TestLDAXYImmediateHandlerProps) {
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_IMM), INS_LDA_IMM, "LDA - Load Accumulator [Immediate]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDX_IMM), INS_LDX_IMM, "LDX - Load Index Register X [Immediate]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDY_IMM), INS_LDY_IMM, "LDY - Load Index Register Y [Immediate]");
+		for (int i = 0; i < 3; i++) {
+			// Given
+			memory->data[testAddresses[i]] = testValues[i];
+			*registers[i] = ~testValues[i];
+			u8 cycles = 0;
+
+			//Expect to set flags
+			EXPECT_CALL(*state, saveToRegAndFlag(registers[i], testValues[i])).Times(1);
+
+			// When:
+			LDAXY::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
+
+			// Then
+			EXPECT_EQ(cycles, 1);
+		}
+
+		
 	}
 
-	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageHandlerProps) {
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_ZP), INS_LDA_ZP, "LDA - Load Accumulator [Zero Page]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDX_ZP), INS_LDX_ZP, "LDX - Load Index Register X [Zero Page]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDY_ZP), INS_LDY_ZP, "LDY - Load Index Register Y [Zero Page]");
+	TEST_F(TestLDAXYInstruction, TestGetRegFromInstruction) {
+		Byte* testRegs[] = { &state->Y, &state->A, &state->X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
+
+		for (InstructionHandler handler : LDAXY::instructions) {
+			// Given:
+			InstructionCode* instruction = new InstructionCode(handler.opcode);
+
+			// When:
+			Byte* result = LDAXY::getRegFromInstruction(instruction, state);
+
+			// Then:
+			EXPECT_EQ(result, testRegs[handler.opcode & 0x03]);
+
+			// Clean Up
+			delete instruction;
+		}
 	}
-
-	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageXYHandlerProps) {
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_ZPX), INS_LDA_ZPX, "LDA - Load Accumulator [X-Indexed Zero Page]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDX_ZPY), INS_LDX_ZPY, "LDX - Load Index Register X [Y-Indexed Zero Page]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDY_ZPX), INS_LDY_ZPX, "LDY - Load Index Register Y [X-Indexed Zero Page]");
-	}
-
-	TEST_F(TestLDAXYInstruction, TestLDAXYAbsolteHandlerProps) {
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABS), INS_LDA_ABS, "LDA - Load Accumulator [Absolute]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDX_ABS), INS_LDX_ABS, "LDX - Load Index Register X [Absolute]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDY_ABS), INS_LDY_ABS, "LDY - Load Index Register Y [Absolute]");
-	}
-
-	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXYHandlerProps) {
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABSX), INS_LDA_ABSX, "LDA - Load Accumulator [X-Indexed Absolute]");
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_ABSY), INS_LDA_ABSY, "LDA - Load Accumulator [Y-Indexed Absolute]");
-
-		testPropsAndDelete(new LDAXYHandler(INS_LDX_ABSY), INS_LDX_ABSY, "LDX - Load Accumulator [Y-Indexed Absolute]");
-
-		testPropsAndDelete(new LDAXYHandler(INS_LDY_ABSX), INS_LDY_ABSX, "LDY - Load Accumulator [X-Indexed Absolute]");
-	}
-
-	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectXHandlerProps) {
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_INDX), INS_LDA_INDX, "LDA - Load Accumulator [X-Indexed Zero Page Indirect]");
-	}
-
-	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectYHandlerProps) {
-		testPropsAndDelete(new LDAXYHandler(INS_LDA_INDY), INS_LDA_INDY, "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]");
-	}
-
-	/*********************************************
-	*			End of Handler Tests			 *
-	**********************************************/
 }

@@ -2,9 +2,100 @@
 
 namespace E6502 {
 
+	/** Handles Immediate Addressing Mode Instructions */
+	u8 LDAXY::immediateHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+		Byte* saveRegister = getRegFromInstruction(opCode, state);
+		
+		/* Read the next byte from PC and put into the appropriate register */
+		Byte value = mem->readByte(cycles, state->incPC());
+		state->saveToRegAndFlag(saveRegister, value);
+		return cycles;
+	}
+
+	/** Handles ZeroPage Addressing Mode Instructions */
+	u8 LDAXY::zeroPageHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+		Byte* saveRegister = getRegFromInstruction(opCode, state);
+
+		/* Read the next byte as the lsb for a zero page address */
+		Byte address = mem->readByte(cycles, state->incPC());
+
+		/* Get and store the value */
+		Byte value = mem->readByte(cycles, address);
+		state->saveToRegAndFlag(saveRegister, value);
+
+		return cycles;
+	}/** Handles ZeroPage Addressing Mode Instructions */
+
+	/** Handles ZeroPageIndexed Addressing Mode Instructions */
+	u8 LDAXY::zeroPageIndexedHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+		Byte* saveRegister = getRegFromInstruction(opCode, state);
+
+		// Read the next byte as the lsb for a zero page base address
+		Byte address = mem->readByte(cycles, state->incPC());
+
+		// Add X or Y
+		if (opCode->code == INS_LDX_ZPY) address += state->Y;
+		else address += state->X;
+		cycles++;
+
+		//Read value
+		Byte value = mem->readByte(cycles, address);
+
+		// Read the value at address into register
+		state->saveToRegAndFlag(saveRegister, value);
+		return cycles;
+	}
+
+	/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
+	u8 LDAXY::absoluteHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+		Byte* saveRegister = getRegFromInstruction(opCode, state);
+		
+		// Read address from next two bytes (lsb first)
+		Byte lsb = mem->readByte(cycles, state->incPC());
+		Byte msb = mem->readByte(cycles, state->incPC());
+		Byte index = 0;
+
+		// Get index
+		switch (opCode->code) {
+			case INS_LDA_ABSX:
+			case INS_LDY_ABSX:
+				index = state->X;
+				break;
+			case INS_LDA_ABSY:
+			case INS_LDX_ABSY:
+				index = state->Y;
+				break;
+		}
+		lsb += index;		//Doesn't seem to take a cycle?
+
+		//Check for page bouundry
+		if (lsb < index) {
+			msb++; cycles++;
+		}
+
+		// Calculate address and read memory into A
+		Word address = (msb << 8) | lsb;
+		Byte value = mem->readByte(cycles, address);
+		state->saveToRegAndFlag(saveRegister, value);
+
+		return cycles;
+	}
+
 	/** One function will handle the 'execute' method for all variants */
 	u8 LDAXY::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+		Byte* saveRegister = nullptr;
+
+		//Last 2 bits of opcode indicates target register
+		switch (opCode->C & 0x03) {
+			case 0x00: saveRegister = &state->Y; break;
+			case 0x01: saveRegister = &state->A; break;
+			case 0x02: saveRegister = &state->X; break;
+		}
 		switch (opCode->code) {
 			case INS_LDA_INDX:
 			case INS_LDA_INDY: {
@@ -63,135 +154,6 @@ namespace E6502 {
 				state->saveToRegAndFlag(&state->A, value);
 				break;
 			}
-			
-			/* Zero Page Instructions */
-			case INS_LDA_ZP:
-			case INS_LDX_ZP: 
-			case INS_LDY_ZP: {
-				/* Read the next byte as the lsb for a zero page address */
-				Byte address = mem->readByte(cycles, state->incPC());
-				Byte value = mem->readByte(cycles, address);
-				switch (opCode->code) {
-					case INS_LDA_ZP: state->saveToRegAndFlag(&state->A, value); break;
-					case INS_LDX_ZP: state->saveToRegAndFlag(&state->X, value); break;
-					case INS_LDY_ZP: state->saveToRegAndFlag(&state->Y, value); break;
-					default: {
-						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
-						// We won't change the state or use cycles
-						return 0;
-					}
-				}
-				break;
-			}
-			
-			/* Immeidate Instructions */
-			case INS_LDA_IMM:
-			case INS_LDX_IMM:
-			case INS_LDY_IMM: {
-				/* Read the next byte from PC and put into the appropriate register */
-				Byte value = mem->readByte(cycles, state->incPC());
-				switch (opCode->code) {
-					case INS_LDA_IMM: state->saveToRegAndFlag(&state->A, value); break;
-					case INS_LDX_IMM: state->saveToRegAndFlag(&state->X, value); break;
-					case INS_LDY_IMM: state->saveToRegAndFlag(&state->Y, value); break;
-					default: {
-						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
-						// We won't change the state or use cycles
-						return 0;
-					}
-				}
-				break;
-			}
-
-			case INS_LDA_ZPX:
-			case INS_LDX_ZPY:
-			case INS_LDY_ZPX: {
-				// Read the next byte as the lsb for a zero page base address
-				Byte address = mem->readByte(cycles, state->incPC());
-
-				// Add X or Y
-				if (opCode->code == INS_LDX_ZPY) address += state->Y;
-				else address += state->X;
-				cycles++;
-
-				//Read value
-				Byte value = mem->readByte(cycles, address);
-
-				// Read the value at address into register
-				switch (opCode->code) {
-					case INS_LDA_ZPX: state->saveToRegAndFlag(&state->A, value); break;
-					case INS_LDX_ZPY: state->saveToRegAndFlag(&state->X, value); break;
-					case INS_LDY_ZPX: state->saveToRegAndFlag(&state->Y, value); break;
-					default: {
-						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
-						// We won't change the state or use cycles
-						return 0;
-					}
-				}
-				break;
-			}
-			
-			case INS_LDX_ABS:
-			case INS_LDX_ABSY:
-			case INS_LDY_ABS:
-			case INS_LDY_ABSX:
-			case INS_LDA_ABS:
-			case INS_LDA_ABSX:
-			case INS_LDA_ABSY: {
-				// Read address from next two bytes (lsb first)
-				Byte lsb = mem->readByte(cycles, state->incPC());
-				Byte msb = mem->readByte(cycles, state->incPC());
-				Byte index = 0;
-
-				// Get index
-				switch (opCode->code) {
-					case INS_LDA_ABSX:
-					case INS_LDY_ABSX:
-						index = state->X;
-						break;
-					case INS_LDA_ABSY:
-					case INS_LDX_ABSY:
-						index = state->Y;
-						break;
-				}
-				lsb += index;		//Doesn't seem to take a cycle?
-
-				//Check for page bouundry
-				if (lsb < index) {
-					msb++; cycles++;
-				}
-
-				// Calculate address and read memory into A
-				Word address = (msb << 8) | lsb;
-
-				// Read the value at address into register
-				Byte value = mem->readByte(cycles, address);
-				switch (opCode->code) {
-					case INS_LDA_ABS: 
-					case INS_LDA_ABSX: 
-					case INS_LDA_ABSY: 
-						state->saveToRegAndFlag(&state->A, value); 
-						break;
-
-					case INS_LDX_ABS: 
-					case INS_LDX_ABSY:
-						state->saveToRegAndFlag(&state->X, value);
-						break;
-
-					case INS_LDY_ABS: 
-					case INS_LDY_ABSX:
-						state->saveToRegAndFlag(&state->Y, value);
-						break;
-
-					default: {
-						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
-						// We won't change the state or use cycles
-						return 0;
-					}
-				}
-				break;
-			}
-
 			default: {
 				//Shouldn't be here!
 				fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
@@ -202,29 +164,30 @@ namespace E6502 {
 		return cycles;
 	};
 
+	/** Function to get a pointer to a register in the state based on opcode */
+	Byte* LDAXY::getRegFromInstruction(InstructionCode* instruction, CPUState* state) {
+		//Last 2 bits of opcode indicates target register
+		switch (instruction->C & 0x03) {
+			case 0x00: return &state->Y;
+			case 0x01: return &state->A;;
+			case 0x02: return &state->X;
+		}
+		//TODO error handling
+		return nullptr;
+	}
+
+	/** Helper method to get a value from memory and store in a register */
+	void LDAXY::fetchAndSaveToRegister(u8* cycles, Memory* memory, CPUState* state, Word address, Byte* reg) {
+		Byte value = memory->readByte(*cycles, address);
+		state->saveToRegAndFlag(reg, value);
+	}
+
 	/** Called to add LDA Instruction handlers to the emulator */
 	void LDAXY::addHandlers(InstructionHandler* handlers[]) {
-		handlers[INS_LDA_IMM]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_IMM);
-		handlers[INS_LDX_IMM]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_IMM);
-		handlers[INS_LDY_IMM]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_IMM);
 
-		handlers[INS_LDA_ZP]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ZP);
-		handlers[INS_LDX_ZP]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_ZP);
-		handlers[INS_LDY_ZP]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ZP);
-
-		handlers[INS_LDA_ZPX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ZPX);
-		handlers[INS_LDX_ZPY]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_ZPY);
-		handlers[INS_LDY_ZPX]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ZPX);
-
-		handlers[INS_LDA_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABS);
-		handlers[INS_LDX_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_ABS);
-		handlers[INS_LDY_ABS]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ABS);
-
-		handlers[INS_LDA_ABSX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSX);
-		handlers[INS_LDA_ABSY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_ABSY);
-		handlers[INS_LDX_ABSY]	= (InstructionHandler*) new LDAXYHandler(INS_LDX_ABSY);
-		handlers[INS_LDY_ABSX]	= (InstructionHandler*) new LDAXYHandler(INS_LDY_ABSX);
-
+		for (InstructionHandler handler : LDAXY::instructions) {
+			handlers[handler.opcode] = new InstructionHandler{handler.opcode, handler.isLegal, handler.name, handler.execute};
+		}
 
 		handlers[INS_LDA_INDX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDX);
 		handlers[INS_LDA_INDY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDY);

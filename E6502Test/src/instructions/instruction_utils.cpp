@@ -28,7 +28,8 @@ namespace E6502 {
 		InstructionUtils::loader.load(handlers);
 
 		// Then (LDAXY):
-		for (const Byte& opcode : LDAXY::instructions) {
+		for (const InstructionHandler& handler : LDAXY::instructions) {
+			Byte opcode = handler.opcode;
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}
