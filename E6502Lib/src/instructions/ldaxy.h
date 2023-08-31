@@ -49,9 +49,6 @@ namespace E6502 {
 		/** One function will handle the 'execute' method for all variants */
 		static const insHandlerFn JSRInstructionHandler;
 
-		/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
-		static void setFlags(CPUState* state, u8 currentRegister);
-
 		/** Actually handles execution of instructions */
 		static u8 executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
 

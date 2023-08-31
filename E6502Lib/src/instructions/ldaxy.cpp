@@ -1,19 +1,10 @@
 #include "ldaxy.h"
 
 namespace E6502 {
-	/* Helper method to set the CPU flags. Only N(7) and Z(2) flags are affeted by LDA */
-	void LDAXY::setFlags(CPUState* state, u8 currentRegister) {
-		switch (currentRegister) {
-			case CPUState::REGISTER_A: state->Z = (state->A == 0); state->N = (state->A >> 7); break;
-			case CPUState::REGISTER_X: state->Z = (state->X == 0); state->N = (state->X >> 7); break;
-			case CPUState::REGISTER_Y: state->Z = (state->Y == 0); state->N = (state->Y >> 7); break;
-		}
-	}
 
 	/** One function will handle the 'execute' method for all variants */
 	u8 LDAXY::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		u8 affectedRegister = CPUState::REGISTER_A;
 		switch (opCode->code) {
 			case INS_LDA_INDX:
 			case INS_LDA_INDY: {
@@ -68,8 +59,8 @@ namespace E6502 {
 					//Add a cycle iff we crossed a page boundry
 					if ((targetAddress & 0x00FF) < state->Y) cycles++;
 				}
-
-				state->A = mem->readByte(cycles, targetAddress);
+				Byte value = mem->readByte(cycles, targetAddress);
+				state->saveToRegAndFlag(&state->A, value);
 				break;
 			}
 			
@@ -81,9 +72,9 @@ namespace E6502 {
 				Byte address = mem->readByte(cycles, state->incPC());
 				Byte value = mem->readByte(cycles, address);
 				switch (opCode->code) {
-					case INS_LDA_ZP: state->saveToReg(CPUState::REGISTER_A, value); affectedRegister = CPUState::REGISTER_A; break;
-					case INS_LDX_ZP: state->saveToReg(CPUState::REGISTER_X, value); affectedRegister = CPUState::REGISTER_X; break;
-					case INS_LDY_ZP: state->saveToReg(CPUState::REGISTER_Y, value); affectedRegister = CPUState::REGISTER_Y; break;
+					case INS_LDA_ZP: state->saveToRegAndFlag(&state->A, value); break;
+					case INS_LDX_ZP: state->saveToRegAndFlag(&state->X, value); break;
+					case INS_LDY_ZP: state->saveToRegAndFlag(&state->Y, value); break;
 					default: {
 						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
 						// We won't change the state or use cycles
@@ -100,9 +91,9 @@ namespace E6502 {
 				/* Read the next byte from PC and put into the appropriate register */
 				Byte value = mem->readByte(cycles, state->incPC());
 				switch (opCode->code) {
-					case INS_LDA_IMM: state->saveToReg(CPUState::REGISTER_A, value); affectedRegister = CPUState::REGISTER_A; break;
-					case INS_LDX_IMM: state->saveToReg(CPUState::REGISTER_X, value); affectedRegister = CPUState::REGISTER_X; break;
-					case INS_LDY_IMM: state->saveToReg(CPUState::REGISTER_Y, value); affectedRegister = CPUState::REGISTER_Y; break;
+					case INS_LDA_IMM: state->saveToRegAndFlag(&state->A, value); break;
+					case INS_LDX_IMM: state->saveToRegAndFlag(&state->X, value); break;
+					case INS_LDY_IMM: state->saveToRegAndFlag(&state->Y, value); break;
 					default: {
 						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
 						// We won't change the state or use cycles
@@ -128,9 +119,9 @@ namespace E6502 {
 
 				// Read the value at address into register
 				switch (opCode->code) {
-					case INS_LDA_ZPX: state->saveToReg(CPUState::REGISTER_A, value); affectedRegister = CPUState::REGISTER_A; break;
-					case INS_LDX_ZPY: state->saveToReg(CPUState::REGISTER_X, value); affectedRegister = CPUState::REGISTER_X; break;
-					case INS_LDY_ZPX: state->saveToReg(CPUState::REGISTER_Y, value); affectedRegister = CPUState::REGISTER_Y; break;
+					case INS_LDA_ZPX: state->saveToRegAndFlag(&state->A, value); break;
+					case INS_LDX_ZPY: state->saveToRegAndFlag(&state->X, value); break;
+					case INS_LDY_ZPX: state->saveToRegAndFlag(&state->Y, value); break;
 					default: {
 						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
 						// We won't change the state or use cycles
@@ -139,8 +130,6 @@ namespace E6502 {
 				}
 				break;
 			}
-
-
 			
 			case INS_LDX_ABS:
 			case INS_LDX_ABSY:
@@ -181,19 +170,19 @@ namespace E6502 {
 					case INS_LDA_ABS: 
 					case INS_LDA_ABSX: 
 					case INS_LDA_ABSY: 
-						state->saveToReg(CPUState::REGISTER_A, value);
-						affectedRegister = CPUState::REGISTER_A;
+						state->saveToRegAndFlag(&state->A, value); 
 						break;
+
 					case INS_LDX_ABS: 
 					case INS_LDX_ABSY:
-						state->saveToReg(CPUState::REGISTER_X, value);
-						affectedRegister = CPUState::REGISTER_X;
+						state->saveToRegAndFlag(&state->X, value);
 						break;
+
 					case INS_LDY_ABS: 
 					case INS_LDY_ABSX:
-						state->saveToReg(CPUState::REGISTER_Y, value);
-						affectedRegister = CPUState::REGISTER_Y;
+						state->saveToRegAndFlag(&state->Y, value);
 						break;
+
 					default: {
 						fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
 						// We won't change the state or use cycles
@@ -210,7 +199,6 @@ namespace E6502 {
 				return (u8)0;
 			}
 		}
-		LDAXY::setFlags(state, affectedRegister);
 		return cycles;
 	};
 
