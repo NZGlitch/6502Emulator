@@ -85,82 +85,33 @@ namespace E6502 {
 		return cycles;
 	}
 
-	/** One function will handle the 'execute' method for all variants */
-	u8 LDAXY::executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+	/** Handles Indirect Addressing Modes */
+	u8 LDAXY::indirectHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte* saveRegister = nullptr;
+		Byte* saveRegister = getRegFromInstruction(opCode, state);
 
-		//Last 2 bits of opcode indicates target register
-		switch (opCode->C & 0x03) {
-			case 0x00: saveRegister = &state->Y; break;
-			case 0x01: saveRegister = &state->A; break;
-			case 0x02: saveRegister = &state->X; break;
+		// Read the next byte as the base for a zero page address.
+		Byte baseAddress = mem->readByte(cycles, state->incPC());
+
+		//Add Register if IndirectX
+		if (opCode->code == INS_LDA_INDX) {
+			baseAddress += state->X;
+			cycles++;
 		}
-		switch (opCode->code) {
-			case INS_LDA_INDX:
-			case INS_LDA_INDY: {
-
-				/**
-				 Indirect modes are a bit confusing, heres a high level explanation.
-			 
-				 INDIRECT_X:
-					X register is added to argument to determine ZP address
-					Word is read from ZP and is used as the actual data address
-					Value of mem[Word] is stored in register
-					e.g.
-						ASSERT state->Y = 0x15
-						ASSERT ZP[0x05] = 0x34
-						ASSERT ZP[0x06] = 0x12
-						LDA_INDX $F0
-
-						$F0 + 0x15 = 0x05 (wrap)
-						Word = 0x1234
-						save mem[0x1234]
-
-				INDIRECT Y
-					Word is read from ZP[arg], Y is then added to Word and this is the
-					data address that is used
-
-					eg
-						ASSERT state->Y = 0x15
-						ASSERT ZP[0xF0] = 0xF0
-						ASSERT ZP[0xF1] = 0x65
-						LDA_INDY $F0
-
-						Word = ZP[$F0] = 0x65F0
-						Word += Y = 0x65F0 + 0x15 = 0x6605
-						save mem[0x660f]
-				*/
-
-				// Read the next byte as the base for a zero page address.
-				Byte baseAddress = mem->readByte(cycles, state->incPC());
-
-				//Add Register if IndirectX
-				if (opCode->B == INDIRECT_X) {
-					baseAddress += state->X;
-					cycles++;
-				}
 			
-				//Read the word from zero page
-				Word targetAddress = mem->readWord(cycles, 0x00FF & baseAddress);
+		//Read the word from zero page
+		Word targetAddress = mem->readWord(cycles, 0x00FF & baseAddress);
 			
-				//Add Register if IndirectY
-				if (opCode->B == INDIRECT_Y) {
-					targetAddress += (opCode->B == INDIRECT_X ? 0 : state->Y);
-					//Add a cycle iff we crossed a page boundry
-					if ((targetAddress & 0x00FF) < state->Y) cycles++;
-				}
-				Byte value = mem->readByte(cycles, targetAddress);
-				state->saveToRegAndFlag(&state->A, value);
-				break;
-			}
-			default: {
-				//Shouldn't be here!
-				fprintf(stderr, "Attempting to use LD(AXY) instruction executor for non LD(AXY) instruction $%X\n", opCode->code);
-				// We won't change the state or use cycles
-				return (u8)0;
-			}
+		//Add Register if IndirectY
+		if (opCode->code == INS_LDA_INDY) {
+			targetAddress += state->Y;
+			//Add a cycle iff we crossed a page boundry
+			if ((targetAddress & 0x00FF) < state->Y) cycles++;
 		}
+
+		Byte value = mem->readByte(cycles, targetAddress);
+		state->saveToRegAndFlag(&state->A, value);
+		
 		return cycles;
 	};
 
@@ -184,12 +135,8 @@ namespace E6502 {
 
 	/** Called to add LDA Instruction handlers to the emulator */
 	void LDAXY::addHandlers(InstructionHandler* handlers[]) {
-
 		for (InstructionHandler handler : LDAXY::instructions) {
 			handlers[handler.opcode] = new InstructionHandler{handler.opcode, handler.isLegal, handler.name, handler.execute};
 		}
-
-		handlers[INS_LDA_INDX]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDX);
-		handlers[INS_LDA_INDY]	= (InstructionHandler*) new LDAXYHandler(INS_LDA_INDY);
 	};
 }

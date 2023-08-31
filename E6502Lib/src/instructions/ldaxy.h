@@ -40,9 +40,6 @@ namespace E6502 {
 	class LDAXY : public BaseInstruction {
 	public:
 
-		/** Actually handles execution of instructions */
-		static u8 executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
-
 		/** Handles Immediate Addressing Mode Instructions */
 		static u8 immediateHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
 
@@ -55,6 +52,9 @@ namespace E6502 {
 		/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
 		static u8 absoluteHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
 
+		/** Actually handles execution of indirect instructions */
+		static u8 indirectHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
+
 		/** Returns the address of the register indicated by the instruction in the cpu state */
 		static Byte* LDAXY::getRegFromInstruction(InstructionCode* instruction, CPUState* state);
 
@@ -64,6 +64,7 @@ namespace E6502 {
 		/** Helper method to get a value from memory and store in a register */
 		static void fetchAndSaveToRegister(u8* cycles, Memory* memory, CPUState* state, Word address, Byte* reg);
 
+		/** Definition of all LD instructions handled by the LDAXY class */
 		static constexpr InstructionHandler instructions[] = {
 			// Immediate Instructions
 			{INS_LDA_IMM, true, "LDA - Load Accumulator [Immediate]", LDAXY::immediateHandler},
@@ -78,36 +79,26 @@ namespace E6502 {
 			// Zero Page Indexed Instructions
 			{INS_LDA_ZPX, true, "LDA - Load Accumulator [X-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler},
 			{INS_LDX_ZPY, true, "LDX - Load Accumulator [Y-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler},
-			{INS_LDY_ZPX,  true, "LDY - Load Accumulator [X-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler},
+			{INS_LDY_ZPX, true, "LDY - Load Accumulator [X-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler},
 
 			// Absolute Instructions
-			{INS_LDA_ABS,true,"LDA - Load Accumulator [Absolute]", LDAXY::absoluteHandler}, 
-			{INS_LDX_ABS,true,"LDX - Load Index Register X [Absolute]", LDAXY::absoluteHandler},
-			{INS_LDY_ABS,true,"LDY - Load Index Register Y [Absolute]", LDAXY::absoluteHandler},
+			{INS_LDA_ABS, true, "LDA - Load Accumulator [Absolute]", LDAXY::absoluteHandler}, 
+			{INS_LDX_ABS, true, "LDX - Load Index Register X [Absolute]", LDAXY::absoluteHandler},
+			{INS_LDY_ABS, true, "LDY - Load Index Register Y [Absolute]", LDAXY::absoluteHandler},
 
 			// Absolute X-Indexed Instructions
-			{INS_LDA_ABSX,true,"LDA - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler}, 
-			{INS_LDY_ABSX,true,"LDY - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler},
+			{INS_LDA_ABSX, true, "LDA - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler}, 
+			{INS_LDY_ABSX, true, "LDY - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler},
 
 			// Absolute Y-Indexed Instructions
-			{INS_LDA_ABSY,true,"LDA - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler},
-			{INS_LDX_ABSY,true,"LDX - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler}
+			{INS_LDA_ABSY, true, "LDA - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler},
+			{INS_LDX_ABSY, true, "LDX - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler},
 			 
-		//	{INS_LDA_INDX,true,"", nullptr},
-		//	{INS_LDA_INDY,true,"", nullptr}
-		};
-	};
+			// X-Indexed Zero Page Indirect
+			{INS_LDA_INDX, true, "LDA - Load Accumulator [X-Indexed Zero Page Indirect]", LDAXY::indirectHandler},
 
-	/** Defines properties common to all LDA instructions */
-	struct LDAXYHandler : public INSTRUCTION_BASE {
-		LDAXYHandler(Byte opcode_) {
-			opcode = opcode_;
-			execute = LDAXY::executeHandler;
-			switch (opcode_) {
-				case INS_LDA_INDX: name = "LDA - Load Accumulator [X-Indexed Zero Page Indirect]"; break;
-				case INS_LDA_INDY: name = "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]"; break;
-				default: name = "Unknown opcode used to instantiate LDAXYHandler"; break;
-			}
-		}
+			// ZeroPage Indirect Y-Indexed
+			{INS_LDA_INDY, true, "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]", LDAXY::indirectHandler}
+		};
 	};
 }

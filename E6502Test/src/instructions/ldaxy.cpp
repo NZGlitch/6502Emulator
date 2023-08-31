@@ -3,8 +3,6 @@
 #include "cpu.h"
 #include "ldaxy.h"
 
-// TODO - Im not happy with flag checks, there is no test that actually checks instructions set flags correctly
-
 namespace E6502 {
 	using::testing::_;
 
@@ -27,32 +25,6 @@ namespace E6502 {
 			delete state;
 		}
 
-		/* Helper method for testing InstructionHandler properties WARNING: This will delete the object when done*/
-		void testPropsAndDelete(InstructionHandler* handler, Byte opCode, const char* name) {
-			EXPECT_EQ((*handler).opcode, opCode);
-			EXPECT_TRUE((*handler).isLegal);
-			EXPECT_STREQ((*handler).name, name);
-			delete handler;
-		}
-
-		/* Helper to test if a given values was saved to a given register
-		void testSave(u8 save_reg, Byte testValue, CPUState* testState, char* test_name) {
-			Byte regValue = !testValue;		//TODO confirm this is valid
-			switch (save_reg) {
-				case CPUState::REGISTER_A:
-					regValue = testState->A; break;
-				case CPUState::REGISTER_X:
-					regValue = testState->X; break;
-				case CPUState::REGISTER_Y:
-					regValue = testState->Y; break;
-				default: {
-					EXPECT_TRUE(false) << test_name << ": testSave() -> invalid target register provided";
-				}
-			}
-
-			EXPECT_EQ(regValue, testValue) << test_name << " Did not set register correctly";
-		}
-
 		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
 		Byte genTestValAndClearTargetReg(Byte* targetReg, Byte testValue = 0x00) {
 			if (testValue == 0x00) {
@@ -61,68 +33,6 @@ namespace E6502 {
 			}
 			(*targetReg) = ~testValue;
 			return testValue;
-		}
-
-		/**
-		 * Helper method for all the abs mode tests
-		 * @param instruction		Instruction code to execude (From LDA::instructions)
-		 * @param lsb				least significant byte of base address
-		 * @param msb				most significant byre of base address
-		 * @param index				index to use
-		 * @param idx_mode			ABS_IDX_X if using X register, ABS_IDX_Y if using y register
-		 * @param expected_cycles	The number of cycles the execution should take
-		 * @param test_name			Name of the test (helps with debugging)
-		*/
-		void absIndexedHelper(Byte instruction, Byte lsb, Byte msb, Byte index, Byte* indexReg, Byte* targetReg, u8 expected_cycles, char* test_name) {
-			// Fixtures
-			Byte testValue = 0;
-			Word targetAddress = (msb << 8) + lsb + index;
-			u8 cyclesUsed = 0;
-
-			// Load fixtures to memory
-			memory->data[0x000] = lsb;
-			memory->data[0x001] = msb;
-			testValue = genTestValAndClearTargetReg(targetReg);
-
-			// Expected call
-			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
-
-			// Given:
-			memory->data[targetAddress] = testValue;
-			state->PC = 0x0000;
-			*indexReg = index;
-
-			// When:
-			cyclesUsed = LDAXY::absoluteHandler(memory, state, &InstructionCode(instruction));
-
-			// Then:'
-			EXPECT_EQ(cyclesUsed, expected_cycles);
-		}
-
-		/* Helper function ro test Absolute instructions */
-		void testAbsolute(Byte instruction, Byte* targetReg, u8 expected_cycles, char* test_name) {
-			// Fixtures
-			Byte lsb = 0x84;			//TODO - maybe randomise?
-			Byte msb = 0xBE;			//TODO - maybe randomise?
-			Word targetAddress = 0xBE84;
-			u8 cyclesUsed = 0;
-
-			// Given:
-			state->PC = 0x0000;
-			Byte testValue = genTestValAndClearTargetReg(targetReg);
-			memory->data[0x000] = lsb;
-			memory->data[0x001] = msb;
-			memory->data[targetAddress] = testValue;
-
-			// Expected call
-			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
-
-
-			// When:
-			cyclesUsed = LDAXY::absoluteHandler(memory, state, &InstructionCode(instruction));
-
-			// Then:
-			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
 
 		/* Helper fucntion to test Immediate instructions */
@@ -201,6 +111,59 @@ namespace E6502 {
 			}
 		}
 
+		/* Helper function ro test Absolute instructions */
+		void testAbsolute(Byte instruction, Byte* targetReg, u8 expected_cycles, char* test_name) {
+			// Fixtures
+			Byte lsb = 0x84;			//TODO - maybe randomise?
+			Byte msb = 0xBE;			//TODO - maybe randomise?
+			Word targetAddress = 0xBE84;
+			u8 cyclesUsed = 0;
+
+			// Given:
+			state->PC = 0x0000;
+			Byte testValue = genTestValAndClearTargetReg(targetReg);
+			memory->data[0x000] = lsb;
+			memory->data[0x001] = msb;
+			memory->data[targetAddress] = testValue;
+
+			// Expected call
+			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
+
+
+			// When:
+			cyclesUsed = LDAXY::absoluteHandler(memory, state, &InstructionCode(instruction));
+
+			// Then:
+			EXPECT_EQ(cyclesUsed, expected_cycles);
+		}
+
+		/** Helper function to test Absolute Indexed INstructions */
+		void absIndexedHelper(Byte instruction, Byte lsb, Byte msb, Byte index, Byte* indexReg, Byte* targetReg, u8 expected_cycles, char* test_name) {
+			// Fixtures
+			Byte testValue = 0;
+			Word targetAddress = (msb << 8) + lsb + index;
+			u8 cyclesUsed = 0;
+
+			// Load fixtures to memory
+			memory->data[0x000] = lsb;
+			memory->data[0x001] = msb;
+			testValue = genTestValAndClearTargetReg(targetReg);
+
+			// Expected call
+			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
+
+			// Given:
+			memory->data[targetAddress] = testValue;
+			state->PC = 0x0000;
+			*indexReg = index;
+
+			// When:
+			cyclesUsed = LDAXY::absoluteHandler(memory, state, &InstructionCode(instruction));
+
+			// Then:'
+			EXPECT_EQ(cyclesUsed, expected_cycles);
+		}
+
 		/** Helper for indrect indexed and indexed indirect instructions */
 		void testIndirectXIndex(Byte instruction, Byte* indexReg, Byte* targetReg, u8 expectedCycles, char* test_name) {
 			Byte testArguments[] = { 0x10, 0xF0 };			// Test with and without overflow
@@ -225,7 +188,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+				cyclesUsed = LDAXY::indirectHandler(memory, state, &InstructionCode(instruction));
 
 				//Then:
 				EXPECT_EQ(cyclesUsed, expectedCycles);
@@ -260,7 +223,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::executeHandler(memory, state, &InstructionCode(instruction));
+				cyclesUsed = LDAXY::indirectHandler(memory, state, &InstructionCode(instruction));
 
 				//Then:
 				EXPECT_EQ(cyclesUsed, testCycles);
@@ -268,10 +231,81 @@ namespace E6502 {
 		}
 	};
 
-	/************************************************
-	*                Execution tests                *
-	* Tests the execute function operates correctly *
-	*************************************************/
+	/* Test correct OpCodes */
+	TEST_F(TestLDAXYInstruction, TestInstructionDefs) {
+		EXPECT_EQ(INS_LDA_IMM, 0xA9);
+		EXPECT_EQ(INS_LDA_ZP, 0xA5);
+		EXPECT_EQ(INS_LDA_ZPX, 0xB5);
+		EXPECT_EQ(INS_LDA_ABS, 0xAD);
+		EXPECT_EQ(INS_LDA_ABSX, 0xBD);
+		EXPECT_EQ(INS_LDA_ABSY, 0xB9);
+		EXPECT_EQ(INS_LDA_INDX, 0xA1);
+		EXPECT_EQ(INS_LDA_INDY, 0xB1);
+	}
+
+	/* Test addHandlers func adds all LDA handlers */
+	TEST_F(TestLDAXYInstruction, TestLDAaddHandlers) {
+		// Given:
+		InstructionHandler* handlers[0x100] = { nullptr };
+
+		// When:
+		LDAXY::addHandlers(handlers);
+
+		// Then: For all LDA instructions, Expect *handlers[opcode] to point to a handler with the same opcode
+		for (const InstructionHandler handler : LDAXY::instructions) {
+			Byte opcode = handler.opcode;
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ(((*handlers[opcode]).opcode), opcode);
+		}
+	}
+
+	/* Test  fetchAndSaveToRegister */ //(u8* cycles, Memory* memory, Byte* reg);
+	TEST_F(TestLDAXYInstruction, TestfetchAndSave) {
+		Byte* registers[] = { &state->A, &state->X, &state->Y };
+		Byte testValues[] = { 0x21, 0x42, 0x84 };
+		Word testAddresses[] = { 0x1234, 0xf167, 0x0200 };
+
+		for (int i = 0; i < 3; i++) {
+			// Given
+			memory->data[testAddresses[i]] = testValues[i];
+			*registers[i] = ~testValues[i];
+			u8 cycles = 0;
+
+			//Expect to set flags
+			EXPECT_CALL(*state, saveToRegAndFlag(registers[i], testValues[i])).Times(1);
+
+			// When:
+			LDAXY::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
+
+			// Then
+			EXPECT_EQ(cycles, 1);
+		}
+
+
+	}
+
+	TEST_F(TestLDAXYInstruction, TestGetRegFromInstruction) {
+		Byte* testRegs[] = { &state->Y, &state->A, &state->X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
+
+		for (InstructionHandler handler : LDAXY::instructions) {
+			// Given:
+			InstructionCode* instruction = new InstructionCode(handler.opcode);
+
+			// When:
+			Byte* result = LDAXY::getRegFromInstruction(instruction, state);
+
+			// Then:
+			EXPECT_EQ(result, testRegs[handler.opcode & 0x03]);
+
+			// Clean Up
+			delete instruction;
+		}
+	}
+
+	/***************************************
+	*        Execution tests follow        *
+	* Tests insturctions execute correctly *
+	****************************************/
 	/* Tests LDA Immediate Instruction */
 	TEST_F(TestLDAXYInstruction, TestLDAXYImmediate) {
 		testImmediate(INS_LDA_IMM, &state->A, 2, "LDA_IMM");
@@ -335,80 +369,5 @@ namespace E6502 {
 	/* Tests LDA Indeirect,Y Instruction */
 	TEST_F(TestLDAXYInstruction, TestLDAIndirectY) {
 		testIndirectYIndex(INS_LDA_INDY, &state->Y, &state->A, 5, "LDA_INDY");
-	}
-
-	/************************************************
-	*              End Execution tests              *
-	*************************************************
-
-	/* Test correct OpCodes */
-	TEST_F(TestLDAXYInstruction, TestInstructionDefs) {
-		EXPECT_EQ(INS_LDA_IMM, 0xA9);
-		EXPECT_EQ(INS_LDA_ZP, 0xA5);
-		EXPECT_EQ(INS_LDA_ZPX, 0xB5);
-		EXPECT_EQ(INS_LDA_ABS, 0xAD);
-		EXPECT_EQ(INS_LDA_ABSX, 0xBD);
-		EXPECT_EQ(INS_LDA_ABSY, 0xB9);
-		EXPECT_EQ(INS_LDA_INDX, 0xA1);
-		EXPECT_EQ(INS_LDA_INDY, 0xB1);
-	}
-
-	/* Test addHandlers func adds all LDA handlers */
-	TEST_F(TestLDAXYInstruction, TestLDAaddHandlers) {
-		// Given:
-		InstructionHandler* handlers[0x100] = { nullptr };
-
-		// When:
-		LDAXY::addHandlers(handlers);
-
-		// Then: For all LDA instructions, Expect *handlers[opcode] to point to a handler with the same opcode
-		for (const InstructionHandler handler : LDAXY::instructions) {
-			Byte opcode = handler.opcode;
-			ASSERT_FALSE(handlers[opcode] == nullptr);
-			EXPECT_EQ(((*handlers[opcode]).opcode), opcode);
-		}
-	}
-
-	/* Test  fetchAndSaveToRegister */ //(u8* cycles, Memory* memory, Byte* reg);
-	TEST_F(TestLDAXYInstruction, TestfetchAndSave){
-		Byte* registers[] = { &state->A, &state->X, &state->Y };
-		Byte testValues[] = { 0x21, 0x42, 0x84 };
-		Word testAddresses[] = { 0x1234, 0xf167, 0x0200 };
-
-		for (int i = 0; i < 3; i++) {
-			// Given
-			memory->data[testAddresses[i]] = testValues[i];
-			*registers[i] = ~testValues[i];
-			u8 cycles = 0;
-
-			//Expect to set flags
-			EXPECT_CALL(*state, saveToRegAndFlag(registers[i], testValues[i])).Times(1);
-
-			// When:
-			LDAXY::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
-
-			// Then
-			EXPECT_EQ(cycles, 1);
-		}
-
-		
-	}
-
-	TEST_F(TestLDAXYInstruction, TestGetRegFromInstruction) {
-		Byte* testRegs[] = { &state->Y, &state->A, &state->X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
-
-		for (InstructionHandler handler : LDAXY::instructions) {
-			// Given:
-			InstructionCode* instruction = new InstructionCode(handler.opcode);
-
-			// When:
-			Byte* result = LDAXY::getRegFromInstruction(instruction, state);
-
-			// Then:
-			EXPECT_EQ(result, testRegs[handler.opcode & 0x03]);
-
-			// Clean Up
-			delete instruction;
-		}
 	}
 }
