@@ -340,7 +340,7 @@ namespace E6502 {
 		testAbsolute(INS_LDY_ABS, &state->Y, 4, "LDY_ABS");
 	}
 
-	/* Tests LD Absolute,X Instruction */
+	/* Tests LD Absolute,X/Y Instruction */
 	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXY) {
 		Byte lsb = 0x84;			// TODO - maybe randomise?
 		Byte msb = 0xFF;			// TODO - maybe randomise?

@@ -9,6 +9,12 @@ namespace E6502 {
 		Word address = mem->readWord(cycles, state->incPC());
 		state->incPC();
 
+		// If using an indexed mode, apply the index to the address
+		if (opCode == INS_STA_ABSX || opCode == INS_STA_ABSY) {
+			address += (opCode == INS_STA_ABSX ? state->X : state->Y);
+			cycles++;	//Index mode always uses 5 cycles
+		}
+	
 		// Get the value from the source register
 		Byte value = *InstructionUtils::getRegFromInstruction(opCode, state);
 

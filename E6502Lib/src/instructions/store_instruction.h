@@ -18,6 +18,8 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_STA_ABS = { 0x8D, true, "STA - Store Accumulator [Absolute]", StoreInstruction::absoluteHandler };
 	constexpr static InstructionHandler INS_STX_ABS = { 0x8E, true, "STX - Store Index Register X [Absolute]", StoreInstruction::absoluteHandler };
 	constexpr static InstructionHandler INS_STY_ABS = { 0x8C, true, "STY - Store Index Register Y [Absolute]", StoreInstruction::absoluteHandler };
+	constexpr static InstructionHandler INS_STA_ABSX = { 0x9D, true, "STA - Store Accumulator [X-Indexed Absolute]", StoreInstruction::absoluteHandler };
+	constexpr static InstructionHandler INS_STA_ABSY = { 0x99, true, "STA - Store Accumulator [Y-Indexed Absolute]", StoreInstruction::absoluteHandler };
 
 	// Handy array of all store instructions
 	static constexpr InstructionHandler STORE_INSTRUCTIONS[] = {
@@ -30,6 +32,7 @@ namespace E6502 {
 		INS_STA_ABS, INS_STX_ABS, INS_STY_ABS,
 		
 		// Absolute X-Indexed Instructions
+		INS_STA_ABSX, INS_STA_ABSY,
 		
 		// Absolute Y-Indexed Instructions
 		
