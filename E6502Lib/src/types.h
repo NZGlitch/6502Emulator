@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 
+// TODO -> Move InstructionHandler, inHandlrFn, Memory and CPUState into new files
 namespace E6502 {
 	// Data types used by the CPU
 	using Byte = unsigned char;
@@ -49,11 +50,6 @@ namespace E6502 {
 
 	public:
 		CPUState() { setFlags(0x00); }		// Initialise flags to 0b00000000
-
-		/** Identifiers for the registers are sometimes useful */
-		const static u8 REGISTER_A = 0;
-		const static u8 REGISTER_X = 1;
-		const static u8 REGISTER_Y = 2;
 
 		// Internal Registers
 		Word PC = 0xFFFC;					// Program Counter
@@ -126,16 +122,19 @@ namespace E6502 {
 			return (C << 0) | (Z << 1) | (I << 2) | (D << 3) | (B << 4) | (O << 6) | (N << 7);
 		}
 
-		void saveToReg(u8 REGISTER, Byte value) {
-			switch (REGISTER) {
-				case REGISTER_A: A = value; break;
-				case REGISTER_X: X = value; break;
-				case REGISTER_Y: Y = value; break;
-				default: {
-					fprintf(stderr, "Attempt to call CPUState->saveToReg with invalid register");
-					break;
-				}
-			}
+		/** Saves the given value to the target register address and sets THIS states Z and N flags based on the value */
+		virtual void saveToRegAndFlag(Byte* reg, Byte value) {
+			(*reg) = value;
+			Z = (*reg) == 0x00;
+			N = ((*reg) & 0x80) > 0;
+		}
+
+		/** Resets all fields in this state back to 0, except SP which is initialised to 0x01FF */
+		void reset() {
+			A = X = Y = 0;
+			PC = 0;
+			SP = 0x1FF;
+			setFlags(0x00);
 		}
 	};
 

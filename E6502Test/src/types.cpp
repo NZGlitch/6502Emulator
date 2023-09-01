@@ -1,5 +1,6 @@
 #include <gmock/gmock.h>
 #include "types.h"
+
 namespace E6502 {
 
 	/**
@@ -14,8 +15,25 @@ namespace E6502 {
 
 		virtual void TearDown() {
 		}
-	};
 
+		/** Helper for setFlags test - note given state is reset before and after the test */
+		void testFlags(Byte* targetReg, CPUState* state, Byte initFlags, Byte testValue, Byte expectFlags, char* test_name) {
+			state->reset();
+
+			// Given:
+			state->setFlags(initFlags);
+			
+			// When:
+			state->saveToRegAndFlag(targetReg, testValue);
+
+			// Then:
+			EXPECT_EQ(state->getFlags(), expectFlags);
+			state->reset();
+		}
+	};
+	
+
+	/******** Data types Tests ********/
 	/* Test types are the correct size */
 	TEST_F(TestTypes, TestTypesCorrectLen) {
 		EXPECT_EQ(sizeof(Byte), 1);
@@ -26,6 +44,32 @@ namespace E6502 {
 		EXPECT_EQ(sizeof(s16), 2);
 	}
 
+	/* Test unsigned types are indeed unsigned */
+	TEST_F(TestTypes, TestTypesUnsigned) {
+		Byte testByte = -1;
+		EXPECT_TRUE(testByte >= 0);
+
+		Word testWord = -1;
+		EXPECT_TRUE(testWord >= 0);
+
+		u8 test8 = -1;
+		EXPECT_TRUE(test8 >= 0);
+
+		u16 test16 = -1;
+		EXPECT_TRUE(test16 >= 0);
+	}
+
+	/* Test signed types are indeed signed */
+	TEST_F(TestTypes, TestTypesSigned) {
+		s8 test8 = -1;
+		EXPECT_TRUE(test8 < 0);
+
+		s16 test16 = -1;
+		EXPECT_TRUE(test16 < 0);
+	}
+
+
+	/******** InstructionCode Tests ********/
 	/** Instruction Code from Byte */
 	TEST_F(TestTypes, TestInstructionCodeConsruct) {
 		// Given:
@@ -70,30 +114,8 @@ namespace E6502 {
 		EXPECT_EQ(result, testByte);
 	}
 
-	/* Test unsigned types are indeed unsigned */
-	TEST_F(TestTypes, TestTypesUnsigned) {
-		Byte testByte = -1;
-		EXPECT_TRUE(testByte >= 0);
-
-		Word testWord = -1;
-		EXPECT_TRUE(testWord >= 0);
-
-		u8 test8 = -1;
-		EXPECT_TRUE(test8 >= 0);
-
-		u16 test16 = -1;
-		EXPECT_TRUE(test16 >= 0);
-	}
-
-	/* Test signed types are indeed signed */
-	TEST_F(TestTypes, TestTypesSigned) {
-		s8 test8 = -1;
-		EXPECT_TRUE(test8 < 0);
-
-		s16 test16 = -1;
-		EXPECT_TRUE(test16 < 0);
-	}
-
+	
+	/******** CPUState Tests ********/
 	/* Test CPUState incPC gets and increments the PC */
 	TEST_F(TestTypes, TestCPUincPC) {
 		// Given:
@@ -172,9 +194,37 @@ namespace E6502 {
 		EXPECT_EQ(state.getSP(), 0x0112);
 	}
 
+	/* Test CPUState reset */
+	TEST_F(TestTypes, TestCPUStateReset) {
+		// Given:
+		CPUState state;
+		state.PC = 0x1142;
+		state.setSP(0x1142);
+
+		state.A = 0x42;
+		state.X = 0x42;
+		state.Y = 0x42;
+
+		state.setFlags(0xFF);
+
+		// When:
+		state.reset();
+
+		// Then:
+
+		EXPECT_EQ(state.PC, 0);
+		EXPECT_EQ(state.getSP(), 0x01FF);
+
+		EXPECT_EQ(state.A, 0);
+		EXPECT_EQ(state.X, 0);
+		EXPECT_EQ(state.Y, 0);
+
+		EXPECT_EQ(state.getFlags(), 0);
+	}
+
 	/* Test values are saved to the correct register */
 	TEST_F(TestTypes, TestCPUSaveToReg) {
-		CPUState state;
+		CPUState *state = new CPUState;
 
 		// Given:
 		Byte regA = 0x21;
@@ -182,13 +232,57 @@ namespace E6502 {
 		Byte regY = 0x84;
 
 		// When:
-		state.saveToReg(CPUState::REGISTER_A, regA);
-		state.saveToReg(CPUState::REGISTER_X, regX);
-		state.saveToReg(CPUState::REGISTER_Y, regY);
+		state->saveToRegAndFlag(&state->A, regA);
+		state->saveToRegAndFlag(&state->X, regX);
+		state->saveToRegAndFlag(&state->Y, regY);
 
 		// Then:
-		EXPECT_EQ(state.A, regA);
-		EXPECT_EQ(state.X, regX);
-		EXPECT_EQ(state.Y, regY);
+		EXPECT_EQ(state->A, regA);
+		EXPECT_EQ(state->X, regX);
+		EXPECT_EQ(state->Y, regY);
+
+		delete state;
+	}
+	
+	/* Tests setFlags when N and Z flags 0 */
+	TEST_F(TestTypes, TestRegisterSaveAndSetFlags00) {
+		CPUState* state = new CPUState;
+		// No Flags (unset exiting)
+		testFlags(&state->A, state, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_A) NO ZN - change");
+		testFlags(&state->X, state, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_X) NO ZN - change");
+		testFlags(&state->Y, state, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_Y) NO ZN - change");
+
+		// No Flags (Unchange existing)
+		testFlags(&state->A, state, 0x00, 0x78, 0x00, "setFlags(REGISTER_A) NO ZN - no change");
+		testFlags(&state->X, state, 0x00, 0x78, 0x00, "setFlags(REGISTER_X) NO ZN - no change");
+		testFlags(&state->Y, state, 0x00, 0x78, 0x00, "setFlags(REGISTER_Y) NO ZN - no change");
+	}
+
+	/* Tests setFlags when Z flag changes */
+	TEST_F(TestTypes, TestRegisterSaveAndSetFlagsZ) {
+		CPUState* state = new CPUState;
+		// Z-Flag should be unset
+		testFlags(&state->A, state, 0x02, 0x78, 0x00, "setFlags(REGISTER_A) unset Z");
+		testFlags(&state->X, state, 0x02, 0x78, 0x00, "setFlags(REGISTER_X) unset Z");
+		testFlags(&state->Y, state, 0x02, 0x78, 0x00, "setFlags(REGISTER_Y) unset Z");
+
+		// Z-Flag sould be set
+		testFlags(&state->A, state, 0x00, 0x00, 0x02, "setFlags(REGISTER_A) set Z");
+		testFlags(&state->X, state, 0x00, 0x00, 0x02, "setFlags(REGISTER_X) set Z");
+		testFlags(&state->Y, state, 0x00, 0x00, 0x02, "setFlags(REGISTER_Y) set Z");
+	}
+
+	/* Tests setFlags when N flag changes */
+	TEST_F(TestTypes, TestRegisterSaveAndSetFlagsN) {
+		CPUState* state = new CPUState;
+		// N-Flag should be unset
+		testFlags(&state->A, state, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_A) unset N");
+		testFlags(&state->X, state, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_X) unset N");
+		testFlags(&state->Y, state, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_Y) unset N");
+
+		// N-Flag sould be set
+		testFlags(&state->A, state, 0x00, 0x80, 0x80, "setFlags(REGISTER_A) set N");
+		testFlags(&state->X, state, 0x00, 0x80, 0x80, "setFlags(REGISTER_X) set N");
+		testFlags(&state->Y, state, 0x00, 0x80, 0x80, "setFlags(REGISTER_Y) set N");
 	}
 }

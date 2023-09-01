@@ -4,6 +4,7 @@
 
 namespace E6502 {
 
+	/** Tests the CPU by running an actual program on it */
 	class TestProgram : public testing::Test {
 	public:
 
@@ -53,8 +54,6 @@ namespace E6502 {
 			0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11, 0x00,		//0x08 -> 0x0F
 		};
 
-
-
 		virtual void SetUp() {
 		}
 
@@ -63,7 +62,7 @@ namespace E6502 {
 
 	};
 
-	/* Test the memory initialisation function */
+	/* Test the example program */
 	TEST_F(TestProgram, TestProgram1) {
 		// Initialise objects
 		Memory* mem = new Memory();
@@ -105,10 +104,10 @@ namespace E6502 {
 
 			if (elapsed > timeToTake) {
 				// Took too long
-				//printf("%d cycles took %d microseconds to elapse - too long!\n", cyclesExecuted, elapsed);
+				// printf("%d cycles took %d microseconds to elapse - too long!\n", cyclesExecuted, elapsed);
 			}
 			else {
-				//printf("%d cycles took %d microseconds to elapse - sleeping...\n", cyclesExecuted, elapsed);
+				// printf("%d cycles took %d microseconds to elapse - sleeping...\n", cyclesExecuted, elapsed);
 				// Sleep 1us at a time until required time is taken
 				while (elapsed < timeToTake) {
 					std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -117,7 +116,7 @@ namespace E6502 {
 				}
 			}
 
-			//Reset clock & cycles
+			// Reset clock & cycles
 			insToExecute -= numExec;
 			cyclesExecuted = 0;
 			start_time = end_time;
