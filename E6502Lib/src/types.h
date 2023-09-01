@@ -1,6 +1,7 @@
 #pragma once
 #include <stdio.h>
 
+// TODO -> Move InstructionHandler, inHandlrFn, Memory and CPUState into new files
 namespace E6502 {
 	// Data types used by the CPU
 	using Byte = unsigned char;

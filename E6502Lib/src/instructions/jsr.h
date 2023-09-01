@@ -4,35 +4,20 @@
 
 namespace E6502 {
 
-	/** JSR Instruction Codes */
+	/** JSR Instruction Code */
 	const static Byte INS_JSR = 0x20;
 
 	class JSR : public BaseInstruction {
 	public:
-		static constexpr Byte instructions[] = { INS_JSR };
-
-		/** One function will handle the 'execute' method for all variants */
-		static const insHandlerFn JSRInstructionHandler;
-
-		/** Actually handles execution of instructions */
-		static u8 executeHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
+		/** Actually handles execution of JSR instruction */
+		static u8 jsrHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
 
 		/** Called to add LDA Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);
-	};
 
-	/** Defines properties common to all JSR instructions */
-	struct JSR_BASE : public INSTRUCTION_BASE {
-		JSR_BASE() {
-			execute = JSR::executeHandler;
-		}
-	};
-
-	/** Defines properties for JSR Absolute instruction */
-	struct JSR_ABS : public JSR_BASE {
-		JSR_ABS() {
-			opcode = INS_JSR;
-			name = "JSR - Jump to Subroutine [Absolute]";
-		}
+		/** Defines all JSR instruction handlers */
+		static constexpr InstructionHandler instructions[] = {
+			{INS_JSR, true, "JSR - Jump to Subroutine [Absolute]", JSR::jsrHandler},
+		};
 	};
 }

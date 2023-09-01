@@ -52,10 +52,10 @@ namespace E6502 {
 		/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
 		static u8 absoluteHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
 
-		/** Actually handles execution of indirect instructions */
+		/** Handles execution of Indirect Mode Instructions */
 		static u8 indirectHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
 
-		/** Returns the address of the register indicated by the instruction in the cpu state */
+		/** Returns the address of the register indicated by the instruction */
 		static Byte* LDAXY::getRegFromInstruction(InstructionCode* instruction, CPUState* state);
 
 		/** Called to add LDA Instruction handlers to the emulator */

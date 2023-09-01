@@ -23,11 +23,11 @@ namespace E6502 {
 	 * 3) Implement the methods from (1) in cpp file
 	 * 4) Update InstructionUtils::loader to use your addHandlers method to add your instructions to the instruction manager
 	 * 5) Don't forget to write tests!
+	 * 
+	 *  TODO - Use templating and/or inheritence and a static register to automate all of this?
 	 */
 
-	 /**
-	 * Defines proeprties common to ALL instrcutions.
-	 */
+	 /** Defines proeprties common to ALL instrcutions. */
 	struct INSTRUCTION_BASE : InstructionHandler {
 		INSTRUCTION_BASE() {
 			isLegal = true;
@@ -44,7 +44,7 @@ namespace E6502 {
 		BaseInstruction();		// Subclasses should only be used statically
 
 	public:
-		/** Global Adressing Modes */
+		/** Global Adressing Modes - it seems these are not so global */
 		const static Byte INDIRECT_X = 0b000;	// ??? 000 ??
 		const static Byte ZERO_PAGE = 0b001;	// ??? 001 ??
 		const static Byte IMMEDIATE = 0b010;	// ??? 010 ??

@@ -21,10 +21,26 @@ namespace E6502 {
 		}
 	};
 
-	/************************************************
-	*                Execution tests                *
-	* Tests the execute function operates correctly *
-	*************************************************/
+	/* Test correct OpCodes */
+	TEST_F(TestJSRInstruction, TestInstructionDefs) {
+		EXPECT_EQ(INS_JSR, 0x20);
+	}
+
+	/* Test addHandlers func adds JSR handler */
+	TEST_F(TestJSRInstruction, TestJSRaddHandlers) {
+		// Given:
+		InstructionHandler* handlers[0x100] = { nullptr };
+
+		// When:
+		JSR::addHandlers(handlers);
+
+		// Then: For the JSR instruction, Expect *handlers[opcode] to point to a handler with the same opcode
+		EXPECT_EQ(((*handlers[INS_JSR]).opcode), 0x20);
+	}
+
+	/*******************************
+	 ***     Execution tests     ***
+	 *******************************/
 
 	/* Test JSR execution */
 	TEST_F(TestJSRInstruction, TestJSRAbsolute) {
@@ -61,7 +77,7 @@ namespace E6502 {
 		memory->data[startPC + 1] = msb;
 
 		// When:
-		cyclesUsed = JSR::executeHandler(memory, state, &InstructionCode(INS_JSR));
+		cyclesUsed = JSR::jsrHandler(memory, state, &InstructionCode(INS_JSR));
 
 		// Then:
 		EXPECT_EQ(state->PC, (msb << 8) | lsb);						//The PC should be pointed at the target address
@@ -69,44 +85,5 @@ namespace E6502 {
 		EXPECT_EQ(memory->data[0x0100 | initialSP - 1], 0x35);	// mem[0x0100 + stackInit - 1] == lsb(msbPC)	Low order bits of original PC+2
 		EXPECT_EQ(state->getSP(), 0x0100 | (initialSP - 2));	// SP should decrement by 2
 		EXPECT_EQ(cyclesUsed, 6);
-	}
-
-	/************************************************
-	*              End Execution tests              *
-	*************************************************
-
-	/* Test correct OpCodes */
-	TEST_F(TestJSRInstruction, TestInstructionDefs) {
-		EXPECT_EQ(INS_JSR, 0x20);
-	}
-
-	/* Test addHandlers func adds JSR handler */
-	TEST_F(TestJSRInstruction, TestJSRaddHandlers) {
-		// Given:
-		InstructionHandler* handlers[0x100] = { nullptr };
-
-		// When:
-		JSR::addHandlers(handlers);
-
-		// Then: For the JSR instruction, Expect *handlers[opcode] to point to a handler with the same opcode
-		for (const Byte& opcode : JSR::instructions) {
-			ASSERT_FALSE(handlers[opcode] == nullptr);
-			EXPECT_EQ(((*handlers[opcode]).opcode), opcode);
-		}
-	}
-
-	/*********************************************
-	*				Handler Tests				 *
-	* Check each handler is configured correctly *
-	**********************************************/
-
-	TEST_F(TestJSRInstruction, TestJSRAbsoluteHandlerProps) {
-		InstructionHandler handler = JSR_ABS();
-		EXPECT_EQ(handler.opcode, INS_JSR);
-		EXPECT_TRUE(handler.isLegal);
-		EXPECT_STREQ(handler.name, "JSR - Jump to Subroutine [Absolute]");
-	}
-	/*********************************************
-	*			End of Handler Tests			 *
-	**********************************************/
+	}	
 }

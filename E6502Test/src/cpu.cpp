@@ -68,7 +68,7 @@ namespace E6502 {
 			// When:
 			cpu->setFlags(i & 0xFF);
 
-			// Then
+			// Then:
 			EXPECT_EQ(i & flagMask & 0xFF, cpu->getFlags());
 			u8 flags = (state->C << 0) | (state->Z << 1) | (state->I << 2) | (state->D << 3) | (state->B << 4) | (state->O << 6) | (state->N << 7);
 			EXPECT_EQ(i & flagMask & 0xFF, flags);
@@ -85,10 +85,10 @@ namespace E6502 {
 		Byte cycles = 0;
 		mem->writeByte(cycles, 0xFFFC, 0xEA); // Instruction 0xEA is a NOP - TODO replace with NOP instruction
 
-		//when:
+		// When:
 		u16 cyclesExecuted = cpu->execute(1, mem);
 
-		//then
+		// Then
 		EXPECT_EQ(state->PC, (0xFFFC) + 1);			// PC should be incremented
 		EXPECT_EQ(cyclesExecuted, 2);				// NOP uses 2 cycles
 		EXPECT_EQ(initFlags, cpu->getFlags());		// Flags should not change

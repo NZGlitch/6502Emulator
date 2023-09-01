@@ -35,7 +35,8 @@ namespace E6502 {
 		}
 
 		// Then (JSR):
-		for (const Byte& opcode : JSR::instructions) {
+		for (const InstructionHandler& handler : JSR::instructions) {
+			Byte opcode = handler.opcode;
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}

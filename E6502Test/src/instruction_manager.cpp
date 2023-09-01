@@ -45,7 +45,7 @@ namespace E6502 {
 		for (int i = 0; i <= 0xFF; i++) EXPECT_EQ(mem->data[i], 0x00);
 		EXPECT_EQ(originalState, testState);
 
-		// Cleanup
+		// Cleanup:
 		delete mem;
 	}
 

@@ -1,5 +1,6 @@
 #include <gmock/gmock.h>
 #include "types.h"
+
 namespace E6502 {
 
 	/**
@@ -30,7 +31,9 @@ namespace E6502 {
 			state->reset();
 		}
 	};
+	
 
+	/******** Data types Tests ********/
 	/* Test types are the correct size */
 	TEST_F(TestTypes, TestTypesCorrectLen) {
 		EXPECT_EQ(sizeof(Byte), 1);
@@ -41,6 +44,32 @@ namespace E6502 {
 		EXPECT_EQ(sizeof(s16), 2);
 	}
 
+	/* Test unsigned types are indeed unsigned */
+	TEST_F(TestTypes, TestTypesUnsigned) {
+		Byte testByte = -1;
+		EXPECT_TRUE(testByte >= 0);
+
+		Word testWord = -1;
+		EXPECT_TRUE(testWord >= 0);
+
+		u8 test8 = -1;
+		EXPECT_TRUE(test8 >= 0);
+
+		u16 test16 = -1;
+		EXPECT_TRUE(test16 >= 0);
+	}
+
+	/* Test signed types are indeed signed */
+	TEST_F(TestTypes, TestTypesSigned) {
+		s8 test8 = -1;
+		EXPECT_TRUE(test8 < 0);
+
+		s16 test16 = -1;
+		EXPECT_TRUE(test16 < 0);
+	}
+
+
+	/******** InstructionCode Tests ********/
 	/** Instruction Code from Byte */
 	TEST_F(TestTypes, TestInstructionCodeConsruct) {
 		// Given:
@@ -85,30 +114,8 @@ namespace E6502 {
 		EXPECT_EQ(result, testByte);
 	}
 
-	/* Test unsigned types are indeed unsigned */
-	TEST_F(TestTypes, TestTypesUnsigned) {
-		Byte testByte = -1;
-		EXPECT_TRUE(testByte >= 0);
-
-		Word testWord = -1;
-		EXPECT_TRUE(testWord >= 0);
-
-		u8 test8 = -1;
-		EXPECT_TRUE(test8 >= 0);
-
-		u16 test16 = -1;
-		EXPECT_TRUE(test16 >= 0);
-	}
-
-	/* Test signed types are indeed signed */
-	TEST_F(TestTypes, TestTypesSigned) {
-		s8 test8 = -1;
-		EXPECT_TRUE(test8 < 0);
-
-		s16 test16 = -1;
-		EXPECT_TRUE(test16 < 0);
-	}
-
+	
+	/******** CPUState Tests ********/
 	/* Test CPUState incPC gets and increments the PC */
 	TEST_F(TestTypes, TestCPUincPC) {
 		// Given:
