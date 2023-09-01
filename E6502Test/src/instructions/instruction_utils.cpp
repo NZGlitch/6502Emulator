@@ -28,17 +28,16 @@ namespace E6502 {
 		InstructionUtils::loader.load(handlers);
 
 		// Then (LDAXY):
-		for (const InstructionHandler& handler : LDAXY::instructions) {
+		for (const InstructionHandler& handler : LOAD_INSTRUCTIONS) {
 			Byte opcode = handler.opcode;
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}
 
 		// Then (JSR):
-		for (const InstructionHandler& handler : JSR::instructions) {
-			Byte opcode = handler.opcode;
-			ASSERT_FALSE(handlers[opcode] == nullptr);
-			EXPECT_EQ((handlers[opcode]->opcode), opcode);
-		}
+		InstructionHandler& handler = INS_JSR;
+		Byte opcode = handler.opcode;
+		ASSERT_FALSE(handlers[opcode] == nullptr);
+		EXPECT_EQ((handlers[opcode]->opcode), opcode);
 	}
 }

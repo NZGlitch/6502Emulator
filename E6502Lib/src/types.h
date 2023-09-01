@@ -13,37 +13,6 @@ namespace E6502 {
 	using u16 = unsigned short;
 	using s16 = signed short;
 
-	struct InstructionCode {
-
-	protected:
-		/* Sets InstructionCode values from given Byte */
-		void set(Byte b) {
-			this->code = b;
-			this->A = (b >> 5) & 0x7;
-			this->B = (b >> 2) & 0x7;
-			this->C = b & 0x3;
-		}
-
-	public:
-		Byte code = 0;
-		Byte A : 3;
-		Byte B : 3;
-		Byte C : 2;
-
-		InstructionCode(Byte code) {
-			this->set(code);
-		}
-
-		operator Byte() {
-			return (this->A << 5 | this->B << 2 | this->C);
-		}
-
-		InstructionCode& operator=(Byte code) {
-			this->set(code);
-			return *this;
-		}
-	};
-
 	struct CPUState {
 	private:
 		Word SP = 0x01FF;					// Stack Pointer - need to ensure it remains on page 01
@@ -188,7 +157,7 @@ namespace E6502 {
 	};
 
 	/* A function that can handle execution of a single instruction */
-	typedef u8(*insHandlerFn)(Memory*, CPUState*, InstructionCode*);
+	typedef u8(*insHandlerFn)(Memory*, CPUState*, Byte opCode);
 
 	struct InstructionHandler {
 		Byte opcode;
@@ -196,4 +165,8 @@ namespace E6502 {
 		const char* name;
 		insHandlerFn execute;
 	};
+
+	inline bool operator==(const Byte& lhs, const InstructionHandler& rhs) {
+		return lhs == rhs.opcode;
+	}
 }

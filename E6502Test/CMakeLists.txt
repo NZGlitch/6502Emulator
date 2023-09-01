@@ -32,8 +32,10 @@ set (E6502_SOURCES
 	"src/instructions/instruction_utils.cpp"
 	"src/instructions/jsr.cpp"
 	"src/instructions/ldaxy.cpp"
+	"src/instructions/store_instructions.cpp"
 
 	"src/test_program.cpp"
+	
 	)
 
 source_group("src" FILES ${E6502_SOURCES})

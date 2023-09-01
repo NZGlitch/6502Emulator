@@ -4,59 +4,27 @@
 
 namespace E6502 {
 
-	/** Imediate Instructions */
-	const static Byte INS_LDA_IMM = 0xA9;	//10 101 001
-	const static Byte INS_LDX_IMM = 0xA2;	//10 100 010
-	const static Byte INS_LDY_IMM = 0xA0;	//10 100 000
-
-	/** Zero Page instructions */
-	const static Byte INS_LDA_ZP = 0xA5;	//10 100 101
-	const static Byte INS_LDX_ZP = 0xA6;	//10 100 110
-	const static Byte INS_LDY_ZP = 0xA4;	//10 100 100
-
-	/** Zero Page Indexed (X/Y) Instructions */
-	const static Byte INS_LDA_ZPX = 0xB5;	//10 110 101
-	const static Byte INS_LDX_ZPY = 0xB6;	//10 110 110
-	const static Byte INS_LDY_ZPX = 0xB4;	//10 110 100
-
-	/* Absolute Instructions */
-	const static Byte INS_LDA_ABS = 0xAD;	//10 101 101
-	const static Byte INS_LDX_ABS = 0xAE;	//10 101 110
-	const static Byte INS_LDY_ABS = 0xAC;	//10 101 100
-
-	/* Absolute Indexed X */
-	const static Byte INS_LDA_ABSX = 0xBD;	//10 111 101
-	const static Byte INS_LDY_ABSX = 0xBC;	//10 111 100
-
-	/* Absolute Indexed Y */
-	const static Byte INS_LDA_ABSY = 0xB9;	//10 111 001
-	const static Byte INS_LDX_ABSY = 0xBE;	//10 111 110
-
-
-	/** Indirect Instructions */
-	const static Byte INS_LDA_INDX = 0xA1;	//10 100 001
-	const static Byte INS_LDA_INDY = 0xB1;	//10 110 001
-
+	
 	class LDAXY : public BaseInstruction {
 	public:
 
 		/** Handles Immediate Addressing Mode Instructions */
-		static u8 immediateHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
+		static u8 immediateHandler(Memory* mem, CPUState* state, Byte opCode);
 
 		/** Handles ZeroPage Addressing Mode Instructions */
-		static u8 zeroPageHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
+		static u8 zeroPageHandler(Memory* mem, CPUState* state, Byte opCode);
 
 		/** Handles ZeroPage Addressing Mode Instructions */
-		static u8 zeroPageIndexedHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
+		static u8 zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode);
 
 		/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
-		static u8 absoluteHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
+		static u8 absoluteHandler(Memory* mem, CPUState* state, Byte opCode);
 
 		/** Handles execution of Indirect Mode Instructions */
-		static u8 indirectHandler(Memory* mem, CPUState* state, InstructionCode* opCode);
+		static u8 indirectHandler(Memory* mem, CPUState* state, Byte opCode);
 
 		/** Returns the address of the register indicated by the instruction */
-		static Byte* LDAXY::getRegFromInstruction(InstructionCode* instruction, CPUState* state);
+		static Byte* getRegFromInstruction(Byte instruction, CPUState* state);
 
 		/** Called to add LDA Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);
@@ -64,41 +32,68 @@ namespace E6502 {
 		/** Helper method to get a value from memory and store in a register */
 		static void fetchAndSaveToRegister(u8* cycles, Memory* memory, CPUState* state, Word address, Byte* reg);
 
-		/** Definition of all LD instructions handled by the LDAXY class */
-		static constexpr InstructionHandler instructions[] = {
-			// Immediate Instructions
-			{INS_LDA_IMM, true, "LDA - Load Accumulator [Immediate]", LDAXY::immediateHandler},
-			{INS_LDX_IMM, true, "LDX - Load Index Register X[Immediate]", LDAXY::immediateHandler},
-			{INS_LDY_IMM, true, "LDY - Load Index Register Y[Immediate]", LDAXY::immediateHandler},
+	};
 
-			// Zero Page Instructions
-			{INS_LDA_ZP, true, "LDA - Load Accumulator[Zero Page]", LDAXY::zeroPageHandler},
-			{INS_LDX_ZP, true, "LDX - Load Index Register X [Zero Page]", LDAXY::zeroPageHandler},
-			{INS_LDY_ZP, true, "LDY - Load Index Register Y [Zero Page]", LDAXY::zeroPageHandler},
+	/* Global Instruction Definitions */
 
-			// Zero Page Indexed Instructions
-			{INS_LDA_ZPX, true, "LDA - Load Accumulator [X-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler},
-			{INS_LDX_ZPY, true, "LDX - Load Accumulator [Y-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler},
-			{INS_LDY_ZPX, true, "LDY - Load Accumulator [X-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler},
+	/** Imediate Instructions */
+	constexpr static InstructionHandler INS_LDA_IMM = { 0xA9, true, "LDA - Load Accumulator [Immediate]", LDAXY::immediateHandler };
+	constexpr static InstructionHandler INS_LDX_IMM = { 0xA2, true, "LDX - Load Index Register X[Immediate]", LDAXY::immediateHandler };
+	constexpr static InstructionHandler INS_LDY_IMM = { 0Xa0, true, "LDY - Load Index Register Y[Immediate]", LDAXY::immediateHandler };
 
-			// Absolute Instructions
-			{INS_LDA_ABS, true, "LDA - Load Accumulator [Absolute]", LDAXY::absoluteHandler}, 
-			{INS_LDX_ABS, true, "LDX - Load Index Register X [Absolute]", LDAXY::absoluteHandler},
-			{INS_LDY_ABS, true, "LDY - Load Index Register Y [Absolute]", LDAXY::absoluteHandler},
+	/** Zero Page instructions */
+	constexpr static InstructionHandler INS_LDA_ZP = { 0Xa5, true, "LDA - Load Accumulator[Zero Page]", LDAXY::zeroPageHandler };
+	constexpr static InstructionHandler INS_LDX_ZP = { 0XA6, true, "LDX - Load Index Register X [Zero Page]", LDAXY::zeroPageHandler };
+	constexpr static InstructionHandler INS_LDY_ZP = { 0xA4, true, "LDY - Load Index Register Y [Zero Page]", LDAXY::zeroPageHandler };
 
-			// Absolute X-Indexed Instructions
-			{INS_LDA_ABSX, true, "LDA - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler}, 
-			{INS_LDY_ABSX, true, "LDY - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler},
+	/** Zero Page Indexed (X/Y) Instructions */
+	constexpr static InstructionHandler INS_LDA_ZPX = { 0xB5, true, "LDA - Load Accumulator [X-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler };
+	constexpr static InstructionHandler INS_LDX_ZPY = { 0xB6, true, "LDX - Load Accumulator [Y-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler };
+	constexpr static InstructionHandler INS_LDY_ZPX = { 0xB4, true, "LDY - Load Accumulator [X-Indexed Zero Page]", LDAXY::zeroPageIndexedHandler };
 
-			// Absolute Y-Indexed Instructions
-			{INS_LDA_ABSY, true, "LDA - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler},
-			{INS_LDX_ABSY, true, "LDX - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler},
-			 
-			// X-Indexed Zero Page Indirect
-			{INS_LDA_INDX, true, "LDA - Load Accumulator [X-Indexed Zero Page Indirect]", LDAXY::indirectHandler},
+	/* Absolute Instructions */
+	constexpr static InstructionHandler INS_LDA_ABS = { 0xAD, true, "LDA - Load Accumulator [Absolute]", LDAXY::absoluteHandler };
+	constexpr static InstructionHandler INS_LDX_ABS = { 0xAE, true, "LDX - Load Index Register X [Absolute]", LDAXY::absoluteHandler };
+	constexpr static InstructionHandler INS_LDY_ABS = { 0xAC, true, "LDY - Load Index Register Y [Absolute]", LDAXY::absoluteHandler };
 
-			// ZeroPage Indirect Y-Indexed
-			{INS_LDA_INDY, true, "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]", LDAXY::indirectHandler}
-		};
+	/* Absolute Indexed X */
+	constexpr static InstructionHandler INS_LDA_ABSX = { 0xBD, true, "LDA - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler };
+	constexpr static InstructionHandler INS_LDY_ABSX = { 0xBC, true, "LDY - Load Accumulator [X-Indexed Absolute]", LDAXY::absoluteHandler };
+
+	/* Absolute Indexed Y */
+	constexpr static InstructionHandler INS_LDA_ABSY = { 0xB9, true, "LDA - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler };
+	constexpr static InstructionHandler INS_LDX_ABSY = { 0xBE, true, "LDX - Load Accumulator [Y-Indexed Absolute]", LDAXY::absoluteHandler };
+
+	// X-Indexed Zero Page Indirect
+	constexpr static InstructionHandler INS_LDA_INDX = { 0xA1, true, "LDA - Load Accumulator [X-Indexed Zero Page Indirect]", LDAXY::indirectHandler };
+
+	// ZeroPage Indirect Y-Indexed
+	constexpr static InstructionHandler INS_LDA_INDY = { 0xB1, true, "LDA - Load Accumulator [Zero Page Indirect Y-Indexed]", LDAXY::indirectHandler };
+
+	// Handy array of all load instructions
+	static constexpr InstructionHandler LOAD_INSTRUCTIONS[] = {
+		// Immediate Instructions
+		INS_LDA_IMM, INS_LDX_IMM, INS_LDY_IMM,
+
+		// Zero Page Instructions
+		INS_LDA_ZP, INS_LDX_ZP, INS_LDY_ZP,
+
+		// Zero Page Indexed Instructions
+		INS_LDA_ZPX, INS_LDX_ZPY, INS_LDY_ZPX,
+
+		// Absolute Instructions
+		INS_LDA_ABS, INS_LDX_ABS, INS_LDY_ABS,
+
+		// Absolute X-Indexed Instructions
+		INS_LDA_ABSX, INS_LDY_ABSX,
+
+		// Absolute Y-Indexed Instructions
+		INS_LDA_ABSY, INS_LDX_ABSY,
+
+		// X-Indexed Zero Page Indirect
+		INS_LDA_INDX,
+
+		// ZeroPage Indirect Y-Indexed
+		INS_LDA_INDY
 	};
 }

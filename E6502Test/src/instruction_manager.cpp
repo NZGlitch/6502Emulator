@@ -34,7 +34,7 @@ namespace E6502 {
 		CPUState originalState = CPUState();
 		CPUState testState = CPUState();
 		Memory* mem = new Memory();
-		InstructionCode* code = new InstructionCode(0x00);
+		Byte code = 0x00;
 		mem->initialise();
 
 		// When:

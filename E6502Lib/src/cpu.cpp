@@ -51,18 +51,15 @@ namespace E6502 {
 			//Get the next instruction and increment PC
 			Byte code = memory->data[currentState->PC];
 			currentState->PC++;
-			InstructionCode instruction(code);
-
 
 			//Get the handler for this instruction
-			const InstructionHandler* handler = (*insManager)[instruction];
+			const InstructionHandler* handler = (*insManager)[code];
 			if (!handler->isLegal) {
-				fprintf(stderr, "Executing illegal opcode 0x%02X\n", instruction.code);
+				fprintf(stderr, "Executing illegal opcode 0x%02X\n", code);
 			}
-			cyclesUsed += handler->execute(memory, currentState, &instruction);
+			cyclesUsed += handler->execute(memory, currentState, code);
 			numInstructions--;
 		}
 		return cyclesUsed;
 	}
-
 }

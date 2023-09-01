@@ -23,7 +23,7 @@ namespace E6502 {
 
 	public:
 		//Default handler for undefined instructions
-		InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem, CPUState* state, InstructionCode*) { return (u8)2;} };
+		InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem, CPUState* state, Byte instruction) { return (u8)2;} };
 
 		//Constructor
 		InstructionManager(InstructionUtils::InstructionLoader* loader);

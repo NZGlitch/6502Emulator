@@ -23,7 +23,7 @@ namespace E6502 {
 
 	/* Test correct OpCodes */
 	TEST_F(TestJSRInstruction, TestInstructionDefs) {
-		EXPECT_EQ(INS_JSR, 0x20);
+		EXPECT_EQ(INS_JSR.opcode, 0x20);
 	}
 
 	/* Test addHandlers func adds JSR handler */
@@ -35,7 +35,7 @@ namespace E6502 {
 		JSR::addHandlers(handlers);
 
 		// Then: For the JSR instruction, Expect *handlers[opcode] to point to a handler with the same opcode
-		EXPECT_EQ(((*handlers[INS_JSR]).opcode), 0x20);
+		EXPECT_EQ(handlers[INS_JSR.opcode]->opcode, INS_JSR.opcode);
 	}
 
 	/*******************************
@@ -77,7 +77,7 @@ namespace E6502 {
 		memory->data[startPC + 1] = msb;
 
 		// When:
-		cyclesUsed = JSR::jsrHandler(memory, state, &InstructionCode(INS_JSR));
+		cyclesUsed = JSR::jsrHandler(memory, state, INS_JSR.opcode);
 
 		// Then:
 		EXPECT_EQ(state->PC, (msb << 8) | lsb);						//The PC should be pointed at the target address
@@ -85,5 +85,5 @@ namespace E6502 {
 		EXPECT_EQ(memory->data[0x0100 | initialSP - 1], 0x35);	// mem[0x0100 + stackInit - 1] == lsb(msbPC)	Low order bits of original PC+2
 		EXPECT_EQ(state->getSP(), 0x0100 | (initialSP - 2));	// SP should decrement by 2
 		EXPECT_EQ(cyclesUsed, 6);
-	}	
+	}
 }

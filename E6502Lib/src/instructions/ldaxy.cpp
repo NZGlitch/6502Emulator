@@ -3,7 +3,7 @@
 namespace E6502 {
 
 	/** Handles Immediate Addressing Mode Instructions */
-	u8 LDAXY::immediateHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+	u8 LDAXY::immediateHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		Byte* saveRegister = getRegFromInstruction(opCode, state);
 		
@@ -14,7 +14,7 @@ namespace E6502 {
 	}
 
 	/** Handles ZeroPage Addressing Mode Instructions */
-	u8 LDAXY::zeroPageHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+	u8 LDAXY::zeroPageHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		Byte* saveRegister = getRegFromInstruction(opCode, state);
 
@@ -28,7 +28,7 @@ namespace E6502 {
 	}
 
 	/** Handles ZeroPageIndexed Addressing Mode Instructions */
-	u8 LDAXY::zeroPageIndexedHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+	u8 LDAXY::zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		Byte* saveRegister = getRegFromInstruction(opCode, state);
 
@@ -36,7 +36,7 @@ namespace E6502 {
 		Byte address = mem->readByte(cycles, state->incPC());
 
 		// Add X or Y
-		if (opCode->code == INS_LDX_ZPY) address += state->Y;
+		if (opCode == INS_LDX_ZPY.opcode) address += state->Y;
 		else address += state->X;
 		cycles++;
 
@@ -47,7 +47,7 @@ namespace E6502 {
 	}
 
 	/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
-	u8 LDAXY::absoluteHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+	u8 LDAXY::absoluteHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		Byte* saveRegister = getRegFromInstruction(opCode, state);
 		
@@ -57,13 +57,13 @@ namespace E6502 {
 		Byte index = 0;
 
 		// Get index
-		switch (opCode->code) {
-			case INS_LDA_ABSX:
-			case INS_LDY_ABSX:
+		switch (opCode) {
+			case INS_LDA_ABSX.opcode:
+			case INS_LDY_ABSX.opcode:
 				index = state->X;
 				break;
-			case INS_LDA_ABSY:
-			case INS_LDX_ABSY:
+			case INS_LDA_ABSY.opcode:
+			case INS_LDX_ABSY.opcode:
 				index = state->Y;
 				break;
 		}
@@ -83,7 +83,7 @@ namespace E6502 {
 	}
 
 	/** Handles Indirect Addressing Modes */
-	u8 LDAXY::indirectHandler(Memory* mem, CPUState* state, InstructionCode* opCode) {
+	u8 LDAXY::indirectHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
 		Byte* saveRegister = getRegFromInstruction(opCode, state);
 
@@ -91,7 +91,7 @@ namespace E6502 {
 		Byte baseAddress = mem->readByte(cycles, state->incPC());
 
 		// Add Register if IndirectX
-		if (opCode->code == INS_LDA_INDX) {
+		if (opCode == INS_LDA_INDX.opcode) {
 			baseAddress += state->X;
 			cycles++;
 		}
@@ -100,7 +100,7 @@ namespace E6502 {
 		Word targetAddress = mem->readWord(cycles, 0x00FF & baseAddress);
 			
 		// Add Register if IndirectY
-		if (opCode->code == INS_LDA_INDY) {
+		if (opCode == INS_LDA_INDY.opcode) {
 			targetAddress += state->Y;
 			if ((targetAddress & 0x00FF) < state->Y) cycles++; // Add a cycle iff we crossed a page boundry
 		}
@@ -112,9 +112,9 @@ namespace E6502 {
 	};
 
 	/** Function to get a pointer to a register in the state based on opcode */
-	Byte* LDAXY::getRegFromInstruction(InstructionCode* instruction, CPUState* state) {
+	Byte* LDAXY::getRegFromInstruction(Byte instruction, CPUState* state) {
 		// Last 2 bits of opcode indicates target register
-		switch (instruction->C & 0x03) {
+		switch (instruction & 0x03) {
 			case 0x00: return &state->Y;
 			case 0x01: return &state->A;;
 			case 0x02: return &state->X;
@@ -131,7 +131,7 @@ namespace E6502 {
 
 	/** Called to add LDA Instruction handlers to the emulator */
 	void LDAXY::addHandlers(InstructionHandler* handlers[]) {
-		for (InstructionHandler handler : LDAXY::instructions) {
+		for (InstructionHandler handler : LOAD_INSTRUCTIONS) {
 			handlers[handler.opcode] = new InstructionHandler{handler.opcode, handler.isLegal, handler.name, handler.execute};
 		}
 	};

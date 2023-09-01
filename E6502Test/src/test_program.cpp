@@ -17,7 +17,7 @@ namespace E6502 {
 		Word dataSectionAddress = 0x4284;
 
 		/** Loaded at #FFFC jumps to 'program' - MUST be 4 bytes long*/
-		Byte initProgram[4] = { INS_JSR, palsb, pamsb, 0x00 };
+		Byte initProgram[4] = { INS_JSR.opcode, palsb, pamsb, 0x00 };
 
 		/* Size of program */
 		const static Word programSize = 0x16;
@@ -25,16 +25,16 @@ namespace E6502 {
 		/* Sample program to test */
 		Byte program[programSize] = {
 			// Test out LDA instructions by loading data into the A register
-			INS_LDX_IMM,	0x01,				// Set the X-Index register to 01
-			INS_LDY_IMM,	0x02,				// Set the y-Index register to 02
-			INS_LDA_ABS,	0x84,	0x42,		// Load the first byte from the data section (0x12)
-			INS_LDA_ABSX,	0x84,	0x42,		// Load data[x] - A = 0x34
-			INS_LDA_ABSY,	0x84,	0x42,		// Load data[y] - A = 0x56
-			INS_LDA_IMM,	0x42,				// Load 0x42 into A
-			INS_LDA_ZP,		0x02,				// load zp[02] = 0xDD into A
-			INS_LDA_ZPX,	0x08,				// load (zp+0x08)[x] - A = 0x66
+			INS_LDX_IMM.opcode,		0x01,				// Set the X-Index register to 01
+			INS_LDY_IMM.opcode,		0x02,				// Set the y-Index register to 02
+			INS_LDA_ABS.opcode,		0x84,	0x42,		// Load the first byte from the data section (0x12)
+			INS_LDA_ABSX.opcode,	0x84,	0x42,		// Load data[x] - A = 0x34
+			INS_LDA_ABSY.opcode,	0x84,	0x42,		// Load data[y] - A = 0x56
+			INS_LDA_IMM.opcode,		0x42,				// Load 0x42 into A
+			INS_LDA_ZP.opcode,		0x02,				// load zp[02] = 0xDD into A
+			INS_LDA_ZPX.opcode,		0x08,				// load (zp+0x08)[x] - A = 0x66
 			//TODO - indirect instructions
-			INS_JSR,		palsb,	pamsb,		// GOTO 10 - infinite loop
+			INS_JSR.opcode,			palsb,	pamsb,		// GOTO 10 - infinite loop
 		};
 
 		/* Size of data section */

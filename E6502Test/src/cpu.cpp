@@ -35,7 +35,7 @@ namespace E6502 {
 
 		// Given:
 		state->PC = 0x0000;
-		state->setSP(0x0100);
+		state->setSP(0x00);
 		state->A = state->X = state->Y = 0x42;
 		state->D = 1;
 		state->I = 1;

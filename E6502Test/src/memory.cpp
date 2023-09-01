@@ -87,7 +87,7 @@ namespace E6502 {
 		Word loadAddress = 0xFF00;
 		Byte program[programSize] = {};
 		for (Word i = 0; i < programSize; i++) {
-			Byte ins = i;
+			Byte ins = (i&0xFF);
 			program[i] = ins;
 		}
 
