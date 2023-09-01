@@ -3,7 +3,8 @@
 #include "instruction_manager.h"
 #include "instructions/instruction_utils.h"
 #include "instructions/jsr.h"
-#include "instructions/ldaxy.h"
+#include "instructions/load_instruction.h"
+#include "instructions/store_instruction.h"
 
 namespace E6502 {
 
@@ -14,6 +15,20 @@ namespace E6502 {
 		}
 
 		virtual void TearDown() {
+		}
+
+		void testgetRegFromInsHelper(InstructionHandler handler) {
+			CPUState* state = new CPUState;
+			Byte* testRegs[] = { &state->Y, &state->A, &state->X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
+
+			// Given:
+			Byte instruction = handler.opcode;
+
+			// When:
+			Byte* result = InstructionUtils::getRegFromInstruction(instruction, state);
+
+			// Then:
+			EXPECT_EQ(result, testRegs[handler.opcode & 0x03]);
 		}
 	};
 
@@ -27,17 +42,36 @@ namespace E6502 {
 		// When:
 		InstructionUtils::loader.load(handlers);
 
-		// Then (LDAXY):
+		// Then (JSR):
+		InstructionHandler& handler = INS_JSR;
+		Byte opcode = handler.opcode;
+		ASSERT_FALSE(handlers[opcode] == nullptr);
+		EXPECT_EQ((handlers[opcode]->opcode), opcode);
+
+		// Then (LoadInstruction):
 		for (const InstructionHandler& handler : LOAD_INSTRUCTIONS) {
 			Byte opcode = handler.opcode;
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}
 
-		// Then (JSR):
-		InstructionHandler& handler = INS_JSR;
-		Byte opcode = handler.opcode;
-		ASSERT_FALSE(handlers[opcode] == nullptr);
-		EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		// Then (StoreInstruction):
+		for (const InstructionHandler& handler : STORE_INSTRUCTIONS) {
+			Byte opcode = handler.opcode;
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		}
+	}
+
+	/* Test getRegFromInstruction */
+	TEST_F(TestInstructionUtils, TestGetRegFromInstruction) {
+		
+		for (const InstructionHandler& handler : LOAD_INSTRUCTIONS) {
+			testgetRegFromInsHelper(handler);
+		}
+
+		for (const InstructionHandler& handler : STORE_INSTRUCTIONS) {
+			testgetRegFromInsHelper(handler);
+		}	
 	}
 }

@@ -31,8 +31,8 @@ set (E6502_SOURCES
 
 	"src/instructions/instruction_utils.cpp"
 	"src/instructions/jsr.cpp"
-	"src/instructions/ldaxy.cpp"
-	"src/instructions/store_instructions.cpp"
+	"src/instructions/load_instruction.cpp"
+	"src/instructions/store_instruction.cpp"
 
 	"src/test_program.cpp"
 	

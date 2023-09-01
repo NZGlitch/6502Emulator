@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include "types.h"
 #include "cpu.h"
-#include "ldaxy.h"
+#include "load_instruction.h"
 
 namespace E6502 {
 	using::testing::_;
@@ -50,7 +50,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LDAXY::immediateHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::immediateHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 2);
@@ -73,7 +73,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LDAXY::zeroPageHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::zeroPageHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 3);
@@ -102,7 +102,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::zeroPageIndexedHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::zeroPageIndexedHandler(memory, state, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -129,7 +129,7 @@ namespace E6502 {
 
 
 			// When:
-			cyclesUsed = LDAXY::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::absoluteHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -156,7 +156,7 @@ namespace E6502 {
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = LDAXY::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::absoluteHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -186,7 +186,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::indirectHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::indirectHandler(memory, state, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, expectedCycles);
@@ -221,7 +221,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::indirectHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::indirectHandler(memory, state, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, testCycles);
@@ -262,7 +262,7 @@ namespace E6502 {
 		InstructionHandler* handlers[0x100] = { nullptr };
 
 		// When:
-		LDAXY::addHandlers(handlers);
+		LoadInstruction::addHandlers(handlers);
 
 		// Then: For all LD instructions, Expect *handlers[opcode] to point to a handler with the same opcode
 		EXPECT_EQ(handlers[INS_LDA_IMM.opcode]->opcode, INS_LDA_IMM.opcode);
@@ -303,26 +303,10 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(registers[i], testValues[i])).Times(1);
 
 			// When:
-			LDAXY::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
+			LoadInstruction::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
 
 			// Then:
 			EXPECT_EQ(cycles, 1);
-		}
-	}
-
-	/* Test getRegFromInstruction */
-	TEST_F(TestLDAXYInstruction, TestGetRegFromInstruction) {
-		Byte* testRegs[] = { &state->Y, &state->A, &state->X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
-
-		for (const InstructionHandler& handler : LOAD_INSTRUCTIONS) {
-			// Given:
-			Byte instruction = handler.opcode;
-
-			// When:
-			Byte* result = LDAXY::getRegFromInstruction(instruction, state);
-
-			// Then:
-			EXPECT_EQ(result, testRegs[handler.opcode & 0x03]);
 		}
 	}
 
