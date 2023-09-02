@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include "types.h"
 #include "cpu.h"
-#include "ldaxy.h"
+#include "load_instruction.h"
 
 namespace E6502 {
 	using::testing::_;
@@ -10,7 +10,7 @@ namespace E6502 {
 		MOCK_METHOD(void, saveToRegAndFlag, (Byte* reg, Byte value));
 	};
 
-	class TestLDAXYInstruction : public testing::Test {
+	class TestLoadInstruction : public testing::Test {
 	public:
 		Memory* memory = nullptr;
 		MockState* state = nullptr;
@@ -50,7 +50,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LDAXY::immediateHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::immediateHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 2);
@@ -73,7 +73,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LDAXY::zeroPageHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::zeroPageHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 3);
@@ -102,7 +102,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::zeroPageIndexedHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::zeroPageIndexedHandler(memory, state, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -129,7 +129,7 @@ namespace E6502 {
 
 
 			// When:
-			cyclesUsed = LDAXY::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::absoluteHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -156,7 +156,7 @@ namespace E6502 {
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = LDAXY::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::absoluteHandler(memory, state, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -186,7 +186,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::indirectHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::indirectHandler(memory, state, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, expectedCycles);
@@ -221,7 +221,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LDAXY::indirectHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::indirectHandler(memory, state, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, testCycles);
@@ -230,7 +230,7 @@ namespace E6502 {
 	};
 
 	/* Test correct OpCodes */
-	TEST_F(TestLDAXYInstruction, TestInstructionDefs) {
+	TEST_F(TestLoadInstruction, TestInstructionDefs) {
 		// LDA Instructions
 		EXPECT_EQ(INS_LDA_IMM.opcode, 0xA9);
 		EXPECT_EQ(INS_LDA_ZP.opcode, 0xA5);
@@ -257,12 +257,12 @@ namespace E6502 {
 	}
 
 	/* Test addHandlers function */
-	TEST_F(TestLDAXYInstruction, TestLDAaddHandlers) {
+	TEST_F(TestLoadInstruction, TestLDAaddHandlers) {
 		// Given:
 		InstructionHandler* handlers[0x100] = { nullptr };
 
 		// When:
-		LDAXY::addHandlers(handlers);
+		LoadInstruction::addHandlers(handlers);
 
 		// Then: For all LD instructions, Expect *handlers[opcode] to point to a handler with the same opcode
 		EXPECT_EQ(handlers[INS_LDA_IMM.opcode]->opcode, INS_LDA_IMM.opcode);
@@ -288,7 +288,7 @@ namespace E6502 {
 	}
 
 	/* Test fetchAndSaveToRegister */
-	TEST_F(TestLDAXYInstruction, TestfetchAndSave) {
+	TEST_F(TestLoadInstruction, TestfetchAndSave) {
 		Byte* registers[] = { &state->A, &state->X, &state->Y };
 		Byte testValues[] = { 0x21, 0x42, 0x84 };
 		Word testAddresses[] = { 0x1234, 0xf167, 0x0200 };
@@ -303,61 +303,45 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(registers[i], testValues[i])).Times(1);
 
 			// When:
-			LDAXY::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
+			LoadInstruction::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
 
 			// Then:
 			EXPECT_EQ(cycles, 1);
 		}
 	}
 
-	/* Test getRegFromInstruction */
-	TEST_F(TestLDAXYInstruction, TestGetRegFromInstruction) {
-		Byte* testRegs[] = { &state->Y, &state->A, &state->X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
-
-		for (const InstructionHandler& handler : LOAD_INSTRUCTIONS) {
-			// Given:
-			Byte instruction = handler.opcode;
-
-			// When:
-			Byte* result = LDAXY::getRegFromInstruction(instruction, state);
-
-			// Then:
-			EXPECT_EQ(result, testRegs[handler.opcode & 0x03]);
-		}
-	}
-
 	 /***     Execution tests     ***/
 
 	 /* Tests LD Immediate Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAXYImmediate) {
+	TEST_F(TestLoadInstruction, TestLoadImmediate) {
 		testImmediate(INS_LDA_IMM, &state->A, 2, "LDA_IMM");
 		testImmediate(INS_LDX_IMM, &state->X, 2, "LDX_IMM");
 		testImmediate(INS_LDY_IMM, &state->Y, 2, "LDY_IMM");
 	}
 
 	/* Tests LD Zero Page Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPage) {
+	TEST_F(TestLoadInstruction, TestLoadZeroPage) {
 		testZeroPage(INS_LDA_ZP, &state->A, 3, "LDA_ZP");
 		testZeroPage(INS_LDX_ZP, &state->X, 3, "LDX_ZP");
 		testZeroPage(INS_LDY_ZP, &state->Y, 3, "LDY_ZP");
 	}
 
 	/* Tests LD Zero Page,X/Y Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAXYZeroPageX) {
+	TEST_F(TestLoadInstruction, TestLoadZeroPageX) {
 		testZeroPageIndex(INS_LDY_ZPX, &state->X, &state->Y, 4, "LDY_ZPX");
 		testZeroPageIndex(INS_LDA_ZPX, &state->X, &state->A, 4, "LDA_ZPX");
 		testZeroPageIndex(INS_LDX_ZPY, &state->Y, &state->X, 4, "LDX_ZPY");
 	}
 
 	/* Tests LD Absolute Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAXYAbsolute) {
+	TEST_F(TestLoadInstruction, TestLoadAbsolute) {
 		testAbsolute(INS_LDA_ABS, &state->A, 4, "LDA_ABS");
 		testAbsolute(INS_LDX_ABS, &state->X, 4, "LDX_ABS");
 		testAbsolute(INS_LDY_ABS, &state->Y, 4, "LDY_ABS");
 	}
 
-	/* Tests LD Absolute,X Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAXYAbsoluteXY) {
+	/* Tests LD Absolute,X/Y Instruction */
+	TEST_F(TestLoadInstruction, TestLoadAbsoluteXY) {
 		Byte lsb = 0x84;			// TODO - maybe randomise?
 		Byte msb = 0xFF;			// TODO - maybe randomise?
 		Byte index = 0x00;
@@ -384,12 +368,12 @@ namespace E6502 {
 	}
 
 	/* Tests LD Indeirect,X Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectX) {
+	TEST_F(TestLoadInstruction, TestLoadIndirectX) {
 		testIndirectXIndex(INS_LDA_INDX, &state->X, &state->A, 6, "LDA_INDX");
 	}
 
 	/* Tests LD Indeirect,Y Instruction */
-	TEST_F(TestLDAXYInstruction, TestLDAXYIndirectY) {
+	TEST_F(TestLoadInstruction, TestLoadIndirectY) {
 		testIndirectYIndex(INS_LDA_INDY, &state->Y, &state->A, 5, "LDA_INDY");
 	}
 }

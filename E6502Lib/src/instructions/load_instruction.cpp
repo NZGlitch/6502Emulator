@@ -1,11 +1,12 @@
-#include "ldaxy.h"
+#include "instruction_utils.h"
+#include "load_instruction.h"
 
 namespace E6502 {
 
 	/** Handles Immediate Addressing Mode Instructions */
-	u8 LDAXY::immediateHandler(Memory* mem, CPUState* state, Byte opCode) {
+	u8 LoadInstruction::immediateHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte* saveRegister = getRegFromInstruction(opCode, state);
+		Byte* saveRegister = InstructionUtils::getRegFromInstruction(opCode, state);
 		
 		// Read the next byte from PC and put into the appropriate register
 		Byte value = mem->readByte(cycles, state->incPC());
@@ -14,9 +15,9 @@ namespace E6502 {
 	}
 
 	/** Handles ZeroPage Addressing Mode Instructions */
-	u8 LDAXY::zeroPageHandler(Memory* mem, CPUState* state, Byte opCode) {
+	u8 LoadInstruction::zeroPageHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte* saveRegister = getRegFromInstruction(opCode, state);
+		Byte* saveRegister = InstructionUtils::getRegFromInstruction(opCode, state);
 
 		// Read the next byte as the lsb for a zero page address
 		Byte address = mem->readByte(cycles, state->incPC());
@@ -28,9 +29,9 @@ namespace E6502 {
 	}
 
 	/** Handles ZeroPageIndexed Addressing Mode Instructions */
-	u8 LDAXY::zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode) {
+	u8 LoadInstruction::zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte* saveRegister = getRegFromInstruction(opCode, state);
+		Byte* saveRegister = InstructionUtils::getRegFromInstruction(opCode, state);
 
 		// Read the next byte as the lsb for a zero page base address
 		Byte address = mem->readByte(cycles, state->incPC());
@@ -47,9 +48,9 @@ namespace E6502 {
 	}
 
 	/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
-	u8 LDAXY::absoluteHandler(Memory* mem, CPUState* state, Byte opCode) {
+	u8 LoadInstruction::absoluteHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte* saveRegister = getRegFromInstruction(opCode, state);
+		Byte* saveRegister = InstructionUtils::getRegFromInstruction(opCode, state);
 		
 		// Read address from next two bytes (lsb first)
 		Byte lsb = mem->readByte(cycles, state->incPC());
@@ -83,9 +84,9 @@ namespace E6502 {
 	}
 
 	/** Handles Indirect Addressing Modes */
-	u8 LDAXY::indirectHandler(Memory* mem, CPUState* state, Byte opCode) {
+	u8 LoadInstruction::indirectHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte* saveRegister = getRegFromInstruction(opCode, state);
+		Byte* saveRegister = InstructionUtils::getRegFromInstruction(opCode, state);
 
 		// Read the next byte as the base for a zero page address.
 		Byte baseAddress = mem->readByte(cycles, state->incPC());
@@ -111,26 +112,14 @@ namespace E6502 {
 		return cycles;
 	};
 
-	/** Function to get a pointer to a register in the state based on opcode */
-	Byte* LDAXY::getRegFromInstruction(Byte instruction, CPUState* state) {
-		// Last 2 bits of opcode indicates target register
-		switch (instruction & 0x03) {
-			case 0x00: return &state->Y;
-			case 0x01: return &state->A;;
-			case 0x02: return &state->X;
-		}
-		// TODO error handling
-		return nullptr;
-	}
-
 	/** Helper method to get a value from memory and store in a register */
-	void LDAXY::fetchAndSaveToRegister(u8* cycles, Memory* memory, CPUState* state, Word address, Byte* reg) {
+	void LoadInstruction::fetchAndSaveToRegister(u8* cycles, Memory* memory, CPUState* state, Word address, Byte* reg) {
 		Byte value = memory->readByte(*cycles, address);
 		state->saveToRegAndFlag(reg, value);
 	}
 
-	/** Called to add LDA Instruction handlers to the emulator */
-	void LDAXY::addHandlers(InstructionHandler* handlers[]) {
+	/** Called to add Load Instruction handlers to the emulator */
+	void LoadInstruction::addHandlers(InstructionHandler* handlers[]) {
 		for (InstructionHandler handler : LOAD_INSTRUCTIONS) {
 			handlers[handler.opcode] = new InstructionHandler{handler.opcode, handler.isLegal, handler.name, handler.execute};
 		}

@@ -21,10 +21,12 @@ set (E6502LIB_INSTRUCTIONS
 	"src/instructions/base.h"	
 	"src/instructions/base.cpp"	
 	"src/instructions/instruction_utils.h"	
-	"src/instructions/ldaxy.h"
-	"src/instructions/ldaxy.cpp"
+	"src/instructions/load_instruction.h"
+	"src/instructions/load_instruction.cpp"
 	"src/instructions/jsr.h"
 	"src/instructions/jsr.cpp"
+	"src/instructions/store_instruction.h"
+	"src/instructions/store_instruction.cpp"
 )
 
 source_group("src" FILES ${E6502LIB_SOURCES})
