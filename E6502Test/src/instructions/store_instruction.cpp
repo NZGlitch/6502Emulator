@@ -74,6 +74,53 @@ namespace E6502 {
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 			EXPECT_EQ(memory->data[targetAddress], testValue);
 		}
+
+		/** Helper function for zero page instructions */
+		void testZeroPage(InstructionHandler instruction, Byte* sourceReg, u8 expected_cycles, char* test_name) {
+			// Fixtures
+			Byte testValue = 0;
+			Byte insAddress = 0x84;		// TODO - maybe randmomise?
+			u8 cyclesUsed = 0;
+
+			// Given:
+			state->PC = 0x0000;
+			testValue = genTestValAndClearMem(memory, insAddress);
+			memory->data[0x0000] = insAddress;
+			*sourceReg = testValue;
+
+			// When:
+			cyclesUsed = StoreInstruction::zeroPageHandler(memory, state, instruction.opcode);
+
+			// Then:
+			EXPECT_EQ(memory->data[insAddress], testValue);
+			EXPECT_EQ(cyclesUsed, 3);
+		}
+
+		/** Helper method for zero page index instructions */
+		void testZeroPageIndex(InstructionHandler instruction, Byte* indexReg, Byte* sourceReg, u8 expected_cycles, char* test_name) {
+			// Fixtures
+			Byte baseAddress[] = { 0x84, 0x12, 0x44 };			// TODO - maybe randmomise?
+			Byte testIndex[] = { 0x10, 0xFF, 0x00 };			// TODO - maybe randmomise?
+			Word targetAddress[] = { 0x0094, 0x0011, 0x0044 };	// = baseAddress[i] + testX[i] | 0xFF
+			Byte testValue[] = { 0x42, 0xF0, 0x01 };			// TODO - maybe randomise?
+			u8 cyclesUsed = 0;
+
+			for (u8 i = 0; i < 3; i++) {
+				// Given
+				state->PC = 0x0000;
+				memory->data[0x000] = baseAddress[i];
+				*sourceReg = testValue[i];
+				*indexReg = testIndex[i];
+				genTestValAndClearMem(memory, targetAddress[i], testValue[i]);
+
+				// When:
+				cyclesUsed = StoreInstruction::zeroPageIndexedHandler(memory, state, instruction.opcode);
+
+				// Then:
+				EXPECT_EQ(memory->data[targetAddress[i]], testValue[i]);
+				EXPECT_EQ(cyclesUsed, expected_cycles);
+			}
+		}
 	};
 
 	/* Test correct OpCodes */
@@ -84,6 +131,16 @@ namespace E6502 {
 		EXPECT_EQ(INS_STY_ABS.opcode, 0x8C);
 		EXPECT_EQ(INS_STA_ABSX.opcode, 0x9D);
 		EXPECT_EQ(INS_STA_ABSY.opcode, 0x99);
+
+		/* Zero Page Instructions */
+		EXPECT_EQ(INS_STA_ZP.opcode, 0x85);
+		EXPECT_EQ(INS_STX_ZP.opcode, 0x86);
+		EXPECT_EQ(INS_STY_ZP.opcode, 0x84);
+
+		/* Zero Page X,Y Indexed Instructions */
+		EXPECT_EQ(INS_STA_ZPX.opcode, 0x95);
+		EXPECT_EQ(INS_STX_ZPY.opcode, 0x96);
+		EXPECT_EQ(INS_STY_ZPX.opcode, 0x94);
 	}
 
 	/* Test addHandlers func adds ST handlers */
@@ -102,6 +159,16 @@ namespace E6502 {
 		EXPECT_EQ(handlers[INS_STY_ABS.opcode]->opcode, INS_STY_ABS.opcode);
 		EXPECT_EQ(handlers[INS_STA_ABSX.opcode]->opcode, INS_STA_ABSX.opcode);
 		EXPECT_EQ(handlers[INS_STA_ABSY.opcode]->opcode, INS_STA_ABSY.opcode);
+
+		/* Zero Page Instructions */
+		EXPECT_EQ(handlers[INS_STA_ZP.opcode]->opcode, INS_STA_ZP.opcode);
+		EXPECT_EQ(handlers[INS_STX_ZP.opcode]->opcode, INS_STX_ZP.opcode);
+		EXPECT_EQ(handlers[INS_STY_ZP.opcode]->opcode, INS_STY_ZP.opcode);
+
+		/* Zero Page Indexed Instructions */
+		EXPECT_EQ(handlers[INS_STA_ZPX.opcode]->opcode, INS_STA_ZPX.opcode);
+		EXPECT_EQ(handlers[INS_STX_ZPY.opcode]->opcode, INS_STX_ZPY.opcode);
+		EXPECT_EQ(handlers[INS_STY_ZPX.opcode]->opcode, INS_STY_ZPX.opcode);
 	}
 
 	/*******************************
@@ -134,5 +201,19 @@ namespace E6502 {
 		index = 0xA1;
 		absIndexedHelper(INS_STA_ABSX, lsb, msb, index, &state->X, &state->A, 5, "STA ABSX (page boundry)");
 		absIndexedHelper(INS_STA_ABSY, lsb, msb, index, &state->Y, &state->A, 5, "STA ABSY (page boundry)");		
+	}
+
+	/* Tests LD Zero Page Instruction */
+	TEST_F(TestStoreInstruction, TestLStoreZeroPage) {
+		testZeroPage(INS_STA_ZP, &state->A, 3, "STA_ZP");
+		testZeroPage(INS_STX_ZP, &state->X, 3, "STX_ZP");
+		testZeroPage(INS_STY_ZP, &state->Y, 3, "STY_ZP");
+	}
+
+	/* Tests Store Zero Page,X/Y Instruction */
+	TEST_F(TestStoreInstruction, TestStoreZeroPageX) {
+		testZeroPageIndex(INS_STA_ZPX, &state->X, &state->A, 4, "STA_ZPX");
+		testZeroPageIndex(INS_STX_ZPY, &state->Y, &state->X, 4, "STX_ZPY");
+		testZeroPageIndex(INS_STY_ZPX, &state->X, &state->Y, 4, "STY_ZPX");
 	}
 }
