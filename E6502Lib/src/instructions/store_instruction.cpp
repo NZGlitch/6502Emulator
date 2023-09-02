@@ -70,7 +70,7 @@ namespace E6502 {
 		return cycles;
 	}
 
-	/** X-Indexed Zerp Page Indirect instructions */
+	/** X-Indexed Zero Page Indirect instructions */
 	u8 StoreInstruction::indirectXHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;
 
@@ -87,7 +87,7 @@ namespace E6502 {
 		return cycles;
 	}
 
-	/** Zero PAge Y-Indexed Indirect instructions */
+	/** Zero Page Y-Indexed Indirect instructions */
 	u8 StoreInstruction::indirectYHandler(Memory* mem, CPUState* state, Byte opCode) {
 		u8 cycles = 1;
 
