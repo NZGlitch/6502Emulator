@@ -3,9 +3,11 @@
 */ 
 #pragma once
 #include "types.h"
-#include "instructions/instruction_utils.h"
+#include "instruction_handler.h"
+
 
 namespace E6502 {
+
 	/*
 	Instruction Manager
 	-------------------
@@ -23,10 +25,10 @@ namespace E6502 {
 
 	public:
 		//Default handler for undefined instructions
-		InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](Memory* mem, CPUState* state, Byte instruction) { return (u8)2;} };
+		InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](CPU* cpu, Byte instruction) { return (u8)2;} };
 
 		//Constructor
-		InstructionManager(InstructionUtils::InstructionLoader* loader);
+		InstructionManager(InstructionLoader* loader);
 
 		//Array read access
 		InstructionHandler* operator[](Byte instruction);

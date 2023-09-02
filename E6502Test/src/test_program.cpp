@@ -1,6 +1,9 @@
 #include <gmock/gmock.h>
 #include "types.h"
-#include "cpu.h"
+#include "instructions/jsr.h"
+#include "instructions/load_instruction.h"
+#include "instructions/store_instruction.h"
+#include "instructions/instruction_utils.h"
 
 namespace E6502 {
 
@@ -66,9 +69,10 @@ namespace E6502 {
 	TEST_F(TestProgram, TestProgram1) {
 		// Initialise objects
 		Memory* mem = new Memory();
-		CPUState cpuState;
-		CPU* cpu = new CPU(&cpuState);
-		cpu->reset(mem);
+		CPUState* state = new CPUState;
+		InstructionLoader* loader = new InstructionUtils::Loader;
+		CPU* cpu = new CPU(state, mem, loader);
+		cpu->reset();
 		u8 cyclesExecuted = 0;
 
 		// Clock stuff
@@ -95,7 +99,7 @@ namespace E6502 {
 		while (insToExecute > 0) {
 			// Execute One instruction
 			u8 numExec = (insToExecute < 20 ? insToExecute : 50);	//20 at a time?
-			cyclesExecuted = cpu->execute(numExec, mem);
+			cyclesExecuted = cpu->execute(numExec);
 
 			// Calculate delay if required
 			s8 timeToTake = cyclesExecuted * clockSpeedMhz;
@@ -122,15 +126,20 @@ namespace E6502 {
 			start_time = end_time;
 		}
 
-		EXPECT_EQ(cpuState.PC, 0x1234);	// Last instruction (JSR) sets this
-		EXPECT_EQ(cpuState.A, 0x66);	// Last LDA instruction sets this
-		EXPECT_EQ(cpuState.X, 0x01);
-		EXPECT_EQ(cpuState.Y, 0x02);
+		EXPECT_EQ(state->PC, 0x1234);	// Last instruction (JSR) sets this
+		EXPECT_EQ(state->A, 0x66);	// Last LDA instruction sets this
+		EXPECT_EQ(state->X, 0x01);
+		EXPECT_EQ(state->Y, 0x02);
 
 		// Return address of stack should be programAddr + 0x11 (i.e. the last byte of the program)
-		Byte slsb = mem->readByte(cyclesExecuted, cpuState.popSP());
-		Byte smsb = mem->readByte(cyclesExecuted, cpuState.popSP());
+		Byte slsb = cpu->readByte(cyclesExecuted, state->popSP());
+		Byte smsb = cpu->readByte(cyclesExecuted, state->popSP());
 		Word stackAddr = (smsb << 8) | slsb;
 		EXPECT_EQ(stackAddr, programAddress + 0x15);
+
+		delete cpu;
+		delete loader;
+		delete mem;
+		delete state;
 	}
 }

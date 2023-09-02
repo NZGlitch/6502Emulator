@@ -10,19 +10,20 @@
 namespace E6502 {
 
 	/* Initialises CPU objects */
-	CPU::CPU(CPUState* initState) {
-		insManager = new InstructionManager(&InstructionUtils::loader);
+	CPU::CPU(CPUState* initState, Memory* initMemory, InstructionLoader* loader) {
+		insManager = new InstructionManager(loader);
 		currentState = initState;
+		mainMemory = initMemory;
 	}
 
 	/* Resets the CPU state - Until this is called, CPU state is undefined */
-	void CPU::reset(Memory* memory) {
+	void CPU::reset() {
 		currentState->D = 0;											// Clear decimal flag
 		currentState->I = 0;											// Clear interrupt flag
 		currentState->PC = 0xFFFC;										// Set Program Counter
 		currentState->setSP(0xFF);										// Set Stack Pointer
 		currentState->A = currentState->X = currentState->Y = 0;		// Reset registers
-		memory->initialise();	// Reset Memory
+		mainMemory->initialise();	// Reset Memory
 	}
 
 	/* Helper method, allows setting all flags at once */
@@ -42,14 +43,12 @@ namespace E6502 {
 			(currentState->D << 3) | (currentState->B << 4) | (currentState->O << 6) | (currentState->N << 7));
 	}
 
-	/*
-	* Execute <numInstructions> instructions. Return the number of cycles used.
-	*/
-	u8 CPU::execute(u8 numInstructions, Memory* memory) {
+	/* Execute <numInstructions> instructions. Return the number of cycles used. */
+	u8 CPU::execute(u8 numInstructions) {
 		u8 cyclesUsed = 0;
 		while (numInstructions > 0) {
 			//Get the next instruction and increment PC
-			Byte code = memory->data[currentState->PC];
+			Byte code = mainMemory->data[currentState->PC];
 			currentState->PC++;
 
 			//Get the handler for this instruction
@@ -57,9 +56,27 @@ namespace E6502 {
 			if (!handler->isLegal) {
 				fprintf(stderr, "Executing illegal opcode 0x%02X\n", code);
 			}
-			cyclesUsed += handler->execute(memory, currentState, code);
+			cyclesUsed += handler->execute(this, code);
 			numInstructions--;
 		}
 		return cyclesUsed;
+	}
+
+	/** Allows an instruction to read a Byte from memory, uses 1 cycle */
+	Byte CPU::readByte(u8& cycles, Word address) {
+		Byte result = mainMemory->data[address]; cycles++;
+		return result;
+	}
+
+	/** Allows an instruction to read a word from memory (Little endiean), uses 2 cycles*/
+	Word CPU::readWord(u8& cycles, Word address) {
+		Word result = mainMemory->data[address++]; cycles++;
+		result |=  ( mainMemory->data[address] << 8) ; cycles++;
+		return result;
+	}
+
+	/** Allows an instruction to wite a word to memory (Little endiean), uses 2 cycles */
+	void CPU::writeByte(u8& cycles, Word address, Byte value) {
+		mainMemory->data[address] = value; cycles++;
 	}
 }

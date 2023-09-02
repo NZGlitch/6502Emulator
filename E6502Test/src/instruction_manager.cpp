@@ -1,21 +1,23 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <gmock/gmock.h>
-#include "instruction_manager.h"
+#include "cpu.h"
+
 namespace E6502 {
 
 	using::testing::_;
 
-	struct MockLoader : public InstructionUtils::InstructionLoader {
+	struct MockLoader : public InstructionLoader {
 		MOCK_METHOD(void, load, (InstructionHandler* handlers[]));
 	};
 
 	class TestInstructionManager : public testing::Test {
 	public:
+		InstructionLoader loader;
 		InstructionManager* inMan;
 
 		virtual void SetUp() {
-			inMan = new InstructionManager(&InstructionUtils::loader);
+			inMan = new InstructionManager(&loader);
 		}
 
 		virtual void TearDown() {
@@ -34,11 +36,12 @@ namespace E6502 {
 		CPUState originalState = CPUState();
 		CPUState testState = CPUState();
 		Memory* mem = new Memory();
+		CPU* cpu = new CPU(&testState, mem, &loader);
 		Byte code = 0x00;
 		mem->initialise();
 
 		// When:
-		Byte cycles = inMan->defaultHandler.execute(mem, &testState, code);
+		Byte cycles = inMan->defaultHandler.execute(cpu, code);
 
 		// Then:
 		EXPECT_EQ(cycles, 2);

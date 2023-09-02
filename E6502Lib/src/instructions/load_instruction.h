@@ -1,5 +1,4 @@
 #pragma once
-#include "../types.h"
 #include "base.h"
 
 namespace E6502 {
@@ -9,25 +8,25 @@ namespace E6502 {
 	public:
 
 		/** Handles Immediate Addressing Mode Instructions */
-		static u8 immediateHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 immediateHandler(CPU* cpu, Byte opCode);
 
 		/** Handles ZeroPage Addressing Mode Instructions */
-		static u8 zeroPageHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 zeroPageHandler(CPU* cpu, Byte opCode);
 
 		/** Handles ZeroPage Addressing Mode Instructions */
-		static u8 zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 zeroPageIndexedHandler(CPU* cpu, Byte opCode);
 
 		/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
-		static u8 absoluteHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 absoluteHandler(CPU* cpu, Byte opCode);
 
 		/** Handles execution of Indirect Mode Instructions */
-		static u8 indirectHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 indirectHandler(CPU* cpu, Byte opCode);
 
 		/** Called to add Load Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);
 
 		/** Helper method to get a value from memory and store in a register */
-		static void fetchAndSaveToRegister(u8* cycles, Memory* memory, CPUState* state, Word address, Byte* reg);
+		static void fetchAndSaveToRegister(u8* cycles, CPU* cpu, Word address, Byte* reg);
 
 	};
 

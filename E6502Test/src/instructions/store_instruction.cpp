@@ -1,6 +1,5 @@
 #include <gmock/gmock.h>
-#include "types.h"
-#include "cpu.h"
+#include "instruction_utils.h"
 #include "store_instruction.h"
 
 namespace E6502 {
@@ -10,15 +9,19 @@ namespace E6502 {
 
 		CPUState* state;
 		Memory* memory;
+		CPU* cpu;
+		InstructionLoader loader;
 
 		virtual void SetUp() {
 			state = new CPUState;
 			memory = new Memory;
+			cpu = new CPU(state, memory, &loader);
 		}
 
 		virtual void TearDown() {
 			delete state;
 			delete memory;
+			delete cpu;
 		}
 
 		/* Generates a test value if not provided, and ensures meomory location is clear */
@@ -43,7 +46,7 @@ namespace E6502 {
 			memory->data[0x001] = msb;
 			
 			// When:
-			cyclesUsed = StoreInstruction::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = StoreInstruction::absoluteHandler(cpu, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(memory->data[targetAddress], testValue);
@@ -68,7 +71,7 @@ namespace E6502 {
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = StoreInstruction::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = StoreInstruction::absoluteHandler(cpu, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -89,7 +92,7 @@ namespace E6502 {
 			*sourceReg = testValue;
 
 			// When:
-			cyclesUsed = StoreInstruction::zeroPageHandler(memory, state, instruction.opcode);
+			cyclesUsed = StoreInstruction::zeroPageHandler(cpu, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(memory->data[insAddress], testValue);
@@ -114,7 +117,7 @@ namespace E6502 {
 				genTestValAndClearMem(memory, targetAddress[i], testValue[i]);
 
 				// When:
-				cyclesUsed = StoreInstruction::zeroPageIndexedHandler(memory, state, instruction.opcode);
+				cyclesUsed = StoreInstruction::zeroPageIndexedHandler(cpu, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(memory->data[targetAddress[i]], testValue[i]);
@@ -143,7 +146,7 @@ namespace E6502 {
 				memory->data[zpAddr + 1] = dataAddress[i] >> 8;
 
 				// When:
-				cyclesUsed = StoreInstruction::indirectXHandler(memory, state, instruction.opcode);
+				cyclesUsed = StoreInstruction::indirectXHandler(cpu, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(memory->data[dataAddress[i]], testValues[i]);
@@ -174,7 +177,7 @@ namespace E6502 {
 				genTestValAndClearMem(memory, dataAddress[i], testValues[i]);			// Clear target address
 
 				// When:
-				cyclesUsed = StoreInstruction::indirectYHandler(memory, state, instruction.opcode);
+				cyclesUsed = StoreInstruction::indirectYHandler(cpu, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(memory->data[dataAddress[i]], testValues[i]);

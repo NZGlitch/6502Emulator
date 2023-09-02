@@ -1,6 +1,5 @@
 #include <gmock/gmock.h>
-#include "types.h"
-#include "cpu.h"
+#include "instruction_utils.h"
 #include "load_instruction.h"
 
 namespace E6502 {
@@ -10,19 +9,31 @@ namespace E6502 {
 		MOCK_METHOD(void, saveToRegAndFlag, (Byte* reg, Byte value));
 	};
 
+
 	class TestLoadInstruction : public testing::Test {
 	public:
-		Memory* memory = nullptr;
-		MockState* state = nullptr;
+		Memory* memory;
+		MockState* state;
+		CPU* cpu;
+		InstructionLoader loader;
+
+		TestLoadInstruction() {
+			memory = nullptr;
+			state = nullptr;
+			cpu = nullptr;
+		}
 
 		virtual void SetUp() {
 			memory = new Memory;
 			state = new MockState;
+			cpu = new CPU(state, memory, &loader);
+
 		}
 
 		virtual void TearDown() {
 			delete memory;
 			delete state;
+			delete cpu;
 		}
 
 		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
@@ -50,7 +61,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LoadInstruction::immediateHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::immediateHandler(cpu, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 2);
@@ -73,7 +84,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
-			cyclesUsed = LoadInstruction::zeroPageHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::zeroPageHandler(cpu, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, 3);
@@ -102,7 +113,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValue[i])).Times(1);
 
 				// When:
-				cyclesUsed = LoadInstruction::zeroPageIndexedHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::zeroPageIndexedHandler(cpu, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -129,7 +140,7 @@ namespace E6502 {
 
 
 			// When:
-			cyclesUsed = LoadInstruction::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::absoluteHandler(cpu, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -156,7 +167,7 @@ namespace E6502 {
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = LoadInstruction::absoluteHandler(memory, state, instruction.opcode);
+			cyclesUsed = LoadInstruction::absoluteHandler(cpu, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -186,7 +197,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LoadInstruction::indirectHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::indirectHandler(cpu, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, expectedCycles);
@@ -221,7 +232,7 @@ namespace E6502 {
 				EXPECT_CALL(*state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LoadInstruction::indirectHandler(memory, state, instruction.opcode);
+				cyclesUsed = LoadInstruction::indirectHandler(cpu, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(cyclesUsed, testCycles);
@@ -303,7 +314,7 @@ namespace E6502 {
 			EXPECT_CALL(*state, saveToRegAndFlag(registers[i], testValues[i])).Times(1);
 
 			// When:
-			LoadInstruction::fetchAndSaveToRegister(&cycles, memory, state, testAddresses[i], registers[i]);
+			LoadInstruction::fetchAndSaveToRegister(&cycles,cpu, testAddresses[i], registers[i]);
 
 			// Then:
 			EXPECT_EQ(cycles, 1);

@@ -1,5 +1,4 @@
 #pragma once
-#include "../types.h"
 #include "base.h"
 
 namespace E6502 {
@@ -8,19 +7,19 @@ namespace E6502 {
 	public:
 
 		/** Absolute and Absolute-Indexed instructions */
-		static u8 absoluteHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 absoluteHandler(CPU* cpu, Byte opCode);
 
 		/** Zero Page instructions */
-		static u8 zeroPageHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 zeroPageHandler(CPU* cpu, Byte opCode);
 
 		/** Zero Page Indexed instructions */
-		static u8 zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 zeroPageIndexedHandler(CPU* cpu, Byte opCode);
 
 		/** X-Indexed Zero Page Indirect instructions */
-		static u8 indirectXHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 indirectXHandler(CPU* cpu, Byte opCode);
 
 		/** Zero Page Y-Indexed Inderect instructions */
-		static u8 indirectYHandler(Memory* mem, CPUState* state, Byte opCode);
+		static u8 indirectYHandler(CPU* cpu, Byte opCode);
 
 		/** Called to add Store Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);

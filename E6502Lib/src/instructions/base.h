@@ -1,6 +1,8 @@
 #pragma once
-#include "../types.h"
 #include <stdio.h>
+#include "../types.h"
+#include "../instruction_handler.h"
+#include "../cpu.h"
 
 namespace E6502 {
 

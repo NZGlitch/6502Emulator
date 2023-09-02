@@ -118,30 +118,7 @@ namespace E6502 {
 				data[i] = 0x00;
 		}
 
-		/** Emulate reading a byte from memory. @cycles will be incremented by the number of cycles taken */
-		Byte readByte(u8& cycles, Word address) {
-			cycles++;
-			return data[address];
-		}
-
-		/**
-		 * Emulate reading a word from memory.
-		 * @param cycles will be incremented by the number of cycles taken (2)
-		 * NOTE: reading is little endian, i.e. if address = 0x1234, result[lsb] = 0x1234 and result[msb] = 0x1235
-		 */
-		Word readWord(u8& cycles, Word address) {
-			Byte lsb = data[address];
-			cycles++;
-			Word result = (data[(address + 1) & 0xFFFF] << 8) | lsb;
-			cycles++;
-			return result;
-		}
-
-		/** Emulate writing a byte to memory. @cycles will be incremented by the number of cycles taken */
-		void writeByte(u8& cycles, Word address, Byte value) {
-			data[address] = value;
-			cycles++;
-		}
+		
 
 		/**
 		* Load a program into memory at the given address.
@@ -155,18 +132,4 @@ namespace E6502 {
 		}
 
 	};
-
-	/* A function that can handle execution of a single instruction */
-	typedef u8(*insHandlerFn)(Memory*, CPUState*, Byte opCode);
-
-	struct InstructionHandler {
-		Byte opcode;
-		bool isLegal;
-		const char* name;
-		insHandlerFn execute;
-	};
-
-	inline bool operator==(const Byte& lhs, const InstructionHandler& rhs) {
-		return lhs == rhs.opcode;
-	}
 }

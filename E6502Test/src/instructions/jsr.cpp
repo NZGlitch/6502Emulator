@@ -1,23 +1,16 @@
 #include <gmock/gmock.h>
-#include "types.h"
-#include "cpu.h"
+#include "instruction_utils.h"
 #include "jsr.h"
+
 namespace E6502 {
 
 	class TestJSRInstruction : public testing::Test {
 	public:
 
-		CPUState* state;
-		Memory* memory;
-
 		virtual void SetUp() {
-			state = new CPUState;
-			memory = new Memory;
 		}
 
 		virtual void TearDown() {
-			delete state;
-			delete memory;
 		}
 	};
 
@@ -44,6 +37,12 @@ namespace E6502 {
 
 	/* Test JSR execution */
 	TEST_F(TestJSRInstruction, TestJSRAbsolute) {
+		// Prep
+		CPUState state;
+		Memory memory;
+		InstructionUtils::Loader loader;
+		CPU cpu(&state, &memory, &loader);
+
 		// Fixtures
 		Byte lsb = 0x21;								//TODO - maybe randomise?
 		Byte msb = 0x43;								//TODO - maybe randomise?
@@ -71,19 +70,19 @@ namespace E6502 {
 		*/
 
 		// Given: 
-		state->setSP(initialSP);
-		state->PC = startPC;
-		memory->data[startPC] = lsb;
-		memory->data[startPC + 1] = msb;
+		state.setSP(initialSP);
+		state.PC = startPC;
+		memory.data[startPC] = lsb;
+		memory.data[startPC + 1] = msb;
 
 		// When:
-		cyclesUsed = JSR::jsrHandler(memory, state, INS_JSR.opcode);
+		cyclesUsed = JSR::jsrHandler(&cpu, INS_JSR.opcode);
 
 		// Then:
-		EXPECT_EQ(state->PC, (msb << 8) | lsb);						//The PC should be pointed at the target address
-		EXPECT_EQ(memory->data[0x0100 | initialSP], 0x12);		// mem[0x0100 + stackInit] == msb(msbPC)		High order bits of original PC+2
-		EXPECT_EQ(memory->data[0x0100 | initialSP - 1], 0x35);	// mem[0x0100 + stackInit - 1] == lsb(msbPC)	Low order bits of original PC+2
-		EXPECT_EQ(state->getSP(), 0x0100 | (initialSP - 2));	// SP should decrement by 2
+		EXPECT_EQ(state.PC, (msb << 8) | lsb);						//The PC should be pointed at the target address
+		EXPECT_EQ(memory.data[0x0100 | initialSP], 0x12);			// mem[0x0100 + stackInit] == msb(msbPC)		High order bits of original PC+2
+		EXPECT_EQ(memory.data[0x0100 | initialSP - 1], 0x35);		// mem[0x0100 + stackInit - 1] == lsb(msbPC)	Low order bits of original PC+2
+		EXPECT_EQ(state.getSP(), 0x0100 | (initialSP - 2));			// SP should decrement by 2
 		EXPECT_EQ(cyclesUsed, 6);
 	}
 }

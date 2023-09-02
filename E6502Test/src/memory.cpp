@@ -29,56 +29,6 @@ namespace E6502 {
 			ASSERT_EQ(memory.data[i], 0x00);		// Data is 0
 	}
 
-	/* Test the readByte function */
-	TEST_F(TestMemory, TestMemReadByte) {
-		// Given:
-		u8 cycles = 0;
-		Word address = (rand() & 0xFFFF);
-		Byte data = rand() & 0xFF;
-		memory.data[address] = data;
-
-		// When:
-		Byte result = memory.readByte(cycles, address);
-
-		// Then:
-		EXPECT_EQ(cycles, 1);
-		EXPECT_EQ(result, data);
-	}
-
-	/* Test the readWord function */
-	TEST_F(TestMemory, TestMemReadWord) {
-		// Given:
-		u8 cycles = 0;
-		Word address = (rand() & 0xFFFF);
-		Byte lsb = rand() & 0xFF;
-		Byte msb = rand() & 0xFF;
-		memory.data[address] = lsb;
-		memory.data[(address + 1) & 0xFFFF] = msb;
-
-		// When:
-		Word result = memory.readWord(cycles, address);
-
-		// Then:
-		Word expectResult = (msb << 8) | lsb;
-		EXPECT_EQ(cycles, 2);
-		EXPECT_EQ(expectResult, result);
-	}
-
-	/* Test the writeByte function */
-	TEST_F(TestMemory, TestMemWriteByte) {
-		// Given:
-		u8 cycles = 0;
-		Word address = rand() & 0xFFFF;
-		Byte data = rand() & 0xFF;
-		memory.data[address] = ((data + 1) & 0xFF);
-
-		// When:
-		memory.writeByte(cycles, address, data);
-
-		// Then:
-		EXPECT_EQ(cycles, 1);
-		EXPECT_EQ(memory.data[address], data);
-	}
 
 	/* Test the loadProgram function */
 	TEST_F(TestMemory, TestLoadProgram) {

@@ -2,12 +2,12 @@
 #include <vector>
 
 namespace E6502 {
-	u8 JSR::jsrHandler(Memory* mem, CPUState* state, Byte opCode) {
+	u8 JSR::jsrHandler(CPU* cpu, Byte opCode) {
 		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte lsb = mem->readByte(cycles, state->incPC());						// Get the lsb of the target address
-		mem->writeByte(cycles, state->pushSP(), ((state->PC >> 8) & 0xFF));		// Copy the high order bits of PC to stack
-		mem->writeByte(cycles, state->pushSP(), (state->PC & 0xFF));			// Copy the low order bits of PC to stack
-		state->PC = (mem->readByte(cycles, state->incPC()) << 8) | lsb;			// Update the program counter to jump
+		Byte lsb = cpu->readByte(cycles, cpu->currentState->incPC());						// Get the lsb of the target address
+		cpu->writeByte(cycles, cpu->currentState->pushSP(), ((cpu->currentState->PC >> 8) & 0xFF));		// Copy the high order bits of PC to stack
+		cpu->writeByte(cycles, cpu->currentState->pushSP(), (cpu->currentState->PC & 0xFF));			// Copy the low order bits of PC to stack
+		cpu->currentState->PC = (cpu->readByte(cycles, cpu->currentState->incPC()) << 8) | lsb;			// Update the program counter to jump
 		cycles++;
 		return cycles;
 	};
