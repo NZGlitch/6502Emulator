@@ -7,13 +7,13 @@ namespace E6502 {
 	class StoreInstruction : public BaseInstruction {
 	public:
 
-		/** Absolute and Absolute-Indexed mode instructions */
+		/** Absolute and Absolute-Indexed instructions */
 		static u8 absoluteHandler(Memory* mem, CPUState* state, Byte opCode);
 
-		/** Zero Page mode instructions */
+		/** Zero Page instructions */
 		static u8 zeroPageHandler(Memory* mem, CPUState* state, Byte opCode);
 
-		/** Zero Page Indexed mode instructions */
+		/** Zero Page Indexed instructions */
 		static u8 zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode);
 
 		/** X-Indexed Zero Page Indirect instructions */
