@@ -3,6 +3,7 @@
 
 #pragma once
 #include "types.h"
+#include "memory.h"
 #include "instruction_manager.h"
 
 namespace E6502 {
@@ -36,6 +37,12 @@ namespace E6502 {
 
 		/** Allows an instruction to wite a word to memory (Little endiean), uses 2 cycles */
 		void writeByte(u8& cycles, Word address, Byte value);
+
+		/** Reads the Byte pointed at by the current PC, increments PC */
+		Byte dequePCByte(u8& cycles);
+
+		/** Reads the Word pointed at by the current PC, increments PC */
+		Word dequePCWord(u8 &cycles);
 
 		/* Execute <numInstructions> instructions. Return the number of cycles used. */
 		u8 execute(u8 numInstructions);

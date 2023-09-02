@@ -1,5 +1,6 @@
 #include <gmock/gmock.h>
 #include "types.h"
+#include "memory.h"
 
 namespace E6502 {
 
@@ -18,17 +19,29 @@ namespace E6502 {
 	/* Test the memory initialisation function */
 	TEST_F(TestMemory, TestMemoryInit) {
 		// Given:
-		for (int i = 0; i < memory.MAX_MEM; i++)
-			memory.data[i] = 0xFF;					// Non-zero data in mem
+		for (int i = 0; i <MAX_MEM; i++)
+			memory[i] = 0xFF;					// Non-zero data in mem
 
 		// When:
 		memory.initialise();
 
 		// Then:
-		for (int i = 0; i < memory.MAX_MEM; i++)
-			ASSERT_EQ(memory.data[i], 0x00);		// Data is 0
+		for (int i = 0; i < MAX_MEM; i++)
+			ASSERT_EQ(memory[i], 0x00);		// Data is 0
 	}
 
+	/* Test read access */
+	TEST_F(TestMemory, TestReadData) {
+		// Given:
+		memory[0x1234] = 0x00;
+		EXPECT_EQ(memory[0x1234], 0x00);
+
+		// When:
+		memory[0x1234] = 0x42;
+
+		// Then:
+		EXPECT_EQ(memory[0x1234], 0x42);
+	}
 
 	/* Test the loadProgram function */
 	TEST_F(TestMemory, TestLoadProgram) {
@@ -48,7 +61,7 @@ namespace E6502 {
 		for (u16 i = 0; i < programSize; i++) {
 			Word nextAddr = loadAddress + i;
 			Byte expect = i;
-			EXPECT_EQ(memory.data[nextAddr], expect);
+			EXPECT_EQ(memory[nextAddr], expect);
 		}
 	}
 }

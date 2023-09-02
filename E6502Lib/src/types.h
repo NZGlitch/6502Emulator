@@ -106,30 +106,4 @@ namespace E6502 {
 			setFlags(0x00);
 		}
 	};
-
-	// System Memory
-	struct Memory {
-		static constexpr int MAX_MEM = 0x10000;	// Maximum addressable meory
-		Byte data[MAX_MEM] = {};	//Actual data
-
-		/* Reset memory to all 0's */
-		virtual void initialise() {
-			for (int i = 0; i < MAX_MEM; i++)
-				data[i] = 0x00;
-		}
-
-		
-
-		/**
-		* Load a program into memory at the given address.
-		* Notes: memory will wrap around after 0xFFFF and no size check will be done on prgram array
-		*/
-		void loadProgram(Word address, Byte program[], u16 programSize) {
-			for (u16 i = 0; i < programSize; i++) {
-				Word nextAddr = address + i;
-				data[nextAddr] = program[i];
-			}
-		}
-
-	};
 }

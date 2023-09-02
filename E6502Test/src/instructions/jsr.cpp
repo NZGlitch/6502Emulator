@@ -72,16 +72,16 @@ namespace E6502 {
 		// Given: 
 		state.setSP(initialSP);
 		state.PC = startPC;
-		memory.data[startPC] = lsb;
-		memory.data[startPC + 1] = msb;
+		memory[startPC] = lsb;
+		memory[startPC + 1] = msb;
 
 		// When:
 		cyclesUsed = JSR::jsrHandler(&cpu, INS_JSR.opcode);
 
 		// Then:
 		EXPECT_EQ(state.PC, (msb << 8) | lsb);						//The PC should be pointed at the target address
-		EXPECT_EQ(memory.data[0x0100 | initialSP], 0x12);			// mem[0x0100 + stackInit] == msb(msbPC)		High order bits of original PC+2
-		EXPECT_EQ(memory.data[0x0100 | initialSP - 1], 0x35);		// mem[0x0100 + stackInit - 1] == lsb(msbPC)	Low order bits of original PC+2
+		EXPECT_EQ(memory[0x0100 | initialSP], 0x12);			// mem[0x0100 + stackInit] == msb(msbPC)		High order bits of original PC+2
+		EXPECT_EQ(memory[0x0100 | initialSP - 1], 0x35);		// mem[0x0100 + stackInit - 1] == lsb(msbPC)	Low order bits of original PC+2
 		EXPECT_EQ(state.getSP(), 0x0100 | (initialSP - 2));			// SP should decrement by 2
 		EXPECT_EQ(cyclesUsed, 6);
 	}

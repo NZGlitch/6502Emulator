@@ -48,7 +48,7 @@ namespace E6502 {
 		u8 cyclesUsed = 0;
 		while (numInstructions > 0) {
 			//Get the next instruction and increment PC
-			Byte code = mainMemory->data[currentState->PC];
+			Byte code = (*mainMemory)[currentState->PC];
 			currentState->PC++;
 
 			//Get the handler for this instruction
@@ -64,19 +64,32 @@ namespace E6502 {
 
 	/** Allows an instruction to read a Byte from memory, uses 1 cycle */
 	Byte CPU::readByte(u8& cycles, Word address) {
-		Byte result = mainMemory->data[address]; cycles++;
+		Byte result = (*mainMemory)[address]; cycles++;
 		return result;
 	}
 
 	/** Allows an instruction to read a word from memory (Little endiean), uses 2 cycles*/
 	Word CPU::readWord(u8& cycles, Word address) {
-		Word result = mainMemory->data[address++]; cycles++;
-		result |=  ( mainMemory->data[address] << 8) ; cycles++;
+		Word result = (*mainMemory)[address++]; cycles++;
+		result |=  ( (*mainMemory)[address] << 8) ; cycles++;
 		return result;
 	}
 
 	/** Allows an instruction to wite a word to memory (Little endiean), uses 2 cycles */
 	void CPU::writeByte(u8& cycles, Word address, Byte value) {
-		mainMemory->data[address] = value; cycles++;
+		(*mainMemory)[address] = value; cycles++;
+	}
+
+	/** Reads the Byte pointed at by the current PC, increments PC */
+	Byte CPU::dequePCByte(u8& cycles) {
+		Byte result = (*mainMemory)[currentState->PC++]; cycles++;
+		return result;
+	}
+
+	/** Reads the Word pointed at by the current PC, increments PC */
+	Word CPU::dequePCWord(u8& cycles) {
+		Word result = (*mainMemory)[currentState->PC++]; cycles++;
+		result |= ((*mainMemory)[currentState->PC++] << 8 ); cycles++;
+		return result;
 	}
 }

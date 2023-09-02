@@ -89,7 +89,7 @@ namespace E6502 {
 		Byte* saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 
 		// Read the next byte as the base for a zero page address.
-		Byte baseAddress = cpu->readByte(cycles, cpu->currentState->incPC());
+		Byte baseAddress = cpu->dequePCByte(cycles);
 
 		// Add Register if IndirectX
 		if (opCode == INS_LDA_INDX.opcode) {

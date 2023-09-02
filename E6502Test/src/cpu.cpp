@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <gmock/gmock.h>
 #include "cpu.h"
+
 namespace E6502 {
 
 	struct MockMem : public Memory {
@@ -14,13 +15,23 @@ namespace E6502 {
 
 	public:
 
-		CPUState state; 
-		Memory memory; 
+		CPUState* state; 
+		Memory* memory; 
 		InstructionLoader loader;
 		CPU* cpu;
 
+		TestCPU() {
+			state = new CPUState;
+			memory = new Memory;
+		}
+
+		~TestCPU() {
+			delete state;
+			delete memory;
+		}
+
 		virtual void SetUp() {
-			cpu = new CPU(&state, &memory, &loader);
+			cpu = new CPU(state, memory, &loader);
 		}
 
 		virtual void TearDown() {
@@ -30,32 +41,35 @@ namespace E6502 {
 
 	/* Test reset function */
 	TEST_F(TestCPU, TestCPUReset) {
-		MockMem mem;
-		CPU* testCPU = new CPU(&state, &mem, &loader);
+		MockMem* mem = new MockMem;
+		CPU* testCPU = new CPU(state, mem, &loader);
 
 		// Given:
-		state.PC = 0x0000;
-		state.setSP(0x00);
-		state.A = state.X = state.Y = 0x42;
-		state.D = 1;
-		state.I = 1;
+		state->PC = 0x0000;
+		state->setSP(0x00);
+		state->A = state->X = state->Y = 0x42;
+		state->D = 1;
+		state->I = 1;
 
 		// Memory is initialised
-		EXPECT_CALL(mem, initialise()).Times(1);
+		EXPECT_CALL(*mem, initialise()).Times(1);
 
 		// When:
 		testCPU->reset();
 
 		// Then:
-		EXPECT_EQ(state.PC, 0xFFFC);		// Program Counter set to correct address
-		EXPECT_EQ(state.D, 0);				// Clear Decimal Flag
-		EXPECT_EQ(state.I, 0);				// Clear Interrupt Disable Flag
-		EXPECT_EQ(state.getSP(), 0x01FF);	// Set the stack pointer to the top of page 1
+		EXPECT_EQ(state->PC, 0xFFFC);		// Program Counter set to correct address
+		EXPECT_EQ(state->D, 0);				// Clear Decimal Flag
+		EXPECT_EQ(state->I, 0);				// Clear Interrupt Disable Flag
+		EXPECT_EQ(state->getSP(), 0x01FF);	// Set the stack pointer to the top of page 1
 
 		// Registers reset to 0
-		EXPECT_EQ(state.A, 0);
-		EXPECT_EQ(state.X, 0);
-		EXPECT_EQ(state.Y, 0);
+		EXPECT_EQ(state->A, 0);
+		EXPECT_EQ(state->X, 0);
+		EXPECT_EQ(state->Y, 0);
+
+		delete mem;
+		delete testCPU;
 
 	};
 
@@ -71,7 +85,7 @@ namespace E6502 {
 
 			// Then:
 			EXPECT_EQ(i & flagMask & 0xFF, cpu->getFlags());
-			u8 flags = (state.C << 0) | (state.Z << 1) | (state.I << 2) | (state.D << 3) | (state.B << 4) | (state.O << 6) | (state.N << 7);
+			u8 flags = (state->C << 0) | (state->Z << 1) | (state->I << 2) | (state->D << 3) | (state->B << 4) | (state->O << 6) | (state->N << 7);
 			EXPECT_EQ(i & flagMask & 0xFF, flags);
 		}
 	};
@@ -83,14 +97,14 @@ namespace E6502 {
 		cpu->reset();
 		Byte initFlags = (rand() & 0xFF & flagMask);
 		cpu->setFlags(initFlags);
-		ASSERT_EQ(state.PC, 0xFFFC);
+		ASSERT_EQ(state->PC, 0xFFFC);
 		Byte cycles = 0;
 
 		// When:
 		u16 cyclesExecuted = cpu->execute(1);
 
 		// Then
-		EXPECT_EQ(state.PC, (0xFFFC) + 1);			// PC should be incremented
+		EXPECT_EQ(state->PC, (0xFFFC) + 1);			// PC should be incremented
 		EXPECT_EQ(cyclesExecuted, 2);				// NOP uses 2 cycles
 	};
 
@@ -98,9 +112,9 @@ namespace E6502 {
 	TEST_F(TestCPU, TestMemReadByte) {
 		// Given:
 		u8 cycles = 0;
-		Word address = (rand() & 0xFFFF);
-		Byte data = rand() & 0xFF;
-		memory.data[address] = data;
+		Word address = rand();
+		Byte data = rand();
+		(*memory)[address] = data;
 
 		// When:
 		Byte result = cpu->readByte(cycles, address);
@@ -117,8 +131,8 @@ namespace E6502 {
 		Word address = (rand() & 0xFFFF);
 		Byte lsb = rand() & 0xFF;
 		Byte msb = rand() & 0xFF;
-		memory.data[address] = lsb;
-		memory.data[(address + 1) & 0xFFFF] = msb;
+		(*memory)[address] = lsb;
+		(*memory)[(address + 1) & 0xFFFF] = msb;
 
 		// When:
 		Word result = cpu->readWord(cycles, address);
@@ -135,13 +149,55 @@ namespace E6502 {
 		u8 cycles = 0;
 		Word address = rand() & 0xFFFF;
 		Byte data = rand() & 0xFF;
-		memory.data[address] = ~data;
+		(*memory)[address] = ~data;
 
 		// When:
 		cpu->writeByte(cycles, address, data);
 
 		// Then:
 		EXPECT_EQ(cycles, 1);
-		EXPECT_EQ(memory.data[address], data);
+		EXPECT_EQ((*memory)[address], data);
 	}
+
+	/* Test fetching a byte from PC (With auto increment) */
+	TEST_F(TestCPU, TestdequeuePCByte) {
+		Word testStart = rand();
+		Word expectEnd = testStart + 1;
+
+		// Given:
+		state->PC = testStart;
+		u8 cycles = 0;
+		(*memory)[testStart] = 0x42;
+
+
+		// When:
+		Byte value = cpu->dequePCByte(cycles);
+
+		// Then:
+		EXPECT_EQ(value, 0x42);
+		EXPECT_EQ(state->PC, expectEnd);
+		EXPECT_EQ(cycles, 1);
+	}
+
+	/* Test fetching a word from PC (With auto increment) */
+	TEST_F(TestCPU, TestdequeuePCWord) {
+		Word testStart = rand();
+		Word expectEnd = testStart + 2;
+
+		// Given:
+		state->PC = testStart;
+		u8 cycles = 0;
+		(*memory)[testStart] = 0x42;
+		(*memory)[testStart + 1] = 0x84;
+
+
+		// When:
+		Word value = cpu->dequePCWord(cycles);
+
+		// Then:
+		EXPECT_EQ(value, 0x8442);
+		EXPECT_EQ(state->PC, expectEnd);
+		EXPECT_EQ(cycles, 2);
+	}
+
 }
