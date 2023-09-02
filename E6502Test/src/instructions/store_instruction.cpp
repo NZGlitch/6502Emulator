@@ -121,6 +121,66 @@ namespace E6502 {
 				EXPECT_EQ(cyclesUsed, expected_cycles);
 			}
 		}
+
+		/** Helper for X-Indexed Zero Page Indrect instructions */
+		void testIndirectXIndex(InstructionHandler instruction, Byte* sourceReg, u8 expected_cycles, char* test_name) {
+			Byte testArguments[] = { 0x10, 0xF0 };			// Test with and without overflow
+			Byte testValues[] = { 0x42, 0xF1 };
+			Byte zpBaseAddress = 0xE1;
+			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
+			u8 cyclesUsed;
+
+			memory->data[0x0000] = zpBaseAddress;
+
+			for (u8 i = 0; i < 2; i++) {
+				// Given:
+				state->PC = 0x0000;
+				genTestValAndClearMem(memory, dataAddress[i], testValues[i]);
+				state->X = testArguments[i];
+				*sourceReg = testValues[i];
+				Byte zpAddr = zpBaseAddress + testArguments[i];
+				memory->data[zpAddr] = dataAddress[i] & 0x00FF;
+				memory->data[zpAddr + 1] = dataAddress[i] >> 8;
+
+				// When:
+				cyclesUsed = StoreInstruction::indirectXHandler(memory, state, instruction.opcode);
+
+				// Then:
+				EXPECT_EQ(memory->data[dataAddress[i]], testValues[i]);
+				EXPECT_EQ(cyclesUsed, expected_cycles);
+			}
+		}
+
+		/** Helper for Zero Page Y-Indexed Indirect instructions */
+		void testIndirectYIndex(InstructionHandler instruction, Byte* targetReg, u8 expectedCycles, char* test_name) {
+			Byte testArguments[] = { 0x10, 0xF0 };			// Test with and without overflow
+			Byte testValues[] = { 0x42, 0xF1 };
+			Byte zpBaseAddress = 0xE1;
+			Word dataAddress[] = { 0x5A42, 0xCC05 };		// TODO Randomise?
+			u8 cyclesUsed;
+
+			memory->data[0x0000] = zpBaseAddress;
+
+			for (u8 i = 0; i < 2; i++) {
+				u8 testCycles = expectedCycles;
+
+				// Given:
+				state->PC = 0x0000;
+				state->Y = testArguments[i];
+				state->A = testValues[i];
+				Word dataBaseAddress = (dataAddress[i] & 0xFF00) | (dataAddress[i] - testArguments[i]) & 0x00FF;
+				memory->data[zpBaseAddress] = dataBaseAddress & 0x00FF;
+				memory->data[zpBaseAddress + 1] = dataBaseAddress >> 8;
+				genTestValAndClearMem(memory, dataAddress[i], testValues[i]);			// Clear target address
+
+				// When:
+				cyclesUsed = StoreInstruction::indirectYHandler(memory, state, instruction.opcode);
+
+				// Then:
+				EXPECT_EQ(memory->data[dataAddress[i]], testValues[i]);
+				EXPECT_EQ(cyclesUsed, testCycles);
+			}
+		}
 	};
 
 	/* Test correct OpCodes */
@@ -141,6 +201,13 @@ namespace E6502 {
 		EXPECT_EQ(INS_STA_ZPX.opcode, 0x95);
 		EXPECT_EQ(INS_STX_ZPY.opcode, 0x96);
 		EXPECT_EQ(INS_STY_ZPX.opcode, 0x94);
+
+		/* X-Indexed Zero Page Indirect instructions */
+		EXPECT_EQ(INS_STA_INDX.opcode, 0x81);
+
+		/* Zero Page Y-Indexed Indirect instructions */
+		EXPECT_EQ(INS_STA_INDY.opcode, 0x91);
+
 	}
 
 	/* Test addHandlers func adds ST handlers */
@@ -169,6 +236,12 @@ namespace E6502 {
 		EXPECT_EQ(handlers[INS_STA_ZPX.opcode]->opcode, INS_STA_ZPX.opcode);
 		EXPECT_EQ(handlers[INS_STX_ZPY.opcode]->opcode, INS_STX_ZPY.opcode);
 		EXPECT_EQ(handlers[INS_STY_ZPX.opcode]->opcode, INS_STY_ZPX.opcode);
+
+		/* X-Indexed Zero Page Indirect instructions */
+		EXPECT_EQ(handlers[INS_STA_INDX.opcode]->opcode, INS_STA_INDX.opcode);
+
+		/* Zero Page Y-Indexed Indirect instructions */
+		EXPECT_EQ(handlers[INS_STA_INDY.opcode]->opcode, INS_STA_INDY.opcode);
 	}
 
 	/*******************************
@@ -215,5 +288,15 @@ namespace E6502 {
 		testZeroPageIndex(INS_STA_ZPX, &state->X, &state->A, 4, "STA_ZPX");
 		testZeroPageIndex(INS_STX_ZPY, &state->Y, &state->X, 4, "STX_ZPY");
 		testZeroPageIndex(INS_STY_ZPX, &state->X, &state->Y, 4, "STY_ZPX");
+	}
+
+	/* Tests Store Indirect,X Instruction */
+	TEST_F(TestStoreInstruction, TestStoreIndirectX) {
+		testIndirectXIndex(INS_STA_INDX, &state->A, 6, "STA_INDX");
+	}
+
+	/* Tests Store Indirect,Y Instruction */
+	TEST_F(TestStoreInstruction, TestStoreIndirectY) {
+		testIndirectYIndex(INS_STA_INDX, &state->A, 6, "STA_INDY");
 	}
 }

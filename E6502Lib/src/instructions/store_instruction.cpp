@@ -70,6 +70,31 @@ namespace E6502 {
 		return cycles;
 	}
 
+	/** Indirect mode instructions */
+	u8 StoreInstruction::indirectXHandler(Memory* mem, CPUState* state, Byte opCode) {
+		u8 cycles = 1;
+		Word zpAddress = mem->readByte(cycles, state->incPC());
+		zpAddress = (zpAddress + state->X) & 0x00FF;
+		cycles++;
+
+		Word targetAddress = mem->readWord(cycles, zpAddress);
+		Byte value = *InstructionUtils::getRegFromInstruction(opCode, state);
+
+		mem->writeByte(cycles, targetAddress, value);
+		return cycles;
+	}
+
+	/** Indirect mode instructions */
+	u8 StoreInstruction::indirectYHandler(Memory* mem, CPUState* state, Byte opCode) {
+		u8 cycles = 1;
+		Word zpAddr = mem->readByte(cycles, state->incPC());
+		Word targetAddr = mem->readWord(cycles, zpAddr);
+		targetAddr = (targetAddr & 0xFF00) | ((targetAddr + state->Y) & 0x00FF); cycles++;
+		Byte value = state->A;
+		mem->writeByte(cycles, targetAddr, value);
+		return cycles;
+	}
+
 	/** Add store instructions to handlers array */
 	void StoreInstruction::addHandlers(InstructionHandler* handlers[]) {
 		for (InstructionHandler handler : STORE_INSTRUCTIONS) {

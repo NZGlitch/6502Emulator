@@ -13,14 +13,20 @@ namespace E6502 {
 		/** Zero Page mode instructions */
 		static u8 zeroPageHandler(Memory* mem, CPUState* state, Byte opCode);
 
-		/** Zero Page mode instructions */
+		/** Zero Page Indexed mode instructions */
 		static u8 zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode);
+
+		/** X-Indexed Zero Page Indirect instructions */
+		static u8 indirectXHandler(Memory* mem, CPUState* state, Byte opCode);
+
+		/** Zero Page Y-Indexed Inderect instructions */
+		static u8 indirectYHandler(Memory* mem, CPUState* state, Byte opCode);
 
 		/** Called to add Store Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);
 	};
 
-	/** Abslute Mode Instructions */
+	/** Absolute Mode Instructions */
 	constexpr static InstructionHandler INS_STA_ABS = { 0x8D, true, "STA - Store Accumulator [Absolute]", StoreInstruction::absoluteHandler };
 	constexpr static InstructionHandler INS_STX_ABS = { 0x8E, true, "STX - Store Index Register X [Absolute]", StoreInstruction::absoluteHandler };
 	constexpr static InstructionHandler INS_STY_ABS = { 0x8C, true, "STY - Store Index Register Y [Absolute]", StoreInstruction::absoluteHandler };
@@ -37,6 +43,12 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_STX_ZPY = { 0x96, true, "STX - Store Index Register X [Y-Indexed Zero Page]", StoreInstruction::zeroPageIndexedHandler };
 	constexpr static InstructionHandler INS_STY_ZPX = { 0x94, true, "STY - Store Index Register Y [X-Indexed Zero PAge]", StoreInstruction::zeroPageIndexedHandler };
 
+	/** X-Indexed Zero Page Indirect */
+	constexpr static InstructionHandler INS_STA_INDX = { 0x81, true, "STA - Store Accumulator [X-Indexed Zero Page Indirect]", StoreInstruction::indirectXHandler };
+
+	/** Zero Page Y-Indexed Indirect */
+	constexpr static InstructionHandler INS_STA_INDY = { 0x91, true, "STA - Store Accumulator [Zero Page Y-Indexed Indirect]", StoreInstruction::indirectYHandler };
+
 	// Handy array of all store instructions
 	static constexpr InstructionHandler STORE_INSTRUCTIONS[] = {
 		
@@ -50,14 +62,15 @@ namespace E6502 {
 		INS_STA_ABS, INS_STX_ABS, INS_STY_ABS,
 		
 		// Absolute X-Indexed Instructions
-		INS_STA_ABSX, INS_STA_ABSY,
+		INS_STA_ABSX, 
 		
 		// Absolute Y-Indexed Instructions
+		INS_STA_ABSY,
 		
 		// X-Indexed Zero Page Indirect
+		INS_STA_INDX,
 		
 		// ZeroPage Indirect Y-Indexed
-		
+		INS_STA_INDY,
 	};
-
 }
