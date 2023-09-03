@@ -26,7 +26,7 @@ namespace E6502 {
 		static void addHandlers(InstructionHandler* handlers[]);
 
 		/** Helper method to get a value from memory and store in a register */
-		static void fetchAndSaveToRegister(u8* cycles, CPU* cpu, Word address, Byte* reg);
+		static void fetchAndSaveToRegister(u8* cycles, CPU* cpu, Word address, u8 reg);
 
 	};
 

@@ -17,17 +17,17 @@ namespace E6502 {
 	};
 
 	/* Test the memory initialisation function */
-	TEST_F(TestMemory, TestMemoryInit) {
+	TEST_F(TestMemory, TestMemoryReset) {
 		// Given:
 		for (int i = 0; i <MAX_MEM; i++)
 			memory[i] = 0xFF;					// Non-zero data in mem
 
 		// When:
-		memory.initialise();
+		memory.reset();
 
 		// Then:
 		for (int i = 0; i < MAX_MEM; i++)
-			ASSERT_EQ(memory[i], 0x00);		// Data is 0
+			EXPECT_EQ(memory[i], 0x00);		// Data is 0
 	}
 
 	/* Test read access */

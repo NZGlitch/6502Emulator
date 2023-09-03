@@ -6,7 +6,11 @@
 namespace E6502 {
 
 	struct MockMem : public Memory {
-		MOCK_METHOD(void, initialise, ());
+		MOCK_METHOD(void, reset, ());
+	};
+
+	struct MockState : public CPUState {
+		MOCK_METHOD(void, reset, ());
 	};
 
 	struct MockLoader : public InstructionLoader {};
@@ -23,6 +27,7 @@ namespace E6502 {
 		TestCPU() {
 			state = new CPUState;
 			memory = new Memory;
+			cpu = nullptr;
 		}
 
 		~TestCPU() {
@@ -37,38 +42,41 @@ namespace E6502 {
 		virtual void TearDown() {
 			delete cpu;
 		}
+
+		/** Helper for setFlags test - note given state is reset before and after the test */
+		void testFlags(u8 targetReg, Byte initFlags, Byte testValue, Byte expectFlags, char* test_name) {
+			state->reset();	//always reset to ensure nothing leaks between tests
+			Byte cycles = 0;
+
+			// Given:
+			state->setFlags(initFlags);
+
+			// When:
+			cpu->saveToRegAndFlag(cycles, targetReg, testValue);
+
+			// Then:
+			EXPECT_EQ(cycles, 0);	//Currently this appears to be a free operation
+			EXPECT_EQ(state->getFlags(), expectFlags);
+			state->reset();
+		}
 	};
 
 	/* Test reset function */
 	TEST_F(TestCPU, TestCPUReset) {
-		MockMem* mem = new MockMem;
-		CPU* testCPU = new CPU(state, mem, &loader);
-
 		// Given:
-		state->PC = 0x0000;
-		state->setSP(0x00);
-		state->A = state->X = state->Y = 0x42;
-		state->D = 1;
-		state->I = 1;
+		MockMem* mMem = new MockMem;
+		MockState* mState = new MockState;
+		CPU* testCPU = new CPU(mState, mMem, &loader);
 
 		// Memory is initialised
-		EXPECT_CALL(*mem, initialise()).Times(1);
+		EXPECT_CALL(*mMem, reset()).Times(1);
+		EXPECT_CALL(*mState, reset()).Times(1);
 
 		// When:
 		testCPU->reset();
 
-		// Then:
-		EXPECT_EQ(state->PC, 0xFFFC);		// Program Counter set to correct address
-		EXPECT_EQ(state->D, 0);				// Clear Decimal Flag
-		EXPECT_EQ(state->I, 0);				// Clear Interrupt Disable Flag
-		EXPECT_EQ(state->getSP(), 0x01FF);	// Set the stack pointer to the top of page 1
-
-		// Registers reset to 0
-		EXPECT_EQ(state->A, 0);
-		EXPECT_EQ(state->X, 0);
-		EXPECT_EQ(state->Y, 0);
-
-		delete mem;
+		delete mMem;
+		delete mState;
 		delete testCPU;
 
 	};
@@ -160,18 +168,18 @@ namespace E6502 {
 	}
 
 	/* Test fetching a byte from PC (With auto increment) */
-	TEST_F(TestCPU, TestdequeuePCByte) {
+	TEST_F(TestCPU, TestIncPCAndReadByte) {
 		Word testStart = rand();
 		Word expectEnd = testStart + 1;
 
 		// Given:
 		state->PC = testStart;
 		u8 cycles = 0;
-		(*memory)[testStart] = 0x42;
+		(*memory)[expectEnd] = 0x42;
 
 
 		// When:
-		Byte value = cpu->dequePCByte(cycles);
+		Byte value = cpu->incPCandReadByte(cycles);
 
 		// Then:
 		EXPECT_EQ(value, 0x42);
@@ -187,17 +195,98 @@ namespace E6502 {
 		// Given:
 		state->PC = testStart;
 		u8 cycles = 0;
-		(*memory)[testStart] = 0x42;
-		(*memory)[testStart + 1] = 0x84;
+		(*memory)[testStart + 1] = 0x42;
+		(*memory)[testStart + 2] = 0x84;
 
 
 		// When:
-		Word value = cpu->dequePCWord(cycles);
+		Word value = cpu->incPCandReadWord(cycles);
 
 		// Then:
 		EXPECT_EQ(value, 0x8442);
 		EXPECT_EQ(state->PC, expectEnd);
 		EXPECT_EQ(cycles, 2);
+	}
+
+	/* Test values are saved to the correct register */
+	TEST_F(TestCPU, TestCPUSaveToReg) {
+		// Given:
+		Byte regA = 0x21;
+		Byte regX = 0x42;
+		Byte regY = 0x84;
+		u8 cycles = 0;
+
+		// When:
+		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_A, regA);
+		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_X, regX);
+		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_Y, regY);
+
+		// Then:
+		EXPECT_EQ(state->A, regA);
+		EXPECT_EQ(state->X, regX);
+		EXPECT_EQ(state->Y, regY);
+	}
+
+	/* Tests setFlags when N and Z flags 0 */
+	TEST_F(TestCPU, TestRegisterSaveAndSetFlags00) {
+		// No Flags (unset exiting)
+		testFlags(CPU::REGISTER_A, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_A) NO ZN - change");
+		testFlags(CPU::REGISTER_X, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_X) NO ZN - change");
+		testFlags(CPU::REGISTER_Y, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_Y) NO ZN - change");
+
+		// No Flags (Unchange existing)
+		testFlags(CPU::REGISTER_A, 0x00, 0x78, 0x00, "setFlags(REGISTER_A) NO ZN - no change");
+		testFlags(CPU::REGISTER_X, 0x00, 0x78, 0x00, "setFlags(REGISTER_X) NO ZN - no change");
+		testFlags(CPU::REGISTER_Y, 0x00, 0x78, 0x00, "setFlags(REGISTER_Y) NO ZN - no change");
+	}
+
+	/* Tests setFlags when Z flag changes */
+	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsZ) {
+		// Z-Flag should be unset
+		testFlags(CPU::REGISTER_A, 0x02, 0x78, 0x00, "setFlags(REGISTER_A) unset Z");
+		testFlags(CPU::REGISTER_X, 0x02, 0x78, 0x00, "setFlags(REGISTER_X) unset Z");
+		testFlags(CPU::REGISTER_Y, 0x02, 0x78, 0x00, "setFlags(REGISTER_Y) unset Z");
+
+		// Z-Flag sould be set
+		testFlags(CPU::REGISTER_A, 0x00, 0x00, 0x02, "setFlags(REGISTER_A) set Z");
+		testFlags(CPU::REGISTER_X, 0x00, 0x00, 0x02, "setFlags(REGISTER_X) set Z");
+		testFlags(CPU::REGISTER_Y, 0x00, 0x00, 0x02, "setFlags(REGISTER_Y) set Z");
+	}
+
+	/* Tests setFlags when N flag changes */
+	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsN) {
+		// N-Flag should be unset
+		testFlags(CPU::REGISTER_A, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_A) unset N");
+		testFlags(CPU::REGISTER_X, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_X) unset N");
+		testFlags(CPU::REGISTER_Y, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_Y) unset N");
+
+		// N-Flag sould be set
+		testFlags(CPU::REGISTER_A, 0x00, 0x80, 0x80, "setFlags(REGISTER_A) set N");
+		testFlags(CPU::REGISTER_X, 0x00, 0x80, 0x80, "setFlags(REGISTER_X) set N");
+		testFlags(CPU::REGISTER_Y, 0x00, 0x80, 0x80, "setFlags(REGISTER_Y) set N");
+	}
+
+	/* Tests regValue */
+	TEST_F(TestCPU, TestregValue) {
+		// Given:
+		state->A = 0x21;
+		state->X = 0x42;
+		state->Y = 0x84;
+		Byte cycles = 0;
+
+		// When:
+		Byte a = cpu->regValue(cycles, CPU::REGISTER_A);
+		EXPECT_EQ(cycles, 0);
+		Byte x = cpu->regValue(cycles, CPU::REGISTER_X);
+		EXPECT_EQ(cycles, 0);
+		Byte y = cpu->regValue(cycles, CPU::REGISTER_Y);
+
+		// Then:
+		EXPECT_EQ(cycles, 0);
+		EXPECT_EQ(a, 0x21);
+		EXPECT_EQ(x, 0x42);
+		EXPECT_EQ(y, 0x84);
+		
 	}
 
 }

@@ -7,17 +7,17 @@ namespace E6502 {
 		u8 cycles = 1;	// 1 cycle to load instruction
 		
 		// Read address from next two bytes (lsb first)
-		Word address = cpu->readWord(cycles, cpu->currentState->incPC());
-		cpu->currentState->incPC();
+		Word address = cpu->incPCandReadWord(cycles);
+		
 
 		// If using an indexed mode, apply the index to the address
 		if (opCode == INS_STA_ABSX.opcode || opCode == INS_STA_ABSY.opcode) {
-			address += (opCode == INS_STA_ABSX ? cpu->currentState->X : cpu->currentState->Y);
+			address += (opCode == INS_STA_ABSX ? cpu->regValue(cycles, CPU::REGISTER_X) : cpu->regValue(cycles, CPU::REGISTER_Y));
 			cycles++;	//Index mode always uses 5 cycles
 		}
 	
 		// Get the value from the source register
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, cpu);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Write it to memory
 		cpu->writeByte(cycles, address, value);
@@ -30,10 +30,10 @@ namespace E6502 {
 		u8 cycles = 1;	// 1 cycle to load instruction
 
 		// Read zero page address from next byte
-		Word address = 0x00FF & cpu->readByte(cycles, cpu->currentState->incPC());
+		Word address = 0x00FF & cpu->incPCandReadByte(cycles);
 
 		// Get the value from the source register
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, cpu);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Store in memory
 		cpu->writeByte(cycles, address, value);
@@ -46,24 +46,24 @@ namespace E6502 {
 		u8 cycles = 1;
 
 		// Base address
-		Word address = cpu->readByte(cycles, cpu->currentState->incPC());
+		Word address = 0x00FF & cpu->incPCandReadByte(cycles);
 
 		// Add Index
 		switch (opCode) {
 		case INS_STA_ZPX.opcode:
 		case INS_STY_ZPX.opcode:
-			address += cpu->currentState->X;
+			address += cpu->regValue(cycles, CPU::REGISTER_X);
 			cycles++;
 			break;
 		case INS_STX_ZPY.opcode:
-			address += cpu->currentState->Y;
+			address += cpu->regValue(cycles, CPU::REGISTER_Y);
 			cycles++;
 			break;
 		}
 
 		// Align to zero page and get value
 		address = 0x00FF & address;
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, cpu);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Store value and return
 		cpu->writeByte(cycles, address, value);
@@ -75,12 +75,12 @@ namespace E6502 {
 		u8 cycles = 1;
 
 		// Calculate ZP Address
-		Word zpAddress = cpu->readByte(cycles, cpu->currentState->incPC());
-		zpAddress = (zpAddress + cpu->currentState->X) & 0x00FF; cycles++;
+		Word zpAddress = 0x00FF & cpu->incPCandReadByte(cycles);
+		zpAddress = (zpAddress + cpu->regValue(cycles, CPU::REGISTER_X)) & 0x00FF; cycles++;
 
 		// Calculate Target Address
 		Word targetAddress = cpu->readWord(cycles, zpAddress);
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, cpu);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Write and save
 		cpu->writeByte(cycles, targetAddress, value);
@@ -92,12 +92,12 @@ namespace E6502 {
 		u8 cycles = 1;
 
 		// Calculate ZP Address
-		Word zpAddr = cpu->readByte(cycles, cpu->currentState->incPC());
+		Word zpAddr = 0x00FF & cpu->incPCandReadByte(cycles);
 
 		// Caclulcate target Address
 		Word targetAddr = cpu->readWord(cycles, zpAddr);
-		targetAddr = (targetAddr & 0xFF00) | ((targetAddr + cpu->currentState->Y) & 0x00FF); cycles++;	// Do not allow carry to affect high 8 bits
-		Byte value = cpu->currentState->A;
+		targetAddr = (targetAddr & 0xFF00) | ((targetAddr + cpu->regValue(cycles, CPU::REGISTER_Y)) & 0x00FF); cycles++;	// Do not allow carry to affect high 8 bits
+		Byte value = cpu->regValue(cycles, CPU::REGISTER_A);
 
 		// Write and Save
 		cpu->writeByte(cycles, targetAddr, value);

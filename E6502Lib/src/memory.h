@@ -12,7 +12,7 @@ namespace E6502 {
 	public:
 
 		/* Reset memory to all 0's */
-		virtual void initialise() {
+		virtual void reset() {
 			for (int i = 0; i < MAX_MEM; i++)
 				data[i] = 0x00;
 		}

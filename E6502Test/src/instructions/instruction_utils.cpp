@@ -15,19 +15,19 @@ namespace E6502 {
 		virtual void TearDown() {
 		}
 
-		void testgetRegFromInsHelper(InstructionHandler handler) {
+		void testGetRegFromInsHelper(InstructionHandler handler) {
 			Memory* memory = new Memory;
 			CPUState* state = new CPUState;
 			InstructionLoader* loader = new InstructionUtils::Loader;
 			CPU* cpu = new CPU(state, memory, loader);
 
-			Byte* testRegs[] = { &state->Y, &state->A, &state->X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
+			u8 testRegs[] = { CPU::REGISTER_Y, CPU::REGISTER_A, CPU::REGISTER_X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
 
 			// Given:
 			Byte instruction = handler.opcode;
 
 			// When:
-			Byte* result = InstructionUtils::getRegFromInstruction(instruction, cpu);
+			u8 result = InstructionUtils::getRegFromInstruction(instruction, cpu);
 
 			// Then:
 			EXPECT_EQ(result, testRegs[handler.opcode & 0x03]);
@@ -74,11 +74,11 @@ namespace E6502 {
 	TEST_F(TestInstructionUtils, TestGetRegFromInstruction) {
 		
 		for (const InstructionHandler& handler : LOAD_INSTRUCTIONS) {
-			testgetRegFromInsHelper(handler);
+			testGetRegFromInsHelper(handler);
 		}
 
 		for (const InstructionHandler& handler : STORE_INSTRUCTIONS) {
-			testgetRegFromInsHelper(handler);
+			testGetRegFromInsHelper(handler);
 		}	
 	}
 }

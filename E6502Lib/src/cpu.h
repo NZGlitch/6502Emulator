@@ -12,10 +12,14 @@ namespace E6502 {
 	private:
 		InstructionManager* insManager;
 		Memory* mainMemory;
+		CPUState* currentState;
+
 
 	public:
-		/* The current state of the CPU */
-		CPUState* currentState;
+
+		constexpr static u8 REGISTER_A = 0;
+		constexpr static u8 REGISTER_X = 1;
+		constexpr static u8 REGISTER_Y = 2;
 
 		/** Constructor */
 		CPU(CPUState* initSate, Memory* initMemory, InstructionLoader* loader);
@@ -38,13 +42,20 @@ namespace E6502 {
 		/** Allows an instruction to wite a word to memory (Little endiean), uses 2 cycles */
 		void writeByte(u8& cycles, Word address, Byte value);
 
-		/** Reads the Byte pointed at by the current PC, increments PC */
-		Byte dequePCByte(u8& cycles);
+		/** Increments the PC then Reads the Byte it points too */
+		Byte incPCandReadByte(u8& cycles);
 
-		/** Reads the Word pointed at by the current PC, increments PC */
-		Word dequePCWord(u8 &cycles);
+		/** calls incPCAndReadByte twice, constructs word (assumes little endian) */
+		Word incPCandReadWord(u8 &cycles);
+
+		/* Tells the CPU to save a value to a register and set flags according */
+		virtual void saveToRegAndFlag(u8& cycles, u8 reg, Byte value);
+
+		/* Returns the value currently held in the specified register */
+		virtual Byte regValue(u8& cycles, u8 reg);
 
 		/* Execute <numInstructions> instructions. Return the number of cycles used. */
 		u8 execute(u8 numInstructions);
+
 	};
 }

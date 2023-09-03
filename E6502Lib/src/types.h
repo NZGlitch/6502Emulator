@@ -13,15 +13,18 @@ namespace E6502 {
 	using u16 = unsigned short;
 	using s16 = signed short;
 
+	
 	struct CPUState {
-	private:
-		Word SP = 0x01FF;					// Stack Pointer - need to ensure it remains on page 01
 
 	public:
+		static constexpr Word DEFAULT_RESET_VECTOR = 0xFFFC;
+		static constexpr Byte DEFAULT_SP = 0xFF;
+
 		CPUState() { setFlags(0x00); }		// Initialise flags to 0b00000000
 
 		// Internal Registers
-		Word PC = 0xFFFC;					// Program Counter
+		Word PC = 0xFFFC;	// Program Counter
+		Byte SP;			// Stack Pointer
 
 		// Registers
 		Byte A = 0;
@@ -37,42 +40,12 @@ namespace E6502 {
 		Byte O : 1;			// Overflow Flag			(6)
 		Byte N : 1;			// Negative Flag			(7)	
 
-		/* Returns the current value of the PC and increments it by 1 */
-		Word incPC() {
-			return PC++;
-		}
-
-		/* Returns the value of the current SP then decrements */
-		Word pushSP() {
-			Word res = SP--;
-			if (SP < 0x0100) SP = 0x01FF;
-			return res;
-		}
-
-		/* increments the stack, then returns its new value */
-		Word popSP() {
-			if (++SP > 0x01FF) SP = 0x0100;
-			Word res = SP;
-			return res;
-		}
-
-		/* Returns current SP value without decrementing */
-		Word getSP() {
-			return SP;
-		}
-
-		/* Sets low order bits of SP */
-		void setSP(Byte value) {
-			SP = 0x0100 | value;
-		}
-
-		bool operator==(CPUState other) const {
-			return (
-				PC == other.PC && SP == other.SP &&
-				A == other.A && X == other.X && Y == other.Y &&
-				C == other.C && Z == other.Z && I == other.I &&
-				D == other.D && B == other.B && O == other.O &&
-				N == other.N);
+		/** Resets all fields in this state back to 0, SP init to 0xFF, PC init to DEFAULT_RESET_VECTOR */
+		virtual void reset() {
+			A = X = Y = 0;
+			PC = DEFAULT_RESET_VECTOR;
+			SP = DEFAULT_SP;
+			setFlags(0x00);
 		}
 
 		/* Set the status from the provided Byte - bit 5 is ignored */
@@ -91,19 +64,13 @@ namespace E6502 {
 			return (C << 0) | (Z << 1) | (I << 2) | (D << 3) | (B << 4) | (O << 6) | (N << 7);
 		}
 
-		/** Saves the given value to the target register address and sets THIS states Z and N flags based on the value */
-		virtual void saveToRegAndFlag(Byte* reg, Byte value) {
-			(*reg) = value;
-			Z = (*reg) == 0x00;
-			N = ((*reg) & 0x80) > 0;
-		}
-
-		/** Resets all fields in this state back to 0, except SP which is initialised to 0x01FF */
-		void reset() {
-			A = X = Y = 0;
-			PC = 0;
-			SP = 0x1FF;
-			setFlags(0x00);
+		bool operator==(CPUState other) const {
+			return (
+				PC == other.PC && SP == other.SP &&
+				A == other.A && X == other.X && Y == other.Y &&
+				C == other.C && Z == other.Z && I == other.I &&
+				D == other.D && B == other.B && O == other.O &&
+				N == other.N);
 		}
 	};
 }

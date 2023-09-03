@@ -18,12 +18,8 @@ namespace E6502 {
 
 	/* Resets the CPU state - Until this is called, CPU state is undefined */
 	void CPU::reset() {
-		currentState->D = 0;											// Clear decimal flag
-		currentState->I = 0;											// Clear interrupt flag
-		currentState->PC = 0xFFFC;										// Set Program Counter
-		currentState->setSP(0xFF);										// Set Stack Pointer
-		currentState->A = currentState->X = currentState->Y = 0;		// Reset registers
-		mainMemory->initialise();	// Reset Memory
+		currentState->reset();	// Resets the state
+		mainMemory->reset();	// Reset Memory
 	}
 
 	/* Helper method, allows setting all flags at once */
@@ -49,7 +45,7 @@ namespace E6502 {
 		while (numInstructions > 0) {
 			//Get the next instruction and increment PC
 			Byte code = (*mainMemory)[currentState->PC];
-			currentState->PC++;
+			
 
 			//Get the handler for this instruction
 			const InstructionHandler* handler = (*insManager)[code];
@@ -58,6 +54,9 @@ namespace E6502 {
 			}
 			cyclesUsed += handler->execute(this, code);
 			numInstructions--;
+
+			// PC is always post incremented 
+			currentState->PC++;
 		}
 		return cyclesUsed;
 	}
@@ -81,15 +80,42 @@ namespace E6502 {
 	}
 
 	/** Reads the Byte pointed at by the current PC, increments PC */
-	Byte CPU::dequePCByte(u8& cycles) {
-		Byte result = (*mainMemory)[currentState->PC++]; cycles++;
+	Byte CPU::incPCandReadByte(u8& cycles) {
+		Byte result = (*mainMemory)[++currentState->PC]; cycles++;
 		return result;
 	}
 
 	/** Reads the Word pointed at by the current PC, increments PC */
-	Word CPU::dequePCWord(u8& cycles) {
-		Word result = (*mainMemory)[currentState->PC++]; cycles++;
-		result |= ((*mainMemory)[currentState->PC++] << 8 ); cycles++;
+	Word CPU::incPCandReadWord(u8& cycles) {
+		Word result = (*mainMemory)[++currentState->PC]; cycles++;
+		result |= ((*mainMemory)[++currentState->PC] << 8 ); cycles++;
 		return result;
+	}
+
+	/** Saves the given value to the target register address and sets THIS cpus Z and N status flags based on the value */
+	void CPU::saveToRegAndFlag(u8& cycles, u8 reg, Byte value) {
+		Byte* regAddr = &currentState->A;
+		switch (reg) {
+			case REGISTER_A: break;
+			case REGISTER_X: regAddr = &currentState->X; break;
+			case REGISTER_Y: regAddr = &currentState->Y; break;
+			default: {
+				fprintf(stderr, "Invalid register selected for CPU::saveToRegAndFlag %d", reg);
+				return;
+			}
+		}
+		(*regAddr) = value;
+		currentState->Z = (*regAddr) == 0x00;
+		currentState->N = ((*regAddr) & 0x80) > 0;
+	}
+
+	Byte CPU::regValue(u8& cycles, u8 reg) {
+		switch (reg) {
+			case REGISTER_A: return currentState->A;
+			case REGISTER_X: return currentState->X;
+			case REGISTER_Y: return currentState->Y;
+		}
+		fprintf(stderr, "Attempt to get vaue of invalid register %d ", reg);
+		return 0xFF;
 	}
 }

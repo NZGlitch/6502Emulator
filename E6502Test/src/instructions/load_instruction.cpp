@@ -1,26 +1,24 @@
 #include <gmock/gmock.h>
 #include "instruction_utils.h"
 #include "load_instruction.h"
+#include "../test_helpers.h"
+
+// TODO - make sure to test saveRegAndTestFlags once this fuctonality is correctly ut in CPU
 
 namespace E6502 {
+
 	using::testing::_;
-
-	struct MockState : public CPUState {
-		MOCK_METHOD(void, saveToRegAndFlag, (Byte* reg, Byte value));
-	};
-
 
 	class TestLoadInstruction : public testing::Test {
 	public:
 		Memory memory;
-		MockState state;
+		CPUState state;
 		InstructionLoader loader;
 		CPU* cpu;
 
 		virtual void SetUp() {
 			cpu = new CPU(&state, &memory, &loader);
 			cpu->reset();
-
 		}
 
 		virtual void TearDown() {
@@ -46,15 +44,13 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x0000] = testValue;
-
-			// Expected call
-			EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValue)).Times(1);
+			memory[0x0001] = testValue;
 
 			// When:
 			cyclesUsed = LoadInstruction::immediateHandler(cpu, instruction.opcode);
 
 			// Then:
+			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, 2);
 		}
 
@@ -68,16 +64,14 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x0000] = insAddress;
+			memory[0x0001] = insAddress;
 			memory[insAddress] = testValue;
-
-			// Expected call
-			EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// When:
 			cyclesUsed = LoadInstruction::zeroPageHandler(cpu, instruction.opcode);
 
 			// Then:
+			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, 3);
 		}
 
@@ -93,20 +87,18 @@ namespace E6502 {
 			for (u8 i = 0; i < 3; i++) {
 				// Load fixtures to memory
 				state.PC = 0x0000;
-				memory[0x000] = baseAddress[i];
+				memory[0x001] = baseAddress[i];
 				memory[targetAddress[i]] = testValue[i];
 
 				// Given:
 				*indexReg = testIndex[i];
 				genTestValAndClearTargetReg(targetReg, testValue[i]);
 
-				// Expected call
-				EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValue[i])).Times(1);
-
 				// When:
 				cyclesUsed = LoadInstruction::zeroPageIndexedHandler(cpu, instruction.opcode);
 
 				// Then:
+				EXPECT_EQ(*targetReg, testValue[i]);
 				EXPECT_EQ(cyclesUsed, expected_cycles);
 			}
 		}
@@ -122,18 +114,15 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			Byte testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x000] = lsb;
-			memory[0x001] = msb;
+			memory[0x001] = lsb;
+			memory[0x002] = msb;
 			memory[targetAddress] = testValue;
-
-			// Expected call
-			EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValue)).Times(1);
-
 
 			// When:
 			cyclesUsed = LoadInstruction::absoluteHandler(cpu, instruction.opcode);
 
 			// Then:
+			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
 
@@ -145,12 +134,9 @@ namespace E6502 {
 			u8 cyclesUsed = 0;
 
 			// Load fixtures to memory
-			memory[0x000] = lsb;
-			memory[0x001] = msb;
+			memory[0x001] = lsb;
+			memory[0x002] = msb;
 			testValue = genTestValAndClearTargetReg(targetReg);
-
-			// Expected call
-			EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValue)).Times(1);
 
 			// Given:
 			memory[targetAddress] = testValue;
@@ -161,6 +147,7 @@ namespace E6502 {
 			cyclesUsed = LoadInstruction::absoluteHandler(cpu, instruction.opcode);
 
 			// Then:
+			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
 
@@ -172,7 +159,7 @@ namespace E6502 {
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
 			u8 cyclesUsed;
 
-			memory[0x0000] = zpBaseAddress;
+			memory[0x0001] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				// Given:
@@ -184,13 +171,11 @@ namespace E6502 {
 				memory[zpAddr] = dataAddress[i] & 0x00FF;
 				memory[zpAddr + 1] = dataAddress[i] >> 8;
 
-				// Expected call
-				EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
-
 				// When:
 				cyclesUsed = LoadInstruction::indirectHandler(cpu, instruction.opcode);
 
 				// Then:
+				EXPECT_EQ(*targetReg, testValues[i]);
 				EXPECT_EQ(cyclesUsed, expectedCycles);
 			}
 		}
@@ -204,7 +189,7 @@ namespace E6502 {
 			Byte cyclePageCorrection[] = { 0 , 1 };			// Add 1 to expected cycles for INDY when crossing page
 			u8 cyclesUsed;
 
-			memory[0x0000] = zpBaseAddress;
+			memory[0x0001] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				u8 testCycles = expectedCycles;
@@ -220,12 +205,13 @@ namespace E6502 {
 				testCycles += cyclePageCorrection[i];	// Increase cycles by 1 if crossing page
 
 				// Expected call
-				EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
+				//EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
 				cyclesUsed = LoadInstruction::indirectHandler(cpu, instruction.opcode);
 
 				// Then:
+				EXPECT_EQ(*targetReg, testValues[i]);
 				EXPECT_EQ(cyclesUsed, testCycles);
 			}
 		}
@@ -234,6 +220,7 @@ namespace E6502 {
 	/* Test correct OpCodes */
 	TEST_F(TestLoadInstruction, TestInstructionDefs) {
 		// LDA Instructions
+		
 		EXPECT_EQ(INS_LDA_IMM.opcode, 0xA9);
 		EXPECT_EQ(INS_LDA_ZP.opcode, 0xA5);
 		EXPECT_EQ(INS_LDA_ZPX.opcode, 0xB5);
@@ -267,6 +254,7 @@ namespace E6502 {
 		LoadInstruction::addHandlers(handlers);
 
 		// Then: For all LD instructions, Expect *handlers[opcode] to point to a handler with the same opcode
+		//TODO - clean up this mess!
 		EXPECT_EQ(handlers[INS_LDA_IMM.opcode]->opcode, INS_LDA_IMM.opcode);
 		EXPECT_EQ(handlers[INS_LDA_ZP.opcode]->opcode, INS_LDA_ZP.opcode);
 		EXPECT_EQ(handlers[INS_LDA_ZPX.opcode]->opcode, INS_LDA_ZPX.opcode);
@@ -292,6 +280,7 @@ namespace E6502 {
 	/* Test fetchAndSaveToRegister */
 	TEST_F(TestLoadInstruction, TestfetchAndSave) {
 		Byte* registers[] = { &state.A, &state.X, &state.Y };
+		u8 registerNames[] = { CPU::REGISTER_A, CPU::REGISTER_X, CPU::REGISTER_Y };
 		Byte testValues[] = { 0x21, 0x42, 0x84 };
 		Word testAddresses[] = { 0x1234, 0xf167, 0x0200 };
 
@@ -301,15 +290,14 @@ namespace E6502 {
 			*registers[i] = ~testValues[i];
 			u8 cycles = 0;
 
-			// Expect to set flags
-			EXPECT_CALL(state, saveToRegAndFlag(registers[i], testValues[i])).Times(1);
-
 			// When:
-			LoadInstruction::fetchAndSaveToRegister(&cycles,cpu, testAddresses[i], registers[i]);
+			LoadInstruction::fetchAndSaveToRegister(&cycles, cpu, testAddresses[i], registerNames[i]);
 
 			// Then:
+			EXPECT_EQ(*registers[i], testValues[i]);
 			EXPECT_EQ(cycles, 1);
 		}
+
 	}
 
 	 /***     Execution tests     ***/
@@ -320,7 +308,7 @@ namespace E6502 {
 		testImmediate(INS_LDX_IMM, &state.X, 2, "LDX_IMM");
 		testImmediate(INS_LDY_IMM, &state.Y, 2, "LDY_IMM");
 	}
-
+	
 	/* Tests LD Zero Page Instruction */
 	TEST_F(TestLoadInstruction, TestLoadZeroPage) {
 		testZeroPage(INS_LDA_ZP, &state.A, 3, "LDA_ZP");

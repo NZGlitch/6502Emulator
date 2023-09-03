@@ -39,8 +39,8 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			*sourceReg = genTestValAndClearMem(&memory, targetAddress);
-			memory[0x000] = lsb;
-			memory[0x001] = msb;
+			memory[0x001] = lsb;
+			memory[0x002] = msb;
 			
 			// When:
 			cyclesUsed = StoreInstruction::absoluteHandler(cpu, instruction.opcode);
@@ -58,8 +58,8 @@ namespace E6502 {
 			u8 cyclesUsed = 0;
 
 			// Load fixtures to memory
-			memory[0x000] = lsb;
-			memory[0x001] = msb;
+			memory[0x001] = lsb;
+			memory[0x002] = msb;
 			testValue = genTestValAndClearMem(&memory, targetAddress);
 
 			// Given:
@@ -85,7 +85,7 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			testValue = genTestValAndClearMem(&memory, insAddress);
-			memory[0x0000] = insAddress;
+			memory[0x0001] = insAddress;
 			*sourceReg = testValue;
 
 			// When:
@@ -108,7 +108,7 @@ namespace E6502 {
 			for (u8 i = 0; i < 3; i++) {
 				// Given
 				state.PC = 0x0000;
-				memory[0x000] = baseAddress[i];
+				memory[0x001] = baseAddress[i];
 				*sourceReg = testValue[i];
 				*indexReg = testIndex[i];
 				genTestValAndClearMem(&memory, targetAddress[i], testValue[i]);
@@ -130,7 +130,7 @@ namespace E6502 {
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
 			u8 cyclesUsed;
 
-			memory[0x0000] = zpBaseAddress;
+			memory[0x0001] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				// Given:
@@ -159,7 +159,7 @@ namespace E6502 {
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		// TODO Randomise?
 			u8 cyclesUsed;
 
-			memory[0x0000] = zpBaseAddress;
+			memory[0x0001] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				u8 testCycles = expectedCycles;

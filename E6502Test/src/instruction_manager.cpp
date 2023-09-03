@@ -38,7 +38,7 @@ namespace E6502 {
 		Memory* mem = new Memory();
 		CPU* cpu = new CPU(&testState, mem, &loader);
 		Byte code = 0x00;
-		mem->initialise();
+		mem->reset();
 
 		// When:
 		Byte cycles = inMan->defaultHandler.execute(cpu, code);

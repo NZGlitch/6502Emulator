@@ -21,16 +21,19 @@ namespace E6502 {
 		static Loader loader;
 
 		/** Function to get a pointer to a register in the state based on opcode */
-		static Byte* getRegFromInstruction(Byte instruction, CPU* cpu) {
+		static u8 getRegFromInstruction(Byte instruction, CPU* cpu) {
 
 			// Last 2 bits of opcode indicates target register
 			switch (instruction & 0x03) {
-				case 0x00: return &cpu->currentState->Y;
-				case 0x01: return &cpu->currentState->A;;
-				case 0x02: return &cpu->currentState->X;
+				case 0x00: return CPU::REGISTER_Y;
+				case 0x01: return CPU::REGISTER_A;
+				case 0x02: return CPU::REGISTER_X;
+				default: {
+					// TODO error handling
+					fprintf(stderr, "Invalid instruction provided to getRegFromInstruction: %x", instruction);
+					return 0x255;
+				}
 			}
-			// TODO error handling
-			return nullptr;
 		}
 	}
 }
