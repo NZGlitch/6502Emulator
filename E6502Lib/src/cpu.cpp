@@ -72,25 +72,25 @@ namespace E6502 {
 		return result;
 	}
 
-	/** Allows an instruction to wite a word to memory (Little endiean), uses 2 cycles */
+	/** Allows an instruction to write a byte to memory, uses 1 cycles */
 	void CPU::writeByte(u8& cycles, Word address, Byte value) {
 		(*mainMemory)[address] = value; cycles++;
 	}
 
-	/** Reads the Byte pointed at by the current PC, increments PC */
+	/** Reads the Byte pointed at by the current PC, increments PC, uses 1 cycle */
 	Byte CPU::readPCByte(u8& cycles) {
 		Byte result = (*mainMemory)[currentState->PC++]; cycles++;
 		return result;
 	}
 
-	/** Reads the Word pointed at by the current PC, increments PC */
+	/** Reads the Word pointed at by the current PC, increments PC, uses 2 cycles */
 	Word CPU::readPCWord(u8& cycles) {
 		Word result = (*mainMemory)[currentState->PC++]; cycles++;
 		result |= ((*mainMemory)[currentState->PC++] << 8 ); cycles++;
 		return result;
 	}
 
-	/** Saves the given value to the target register address and sets THIS cpus Z and N status flags based on the value */
+	/** Saves the given value to the target register address and sets Z and N status flags based on the value, uses 0 cycles */
 	void CPU::saveToRegAndFlag(u8& cycles, u8 reg, Byte value) {
 		Byte* regAddr = &currentState->A;
 		switch (reg) {
@@ -107,6 +107,7 @@ namespace E6502 {
 		currentState->N = ((*regAddr) & 0x80) > 0;
 	}
 
+	/** gets the value of the specified register (returns 0xFF if invalid register specified), uses 0 cycles */
 	Byte CPU::regValue(u8& cycles, u8 reg) {
 		switch (reg) {
 			case REGISTER_A: return currentState->A;
@@ -117,13 +118,13 @@ namespace E6502 {
 		return 0xFF;
 	}
 
-	/* Push the current value of the program counter to the stack */
+	/* Push the current value of the program counter to the stack, uses 2 cycles */
 	void CPU::pushPCToStack(u8& cycles) {
 		(*mainMemory)[0x0100 | currentState->SP--] = currentState->PC; cycles++;		// Write lsb
 		(*mainMemory)[0x0100 | currentState->SP--] = currentState->PC >> 8; cycles++;	// Write msb
 	}
 
-	/* Set the program counter to the specified value */
+	/* Set the program counter to the specified value, uses 0 cycles */
 	void CPU::setPC(u8& cycles, Word address) {
 		currentState->PC = address; cycles++;
 	}

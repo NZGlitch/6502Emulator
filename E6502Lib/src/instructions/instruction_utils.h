@@ -10,7 +10,7 @@ namespace E6502 {
 	namespace InstructionUtils {
 		struct Loader : public InstructionLoader {
 			
-			/** @override Adds all known insturctions to the given handler array */
+			/** Adds all known insturctions to the given handler array */
 			void load(InstructionHandler* handlers[]) override {
 				JSR::addHandlers(handlers);
 				LoadInstruction::addHandlers(handlers);

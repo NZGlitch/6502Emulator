@@ -3,7 +3,7 @@
 
 namespace E6502 {
 	InstructionManager::InstructionManager(InstructionLoader* loader) {
-		//Initialise all handlers to be NOPs
+		//Initialise all handlers to be Unsupported OPs
 		for (u16 i = 0; i <= 0xFF; i++) {
 			this->handlers[i] = &this->defaultHandler;
 		}
