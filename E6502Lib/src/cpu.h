@@ -42,17 +42,23 @@ namespace E6502 {
 		/** Allows an instruction to wite a word to memory (Little endiean), uses 2 cycles */
 		void writeByte(u8& cycles, Word address, Byte value);
 
-		/** Increments the PC then Reads the Byte it points too */
-		Byte incPCandReadByte(u8& cycles);
+		/** returns mem[PC++]  */
+		Byte readPCByte(u8& cycles);
 
-		/** calls incPCAndReadByte twice, constructs word (assumes little endian) */
-		Word incPCandReadWord(u8 &cycles);
+		/** calls readPCByte twice, constructs word (assumes little endian) */
+		Word readPCWord(u8 &cycles);
 
 		/* Tells the CPU to save a value to a register and set flags according */
 		virtual void saveToRegAndFlag(u8& cycles, u8 reg, Byte value);
 
 		/* Returns the value currently held in the specified register */
 		virtual Byte regValue(u8& cycles, u8 reg);
+
+		/* Push the current value of the program counter to the stack */
+		void pushPCToStack(u8& cycles);
+		
+		/* Set the program counter to the specified value */
+		void setPC(u8& cycles, Word address);
 
 		/* Execute <numInstructions> instructions. Return the number of cycles used. */
 		u8 execute(u8 numInstructions);

@@ -45,7 +45,9 @@ namespace E6502 {
 		while (numInstructions > 0) {
 			//Get the next instruction and increment PC
 			Byte code = (*mainMemory)[currentState->PC];
-			
+			currentState->PC++;
+			u8 cycles = 1;	//Fetching the instruction uses a cycle
+			//TODO pass cycles to executors
 
 			//Get the handler for this instruction
 			const InstructionHandler* handler = (*insManager)[code];
@@ -56,7 +58,7 @@ namespace E6502 {
 			numInstructions--;
 
 			// PC is always post incremented 
-			currentState->PC++;
+			
 		}
 		return cyclesUsed;
 	}
@@ -80,15 +82,15 @@ namespace E6502 {
 	}
 
 	/** Reads the Byte pointed at by the current PC, increments PC */
-	Byte CPU::incPCandReadByte(u8& cycles) {
-		Byte result = (*mainMemory)[++currentState->PC]; cycles++;
+	Byte CPU::readPCByte(u8& cycles) {
+		Byte result = (*mainMemory)[currentState->PC++]; cycles++;
 		return result;
 	}
 
 	/** Reads the Word pointed at by the current PC, increments PC */
-	Word CPU::incPCandReadWord(u8& cycles) {
-		Word result = (*mainMemory)[++currentState->PC]; cycles++;
-		result |= ((*mainMemory)[++currentState->PC] << 8 ); cycles++;
+	Word CPU::readPCWord(u8& cycles) {
+		Word result = (*mainMemory)[currentState->PC++]; cycles++;
+		result |= ((*mainMemory)[currentState->PC++] << 8 ); cycles++;
 		return result;
 	}
 
@@ -117,5 +119,16 @@ namespace E6502 {
 		}
 		fprintf(stderr, "Attempt to get vaue of invalid register %d ", reg);
 		return 0xFF;
+	}
+
+	/* Push the current value of the program counter to the stack */
+	void CPU::pushPCToStack(u8& cycles) {
+		(*mainMemory)[0x0100 | currentState->SP--] = currentState->PC; cycles++;		// Write lsb
+		(*mainMemory)[0x0100 | currentState->SP--] = currentState->PC >> 8; cycles++;	// Write msb
+	}
+
+	/* Set the program counter to the specified value */
+	void CPU::setPC(u8& cycles, Word address) {
+		currentState->PC = address; cycles++;
 	}
 }

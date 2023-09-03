@@ -9,7 +9,7 @@ namespace E6502 {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 		
 		// Read the next byte from PC and put into the appropriate register
-		Byte value = cpu->incPCandReadByte(cycles);
+		Byte value = cpu->readPCByte(cycles);
 		cpu->saveToRegAndFlag(cycles, saveRegister, value);
 		return cycles;
 	}
@@ -20,7 +20,7 @@ namespace E6502 {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 
 		// Read the next byte as the lsb for a zero page address
-		Byte address = cpu->incPCandReadByte(cycles);
+		Byte address = cpu->readPCByte(cycles);
 
 		// Get and store the value
 		Byte value = cpu->readByte(cycles, address);
@@ -34,7 +34,7 @@ namespace E6502 {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 
 		// Read the next byte as the lsb for a zero page base address
-		Byte address = 0x00FF & cpu->incPCandReadByte(cycles);
+		Byte address = 0x00FF & cpu->readPCByte(cycles);
 
 		// Add X or Y
 		if (opCode == INS_LDX_ZPY.opcode) address += cpu->regValue(cycles, CPU::REGISTER_Y);
@@ -53,8 +53,8 @@ namespace E6502 {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 		
 		// Read address from next two bytes (lsb first)
-		Byte lsb = cpu->incPCandReadByte(cycles);
-		Byte msb = cpu->incPCandReadByte(cycles);
+		Byte lsb = cpu->readPCByte(cycles);
+		Byte msb = cpu->readPCByte(cycles);
 		Byte index = 0;
 
 		// Get index
@@ -89,7 +89,7 @@ namespace E6502 {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 
 		// Read the next byte as the base for a zero page address.
-		Byte baseAddress = cpu->incPCandReadByte(cycles);
+		Byte baseAddress = cpu->readPCByte(cycles);
 
 		// Add Register if IndirectX
 		if (opCode == INS_LDA_INDX.opcode) {

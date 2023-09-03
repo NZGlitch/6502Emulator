@@ -78,11 +78,8 @@ namespace E6502 {
 		// Clock stuff
 		s8 clockSpeedMhz = 1;		// 1 instruction per microsecond
 
-		//Remove once JSR fixed
-		return;
 
 		u8 insToExecute = 10;		// initProgram(1) + program(9) = 10
-
 
 		// boot routine @ 0xFFFC
 		mem->loadProgram(0xFFFC, initProgram, 4);

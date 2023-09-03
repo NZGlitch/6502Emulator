@@ -168,18 +168,18 @@ namespace E6502 {
 	}
 
 	/* Test fetching a byte from PC (With auto increment) */
-	TEST_F(TestCPU, TestIncPCAndReadByte) {
+	TEST_F(TestCPU, TestreadPCByte) {
 		Word testStart = rand();
 		Word expectEnd = testStart + 1;
 
 		// Given:
 		state->PC = testStart;
 		u8 cycles = 0;
-		(*memory)[expectEnd] = 0x42;
+		(*memory)[testStart] = 0x42;
 
 
 		// When:
-		Byte value = cpu->incPCandReadByte(cycles);
+		Byte value = cpu->readPCByte(cycles);
 
 		// Then:
 		EXPECT_EQ(value, 0x42);
@@ -188,19 +188,19 @@ namespace E6502 {
 	}
 
 	/* Test fetching a word from PC (With auto increment) */
-	TEST_F(TestCPU, TestdequeuePCWord) {
+	TEST_F(TestCPU, TestreadPCWord) {
 		Word testStart = rand();
 		Word expectEnd = testStart + 2;
 
 		// Given:
 		state->PC = testStart;
 		u8 cycles = 0;
-		(*memory)[testStart + 1] = 0x42;
-		(*memory)[testStart + 2] = 0x84;
+		(*memory)[testStart] = 0x42;
+		(*memory)[testStart + 1] = 0x84;
 
 
 		// When:
-		Word value = cpu->incPCandReadWord(cycles);
+		Word value = cpu->readPCWord(cycles);
 
 		// Then:
 		EXPECT_EQ(value, 0x8442);
@@ -289,4 +289,37 @@ namespace E6502 {
 		
 	}
 
+	/* Test pushPCToStack() */
+	TEST_F(TestCPU, TestpushPCToStack) {
+		// Given:
+		state->SP = 0x68;
+		(*memory)[0x0168] = 0x00;
+		(*memory)[0x0167] = 0x00;
+		state->PC = 0x4321;
+		u8 cycles = 0;
+
+		// When:
+		cpu->pushPCToStack(cycles);
+
+		// Then:
+		EXPECT_EQ(state->SP, 0x66);
+		EXPECT_EQ((*memory)[0x0168], 0x21);
+		EXPECT_EQ((*memory)[0x0167], 0x43);
+		EXPECT_EQ(state->PC, 0x4321);
+		EXPECT_EQ(cycles, 2);
+	}
+
+	/* Test setPC */
+	TEST_F(TestCPU, TestsetPC) {
+		// Given:
+		state->PC = 0x1234;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setPC(cycles, 0x9876);
+
+		// Then:
+		EXPECT_EQ(state->PC, 0x9876);
+		EXPECT_EQ(cycles, 1);
+	}
 }

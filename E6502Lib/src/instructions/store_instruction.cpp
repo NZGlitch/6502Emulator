@@ -7,7 +7,7 @@ namespace E6502 {
 		u8 cycles = 1;	// 1 cycle to load instruction
 		
 		// Read address from next two bytes (lsb first)
-		Word address = cpu->incPCandReadWord(cycles);
+		Word address = cpu->readPCWord(cycles);
 		
 
 		// If using an indexed mode, apply the index to the address
@@ -30,7 +30,7 @@ namespace E6502 {
 		u8 cycles = 1;	// 1 cycle to load instruction
 
 		// Read zero page address from next byte
-		Word address = 0x00FF & cpu->incPCandReadByte(cycles);
+		Word address = 0x00FF & cpu->readPCByte(cycles);
 
 		// Get the value from the source register
 		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
@@ -46,7 +46,7 @@ namespace E6502 {
 		u8 cycles = 1;
 
 		// Base address
-		Word address = 0x00FF & cpu->incPCandReadByte(cycles);
+		Word address = 0x00FF & cpu->readPCByte(cycles);
 
 		// Add Index
 		switch (opCode) {
@@ -75,7 +75,7 @@ namespace E6502 {
 		u8 cycles = 1;
 
 		// Calculate ZP Address
-		Word zpAddress = 0x00FF & cpu->incPCandReadByte(cycles);
+		Word zpAddress = 0x00FF & cpu->readPCByte(cycles);
 		zpAddress = (zpAddress + cpu->regValue(cycles, CPU::REGISTER_X)) & 0x00FF; cycles++;
 
 		// Calculate Target Address
@@ -92,7 +92,7 @@ namespace E6502 {
 		u8 cycles = 1;
 
 		// Calculate ZP Address
-		Word zpAddr = 0x00FF & cpu->incPCandReadByte(cycles);
+		Word zpAddr = 0x00FF & cpu->readPCByte(cycles);
 
 		// Caclulcate target Address
 		Word targetAddr = cpu->readWord(cycles, zpAddr);

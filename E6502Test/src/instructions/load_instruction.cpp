@@ -1,7 +1,6 @@
 #include <gmock/gmock.h>
 #include "instruction_utils.h"
 #include "load_instruction.h"
-#include "../test_helpers.h"
 
 // TODO - make sure to test saveRegAndTestFlags once this fuctonality is correctly ut in CPU
 
@@ -44,7 +43,7 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x0001] = testValue;
+			memory[0x0000] = testValue;
 
 			// When:
 			cyclesUsed = LoadInstruction::immediateHandler(cpu, instruction.opcode);
@@ -64,7 +63,7 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x0001] = insAddress;
+			memory[0x0000] = insAddress;
 			memory[insAddress] = testValue;
 
 			// When:
@@ -87,7 +86,7 @@ namespace E6502 {
 			for (u8 i = 0; i < 3; i++) {
 				// Load fixtures to memory
 				state.PC = 0x0000;
-				memory[0x001] = baseAddress[i];
+				memory[0x000] = baseAddress[i];
 				memory[targetAddress[i]] = testValue[i];
 
 				// Given:
@@ -114,8 +113,8 @@ namespace E6502 {
 			// Given:
 			state.PC = 0x0000;
 			Byte testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x001] = lsb;
-			memory[0x002] = msb;
+			memory[0x000] = lsb;
+			memory[0x001] = msb;
 			memory[targetAddress] = testValue;
 
 			// When:
@@ -134,8 +133,8 @@ namespace E6502 {
 			u8 cyclesUsed = 0;
 
 			// Load fixtures to memory
-			memory[0x001] = lsb;
-			memory[0x002] = msb;
+			memory[0x000] = lsb;
+			memory[0x001] = msb;
 			testValue = genTestValAndClearTargetReg(targetReg);
 
 			// Given:
@@ -159,7 +158,7 @@ namespace E6502 {
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
 			u8 cyclesUsed;
 
-			memory[0x0001] = zpBaseAddress;
+			memory[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				// Given:
@@ -189,7 +188,7 @@ namespace E6502 {
 			Byte cyclePageCorrection[] = { 0 , 1 };			// Add 1 to expected cycles for INDY when crossing page
 			u8 cyclesUsed;
 
-			memory[0x0001] = zpBaseAddress;
+			memory[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				u8 testCycles = expectedCycles;
