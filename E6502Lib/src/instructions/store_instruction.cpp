@@ -3,9 +3,7 @@
 
 namespace E6502 {
 	/** Absolute and Absolute-Indexed instructions */
-	u8 StoreInstruction::absoluteHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;	// 1 cycle to load instruction
-		
+	void StoreInstruction::absoluteHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Read address from next two bytes (lsb first)
 		Word address = cpu->readPCWord(cycles);
 		
@@ -21,14 +19,10 @@ namespace E6502 {
 
 		// Write it to memory
 		cpu->writeByte(cycles, address, value);
-
-		return cycles;
 	};
 
 	/** Zero Page instructions */
-	u8 StoreInstruction::zeroPageHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;	// 1 cycle to load instruction
-
+	void StoreInstruction::zeroPageHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Read zero page address from next byte
 		Word address = 0x00FF & cpu->readPCByte(cycles);
 
@@ -37,14 +31,10 @@ namespace E6502 {
 
 		// Store in memory
 		cpu->writeByte(cycles, address, value);
-
-		return cycles;
 	}
 
 	/** Zero Page Indexed instructions */
-	u8 StoreInstruction::zeroPageIndexedHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;
-
+	void StoreInstruction::zeroPageIndexedHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Base address
 		Word address = 0x00FF & cpu->readPCByte(cycles);
 
@@ -67,13 +57,10 @@ namespace E6502 {
 
 		// Store value and return
 		cpu->writeByte(cycles, address, value);
-		return cycles;
 	}
 
 	/** X-Indexed Zero Page Indirect instructions */
-	u8 StoreInstruction::indirectXHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;
-
+	void StoreInstruction::indirectXHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Calculate ZP Address
 		Word zpAddress = 0x00FF & cpu->readPCByte(cycles);
 		zpAddress = (zpAddress + cpu->regValue(cycles, CPU::REGISTER_X)) & 0x00FF; cycles++;
@@ -84,13 +71,10 @@ namespace E6502 {
 
 		// Write and save
 		cpu->writeByte(cycles, targetAddress, value);
-		return cycles;
 	}
 
 	/** Zero Page Y-Indexed Indirect instructions */
-	u8 StoreInstruction::indirectYHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;
-
+	void StoreInstruction::indirectYHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Calculate ZP Address
 		Word zpAddr = 0x00FF & cpu->readPCByte(cycles);
 
@@ -101,7 +85,6 @@ namespace E6502 {
 
 		// Write and Save
 		cpu->writeByte(cycles, targetAddr, value);
-		return cycles;
 	}
 
 	/** Add store instructions to handlers array */

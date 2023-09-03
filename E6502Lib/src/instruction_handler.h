@@ -7,7 +7,7 @@ namespace E6502 {
 	class CPU;
 	
 	/* A function that can handle execution of a single instruction */
-	typedef u8(*insHandlerFn)(CPU*, Byte opCode);
+	typedef void (*insHandlerFn)(CPU* cpu, u8& cycles, Byte opCode);
 
 	struct InstructionHandler {
 		Byte opcode;

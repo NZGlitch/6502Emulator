@@ -4,7 +4,6 @@
 #include "cpu.h"
 
 namespace E6502 {
-
 	using::testing::_;
 
 	struct MockLoader : public InstructionLoader {
@@ -33,6 +32,7 @@ namespace E6502 {
 		ASSERT_STREQ(inMan->defaultHandler.name, "Unsupported OP");
 
 		// Given:
+		u8 cycles = 1;
 		CPUState originalState = CPUState();
 		CPUState testState = CPUState();
 		Memory* mem = new Memory();
@@ -41,7 +41,7 @@ namespace E6502 {
 		mem->reset();
 
 		// When:
-		Byte cycles = inMan->defaultHandler.execute(cpu, code);
+		inMan->defaultHandler.execute(cpu, cycles, code);
 
 		// Then:
 		EXPECT_EQ(cycles, 2);
@@ -69,6 +69,6 @@ namespace E6502 {
 
 	/* Test OpCodes are defined correctly */
 	TEST_F(TestInstructionManager, TestOpCodes) {
-		EXPECT_EQ(INS_NOP, 0xEA);
+		EXPECT_EQ(INS_NOP.opcode, 0xEA);
 	}
 }

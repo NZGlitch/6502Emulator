@@ -19,9 +19,7 @@ namespace E6502 {
 			Push PCL; Decrement S;
 			Read ADH;
 	*/
-	u8 JSR::jsrHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-
+	void JSR::jsrHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Read ADL
 		Word targetAddress = cpu->readPCByte(cycles);
 		
@@ -33,8 +31,6 @@ namespace E6502 {
 
 		// Set PC
 		cpu->setPC(cycles, targetAddress);
-
-		return cycles;
 	};
 
 	/** Implementation of addhandlers needs to be after the struct defs */

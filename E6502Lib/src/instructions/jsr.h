@@ -7,7 +7,7 @@ namespace E6502 {
 	public:
 		
 		/** Actually handles execution of JSR instruction */
-		static u8 jsrHandler(CPU* cpu, Byte opCode);
+		static void jsrHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Called to add LDA Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);

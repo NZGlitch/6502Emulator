@@ -7,19 +7,19 @@ namespace E6502 {
 	public:
 
 		/** Absolute and Absolute-Indexed instructions */
-		static u8 absoluteHandler(CPU* cpu, Byte opCode);
+		static void absoluteHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Zero Page instructions */
-		static u8 zeroPageHandler(CPU* cpu, Byte opCode);
+		static void zeroPageHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Zero Page Indexed instructions */
-		static u8 zeroPageIndexedHandler(CPU* cpu, Byte opCode);
+		static void zeroPageIndexedHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** X-Indexed Zero Page Indirect instructions */
-		static u8 indirectXHandler(CPU* cpu, Byte opCode);
+		static void indirectXHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Zero Page Y-Indexed Inderect instructions */
-		static u8 indirectYHandler(CPU* cpu, Byte opCode);
+		static void indirectYHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Called to add Store Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);

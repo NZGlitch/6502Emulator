@@ -46,19 +46,15 @@ namespace E6502 {
 			//Get the next instruction and increment PC
 			Byte code = (*mainMemory)[currentState->PC];
 			currentState->PC++;
-			u8 cycles = 1;	//Fetching the instruction uses a cycle
-			//TODO pass cycles to executors
+			cyclesUsed++;	//Fetching the instruction uses a cycle
 
 			//Get the handler for this instruction
 			const InstructionHandler* handler = (*insManager)[code];
 			if (!handler->isLegal) {
 				fprintf(stderr, "Executing illegal opcode 0x%02X\n", code);
 			}
-			cyclesUsed += handler->execute(this, code);
+			handler->execute(this, cyclesUsed, code);
 			numInstructions--;
-
-			// PC is always post incremented 
-			
 		}
 		return cyclesUsed;
 	}

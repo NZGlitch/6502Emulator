@@ -32,7 +32,7 @@ namespace E6502 {
 		ASSERT_EQ(sizeof(testHandler.name), sizeof(char*));
 
 		//execute
-		insHandlerFn testFun = [](CPU* cpu, Byte code) { return (u8)0;};
+		insHandlerFn testFun = [](CPU* cpu, u8& cycles, Byte code) { };
 		testHandler.execute = testFun;
 		ASSERT_EQ(testHandler.execute, testFun);
 		ASSERT_EQ(sizeof(testHandler.execute), sizeof(insHandlerFn*));

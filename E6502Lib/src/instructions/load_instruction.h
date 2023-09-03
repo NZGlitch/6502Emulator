@@ -8,19 +8,19 @@ namespace E6502 {
 	public:
 
 		/** Handles Immediate Addressing Mode Instructions */
-		static u8 immediateHandler(CPU* cpu, Byte opCode);
+		static void immediateHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Handles ZeroPage Addressing Mode Instructions */
-		static u8 zeroPageHandler(CPU* cpu, Byte opCode);
+		static void zeroPageHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Handles ZeroPage Addressing Mode Instructions */
-		static u8 zeroPageIndexedHandler(CPU* cpu, Byte opCode);
+		static void zeroPageIndexedHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
-		static u8 absoluteHandler(CPU* cpu, Byte opCode);
+		static void absoluteHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Handles execution of Indirect Mode Instructions */
-		static u8 indirectHandler(CPU* cpu, Byte opCode);
+		static void indirectHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Called to add Load Instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);

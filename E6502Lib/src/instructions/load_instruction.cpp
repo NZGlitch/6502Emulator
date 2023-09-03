@@ -4,19 +4,16 @@
 namespace E6502 {
 
 	/** Handles Immediate Addressing Mode Instructions */
-	u8 LoadInstruction::immediateHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+	void LoadInstruction::immediateHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 		
 		// Read the next byte from PC and put into the appropriate register
 		Byte value = cpu->readPCByte(cycles);
 		cpu->saveToRegAndFlag(cycles, saveRegister, value);
-		return cycles;
 	}
 
 	/** Handles ZeroPage Addressing Mode Instructions */
-	u8 LoadInstruction::zeroPageHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+	void LoadInstruction::zeroPageHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 
 		// Read the next byte as the lsb for a zero page address
@@ -25,12 +22,10 @@ namespace E6502 {
 		// Get and store the value
 		Byte value = cpu->readByte(cycles, address);
 		cpu->saveToRegAndFlag(cycles, saveRegister, value);
-		return cycles;
 	}
 
 	/** Handles ZeroPageIndexed Addressing Mode Instructions */
-	u8 LoadInstruction::zeroPageIndexedHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+	void LoadInstruction::zeroPageIndexedHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 
 		// Read the next byte as the lsb for a zero page base address
@@ -44,12 +39,10 @@ namespace E6502 {
 		// Read the value at address into register
 		Byte value = cpu->readByte(cycles, address);
 		cpu->saveToRegAndFlag(cycles, saveRegister, value);
-		return cycles;
 	}
 
 	/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
-	u8 LoadInstruction::absoluteHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+	void LoadInstruction::absoluteHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 		
 		// Read address from next two bytes (lsb first)
@@ -80,12 +73,10 @@ namespace E6502 {
 		Word address = (msb << 8) | lsb;
 		Byte value = cpu->readByte(cycles, address);
 		cpu->saveToRegAndFlag(cycles, saveRegister, value);
-		return cycles;
 	}
 
 	/** Handles Indirect Addressing Modes */
-	u8 LoadInstruction::indirectHandler(CPU* cpu, Byte opCode) {
-		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
+	void LoadInstruction::indirectHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		u8 saveRegister = InstructionUtils::getRegFromInstruction(opCode, cpu);
 
 		// Read the next byte as the base for a zero page address.
@@ -109,7 +100,6 @@ namespace E6502 {
 		// Save value
 		Byte value = cpu->readByte(cycles, targetAddress);
 		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_A, value);
-		return cycles;
 	};
 
 	/** Helper method to get a value from memory and store in a register */

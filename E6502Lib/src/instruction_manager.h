@@ -15,9 +15,9 @@ namespace E6502 {
 	https://www.masswerk.at/nowgobang/2021/6502-illegal-opcodes
 	*/
 
-	// Op Codes 
-	static constexpr Byte INS_NOP = 0xEA;		//NOP
-
+	// Default executor for unimplemented instructions
+	static InstructionHandler INS_NOP = { 0xEA, true, "NOP - Unimplemented", [](CPU* cpu, u8& cycles, Byte instruction) { cycles++; } };
+	
 	class InstructionManager {
 	private:
 		//Handler Matrix
@@ -25,7 +25,7 @@ namespace E6502 {
 
 	public:
 		//Default handler for undefined instructions
-		InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](CPU* cpu, Byte instruction) { return (u8)2;} };
+		InstructionHandler defaultHandler{ 0xEA, false, "Unsupported OP", [](CPU* cpu, u8& cycles, Byte instruction) { cycles++; } };
 
 		//Constructor
 		InstructionManager(InstructionLoader* loader);
@@ -33,4 +33,6 @@ namespace E6502 {
 		//Array read access
 		InstructionHandler* operator[](Byte instruction);
 	};
+
+
 }

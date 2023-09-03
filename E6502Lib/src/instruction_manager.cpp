@@ -8,6 +8,9 @@ namespace E6502 {
 			this->handlers[i] = &this->defaultHandler;
 		}
 
+		// TODO replace with properly defined NOP
+		this->handlers[INS_NOP.opcode] = &INS_NOP;
+
 		loader->load(handlers);
 
 	}

@@ -106,10 +106,11 @@ namespace E6502 {
 		Byte initFlags = (rand() & 0xFF & flagMask);
 		cpu->setFlags(initFlags);
 		ASSERT_EQ(state->PC, 0xFFFC);
+		(*memory)[0xFFFC] = INS_NOP.opcode;		//insert a NOP instruction for the test
 		Byte cycles = 0;
 
 		// When:
-		u16 cyclesExecuted = cpu->execute(1);
+		u8 cyclesExecuted = cpu->execute(1);
 
 		// Then
 		EXPECT_EQ(state->PC, (0xFFFC) + 1);			// PC should be incremented

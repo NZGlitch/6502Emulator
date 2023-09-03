@@ -34,7 +34,7 @@ namespace E6502 {
 			Byte msb = 0xBE;			// TODO - maybe randomise?
 			Word targetAddress = 0xBE84;
 			Byte testValue = 0x42;		// TODO - maybe randomise?
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Given:
 			state.PC = 0x0000;
@@ -43,7 +43,7 @@ namespace E6502 {
 			memory[0x0001] = msb;
 			
 			// When:
-			cyclesUsed = StoreInstruction::absoluteHandler(cpu, instruction.opcode);
+			StoreInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(memory[targetAddress], testValue);
@@ -55,7 +55,7 @@ namespace E6502 {
 			// Fixtures
 			Byte testValue = 0;
 			Word targetAddress = (msb << 8) + lsb + index;
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Load fixtures to memory
 			memory[0x0000] = lsb;
@@ -68,7 +68,7 @@ namespace E6502 {
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = StoreInstruction::absoluteHandler(cpu, instruction.opcode);
+			StoreInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
@@ -80,7 +80,7 @@ namespace E6502 {
 			// Fixtures
 			Byte testValue = 0;
 			Byte insAddress = 0x84;		// TODO - maybe randmomise?
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Given:
 			state.PC = 0x0000;
@@ -89,7 +89,7 @@ namespace E6502 {
 			*sourceReg = testValue;
 
 			// When:
-			cyclesUsed = StoreInstruction::zeroPageHandler(cpu, instruction.opcode);
+			StoreInstruction::zeroPageHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(memory[insAddress], testValue);
@@ -103,10 +103,10 @@ namespace E6502 {
 			Byte testIndex[] = { 0x10, 0xFF, 0x00 };			// TODO - maybe randmomise?
 			Word targetAddress[] = { 0x0094, 0x0011, 0x0044 };	// = baseAddress[i] + testX[i] | 0xFF
 			Byte testValue[] = { 0x42, 0xF0, 0x01 };			// TODO - maybe randomise?
-			u8 cyclesUsed = 0;
 
 			for (u8 i = 0; i < 3; i++) {
 				// Given
+				u8 cyclesUsed = 1;
 				state.PC = 0x0000;
 				memory[0x0000] = baseAddress[i];
 				*sourceReg = testValue[i];
@@ -114,7 +114,7 @@ namespace E6502 {
 				genTestValAndClearMem(&memory, targetAddress[i], testValue[i]);
 
 				// When:
-				cyclesUsed = StoreInstruction::zeroPageIndexedHandler(cpu, instruction.opcode);
+				StoreInstruction::zeroPageIndexedHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(memory[targetAddress[i]], testValue[i]);
@@ -128,7 +128,6 @@ namespace E6502 {
 			Byte testValues[] = { 0x42, 0xF1 };
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
-			u8 cyclesUsed;
 
 			memory[0x0000] = zpBaseAddress;
 
@@ -141,9 +140,10 @@ namespace E6502 {
 				Byte zpAddr = zpBaseAddress + testArguments[i];
 				memory[zpAddr] = dataAddress[i] & 0x00FF;
 				memory[zpAddr + 1] = dataAddress[i] >> 8;
+				Byte cyclesUsed = 1;
 
 				// When:
-				cyclesUsed = StoreInstruction::indirectXHandler(cpu, instruction.opcode);
+				StoreInstruction::indirectXHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(memory[dataAddress[i]], testValues[i]);
@@ -157,12 +157,12 @@ namespace E6502 {
 			Byte testValues[] = { 0x42, 0xF1 };
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		// TODO Randomise?
-			u8 cyclesUsed;
+			u8 testCycles = expectedCycles;
 
 			memory[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
-				u8 testCycles = expectedCycles;
+				u8 cyclesUsed = 1;
 
 				// Given:
 				state.PC = 0x0000;
@@ -174,7 +174,7 @@ namespace E6502 {
 				genTestValAndClearMem(&memory, dataAddress[i], testValues[i]);			// Clear target address
 
 				// When:
-				cyclesUsed = StoreInstruction::indirectYHandler(cpu, instruction.opcode);
+				StoreInstruction::indirectYHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(memory[dataAddress[i]], testValues[i]);
@@ -259,21 +259,18 @@ namespace E6502 {
 	TEST_F(TestStoreInstruction, TestStoreAbsoluteXY) {
 		Byte lsb = 0x84;			// TODO - maybe randomise?
 		Byte msb = 0xFF;			// TODO - maybe randomise?
-		Byte index = 0x00;
-		u8 cyclesUsed = 0;
 
-		index = 0x10;
-		absIndexedHelper(INS_STA_ABSX, lsb, msb, index, &state.X, &state.A, 5, "STA ABSX (no overflow or page)");
-		absIndexedHelper(INS_STA_ABSY, lsb, msb, index, &state.Y, &state.A, 5, "STA ABSY (no overflow or page)");
+		//index = 0x10;
+		absIndexedHelper(INS_STA_ABSX, lsb, msb, 0x10, &state.X, &state.A, 5, "STA ABSX (no overflow or page)");
+		absIndexedHelper(INS_STA_ABSY, lsb, msb, 0x10, &state.Y, &state.A, 5, "STA ABSY (no overflow or page)");
 		
-		index = 0xA5;
-		absIndexedHelper(INS_STA_ABSX, lsb, msb, index, &state.X, &state.A, 5, "STA ABSX (overflow)");
-		absIndexedHelper(INS_STA_ABSY, lsb, msb, index, &state.Y, &state.A, 5, "STA ABSY (overflow)");
+		//index = 0xA5;
+		absIndexedHelper(INS_STA_ABSX, lsb, msb, 0xA5, &state.X, &state.A, 5, "STA ABSX (overflow)");
+		absIndexedHelper(INS_STA_ABSY, lsb, msb, 0xA5, &state.Y, &state.A, 5, "STA ABSY (overflow)");
 		
-		msb = 0x37;
-		index = 0xA1;
-		absIndexedHelper(INS_STA_ABSX, lsb, msb, index, &state.X, &state.A, 5, "STA ABSX (page boundry)");
-		absIndexedHelper(INS_STA_ABSY, lsb, msb, index, &state.Y, &state.A, 5, "STA ABSY (page boundry)");		
+		//msb = 0x37; index = 0xA1;
+		absIndexedHelper(INS_STA_ABSX, lsb, 0x37, 0xA1, &state.X, &state.A, 5, "STA ABSX (page boundry)");
+		absIndexedHelper(INS_STA_ABSY, lsb, 0x37, 0xA1, &state.Y, &state.A, 5, "STA ABSY (page boundry)");		
 	}
 
 	/* Tests LD Zero Page Instruction */

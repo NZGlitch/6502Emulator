@@ -49,7 +49,7 @@ namespace E6502 {
 		Word startPC = 0x1234;							// PC Value we would before execution on (ignores actual JSR instruction)
 		Word expectedPCafeterJump = (msb << 8) | lsb;	// PC Value after execution
 		Byte initialSP = 0x42;							//TODO - maybe randomise?
-		u8 cyclesUsed = 0;
+		u8 cyclesUsed = 1;
 
 		/**
 		Before and after state of mem/cpu:
@@ -76,7 +76,7 @@ namespace E6502 {
 		memory[startPC + 1] = msb;
 
 		// When:
-		cyclesUsed = JSR::jsrHandler(&cpu, INS_JSR.opcode);
+		JSR::jsrHandler(&cpu, cyclesUsed, INS_JSR.opcode);
 
 		// Then:
 		EXPECT_EQ(state.PC, (msb << 8) | lsb);				//The PC should be pointed at the target address

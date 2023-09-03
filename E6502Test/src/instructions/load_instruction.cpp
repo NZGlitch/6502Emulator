@@ -38,7 +38,7 @@ namespace E6502 {
 		void testImmediate(InstructionHandler instruction, Byte* targetReg, u8 expected_cycles, char* test_name) {
 			// Fixtures
 			Byte testValue = 0;
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Given:
 			state.PC = 0x0000;
@@ -46,7 +46,7 @@ namespace E6502 {
 			memory[0x0000] = testValue;
 
 			// When:
-			cyclesUsed = LoadInstruction::immediateHandler(cpu, instruction.opcode);
+			LoadInstruction::immediateHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(*targetReg, testValue);
@@ -58,7 +58,7 @@ namespace E6502 {
 			// Fixtures
 			Byte testValue = 0;
 			Byte insAddress = 0x84;		// TODO - maybe randmomise?
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Given:
 			state.PC = 0x0000;
@@ -67,7 +67,7 @@ namespace E6502 {
 			memory[insAddress] = testValue;
 
 			// When:
-			cyclesUsed = LoadInstruction::zeroPageHandler(cpu, instruction.opcode);
+			LoadInstruction::zeroPageHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(*targetReg, testValue);
@@ -81,20 +81,20 @@ namespace E6502 {
 			Byte testIndex[] = { 0x10, 0xFF, 0x00 };			// TODO - maybe randmomise?
 			Word targetAddress[] = { 0x0094, 0x0011, 0x0044 };	// = baseAddress[i] + testX[i] | 0xFF
 			Byte testValue[] = { 0x42, 0xF0, 0x01 };			// TODO - maybe randomise?
-			u8 cyclesUsed = 0;
 
 			for (u8 i = 0; i < 3; i++) {
 				// Load fixtures to memory
 				state.PC = 0x0000;
 				memory[0x000] = baseAddress[i];
 				memory[targetAddress[i]] = testValue[i];
+				u8 cyclesUsed = 1;
 
 				// Given:
 				*indexReg = testIndex[i];
 				genTestValAndClearTargetReg(targetReg, testValue[i]);
 
 				// When:
-				cyclesUsed = LoadInstruction::zeroPageIndexedHandler(cpu, instruction.opcode);
+				LoadInstruction::zeroPageIndexedHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(*targetReg, testValue[i]);
@@ -108,7 +108,7 @@ namespace E6502 {
 			Byte lsb = 0x84;			// TODO - maybe randomise?
 			Byte msb = 0xBE;			// TODO - maybe randomise?
 			Word targetAddress = 0xBE84;
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Given:
 			state.PC = 0x0000;
@@ -118,7 +118,7 @@ namespace E6502 {
 			memory[targetAddress] = testValue;
 
 			// When:
-			cyclesUsed = LoadInstruction::absoluteHandler(cpu, instruction.opcode);
+			LoadInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(*targetReg, testValue);
@@ -130,7 +130,7 @@ namespace E6502 {
 			// Fixtures
 			Byte testValue = 0;
 			Word targetAddress = (msb << 8) + lsb + index;
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Load fixtures to memory
 			memory[0x000] = lsb;
@@ -143,7 +143,7 @@ namespace E6502 {
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = LoadInstruction::absoluteHandler(cpu, instruction.opcode);
+			LoadInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(*targetReg, testValue);
@@ -156,12 +156,12 @@ namespace E6502 {
 			Byte testValues[] = { 0x42, 0xF1 };
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
-			u8 cyclesUsed;
 
 			memory[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				// Given:
+				u8 cyclesUsed = 1;
 				state.PC = 0x0000;
 				genTestValAndClearTargetReg(targetReg, testValues[i]);
 				memory[dataAddress[i]] = testValues[i];
@@ -171,7 +171,7 @@ namespace E6502 {
 				memory[zpAddr + 1] = dataAddress[i] >> 8;
 
 				// When:
-				cyclesUsed = LoadInstruction::indirectHandler(cpu, instruction.opcode);
+				LoadInstruction::indirectHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(*targetReg, testValues[i]);
@@ -186,12 +186,12 @@ namespace E6502 {
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		// TODO Randomise?
 			Byte cyclePageCorrection[] = { 0 , 1 };			// Add 1 to expected cycles for INDY when crossing page
-			u8 cyclesUsed;
 
 			memory[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				u8 testCycles = expectedCycles;
+				u8 cyclesUsed = 1;
 
 				// Given:
 				state.PC = 0x0000;
@@ -207,7 +207,7 @@ namespace E6502 {
 				//EXPECT_CALL(state, saveToRegAndFlag(targetReg, testValues[i])).Times(1);
 
 				// When:
-				cyclesUsed = LoadInstruction::indirectHandler(cpu, instruction.opcode);
+				LoadInstruction::indirectHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
 				EXPECT_EQ(*targetReg, testValues[i]);

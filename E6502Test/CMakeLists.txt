@@ -23,7 +23,6 @@ FetchContent_MakeAvailable(googletest)
 
 set (E6502_SOURCES
 	"src/gtest_main.cpp"
-	"src/test_helpers.h"
 	"src/types.cpp"
 	"src/memory.cpp"
 	"src/instruction_manager.cpp"
@@ -36,12 +35,11 @@ set (E6502_SOURCES
 	"src/instructions/store_instruction.cpp"
 
 	"src/test_program.cpp"
-	
-	)
+)
 
 source_group("src" FILES ${E6502_SOURCES})
 
-add_executable( E6502Test ${E6502_SOURCES} "src/test_helpers.h")
+add_executable( E6502Test ${E6502_SOURCES})
 add_dependencies( E6502Test E6502Lib)
 add_dependencies( E6502Test E6502Instruction)
 
