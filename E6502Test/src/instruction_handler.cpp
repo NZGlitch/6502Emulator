@@ -1,5 +1,6 @@
 #include <gmock/gmock.h>
 #include "types.h"
+#include "instruction_handler.h"
 
 namespace E6502 {
 	class TestInstructionHandler : public testing::Test {
@@ -31,7 +32,7 @@ namespace E6502 {
 		ASSERT_EQ(sizeof(testHandler.name), sizeof(char*));
 
 		//execute
-		insHandlerFn testFun = [](Memory* mem, CPUState* state, Byte code) { return (u8)0;};
+		insHandlerFn testFun = [](CPU* cpu, u8& cycles, Byte code) { };
 		testHandler.execute = testFun;
 		ASSERT_EQ(testHandler.execute, testFun);
 		ASSERT_EQ(sizeof(testHandler.execute), sizeof(insHandlerFn*));

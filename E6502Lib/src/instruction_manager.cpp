@@ -1,14 +1,18 @@
 #pragma once
 #include "instruction_manager.h"
+
 namespace E6502 {
-	InstructionManager::InstructionManager(InstructionUtils::InstructionLoader* loader) {
-		//Initialise all handlers to be NOPs
+	InstructionManager::InstructionManager(InstructionLoader* loader) {
+		//Initialise all handlers to be Unsupported OPs
 		for (u16 i = 0; i <= 0xFF; i++) {
 			this->handlers[i] = &this->defaultHandler;
 		}
 
-		//Add known Instructions
+		// TODO replace with properly defined NOP
+		this->handlers[INS_NOP.opcode] = &INS_NOP;
+
 		loader->load(handlers);
+
 	}
 
 	InstructionHandler* InstructionManager::operator[](Byte instruction) {

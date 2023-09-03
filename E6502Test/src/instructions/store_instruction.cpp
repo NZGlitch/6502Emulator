@@ -1,6 +1,5 @@
 #include <gmock/gmock.h>
-#include "types.h"
-#include "cpu.h"
+#include "instruction_utils.h"
 #include "store_instruction.h"
 
 namespace E6502 {
@@ -8,22 +7,23 @@ namespace E6502 {
 	class TestStoreInstruction : public testing::Test {
 	public:
 
-		CPUState* state;
-		Memory* memory;
+		CPUState state;
+		Memory memory;
+		CPU* cpu;
+		InstructionLoader loader;
 
 		virtual void SetUp() {
-			state = new CPUState;
-			memory = new Memory;
+			cpu = new CPU(&state, &memory, &loader);
+			cpu->reset();
 		}
 
 		virtual void TearDown() {
-			delete state;
-			delete memory;
+			delete cpu;
 		}
 
 		/* Generates a test value if not provided, and ensures meomory location is clear */
 		Byte genTestValAndClearMem(Memory* memory, Word address, Byte testValue = 0x42) {
-			memory->data[address] = ~testValue;
+			(*memory)[address] = ~testValue;
 			return testValue;
 		}
 
@@ -34,19 +34,19 @@ namespace E6502 {
 			Byte msb = 0xBE;			// TODO - maybe randomise?
 			Word targetAddress = 0xBE84;
 			Byte testValue = 0x42;		// TODO - maybe randomise?
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Given:
-			state->PC = 0x0000;
-			*sourceReg = genTestValAndClearMem(memory, targetAddress);
-			memory->data[0x000] = lsb;
-			memory->data[0x001] = msb;
+			state.PC = 0x0000;
+			*sourceReg = genTestValAndClearMem(&memory, targetAddress);
+			memory[0x0000] = lsb;
+			memory[0x0001] = msb;
 			
 			// When:
-			cyclesUsed = StoreInstruction::absoluteHandler(memory, state, instruction.opcode);
+			StoreInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
-			EXPECT_EQ(memory->data[targetAddress], testValue);
+			EXPECT_EQ(memory[targetAddress], testValue);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
 
@@ -55,24 +55,24 @@ namespace E6502 {
 			// Fixtures
 			Byte testValue = 0;
 			Word targetAddress = (msb << 8) + lsb + index;
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Load fixtures to memory
-			memory->data[0x000] = lsb;
-			memory->data[0x001] = msb;
-			testValue = genTestValAndClearMem(memory, targetAddress);
+			memory[0x0000] = lsb;
+			memory[0x0001] = msb;
+			testValue = genTestValAndClearMem(&memory, targetAddress);
 
 			// Given:
-			state->PC = 0x0000;
+			state.PC = 0x0000;
 			*sourceReg = testValue;
 			*indexReg = index;
 
 			// When:
-			cyclesUsed = StoreInstruction::absoluteHandler(memory, state, instruction.opcode);
+			StoreInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
 			EXPECT_EQ(cyclesUsed, expected_cycles);
-			EXPECT_EQ(memory->data[targetAddress], testValue);
+			EXPECT_EQ(memory[targetAddress], testValue);
 		}
 
 		/** Helper function for zero page instructions */
@@ -80,19 +80,19 @@ namespace E6502 {
 			// Fixtures
 			Byte testValue = 0;
 			Byte insAddress = 0x84;		// TODO - maybe randmomise?
-			u8 cyclesUsed = 0;
+			u8 cyclesUsed = 1;
 
 			// Given:
-			state->PC = 0x0000;
-			testValue = genTestValAndClearMem(memory, insAddress);
-			memory->data[0x0000] = insAddress;
+			state.PC = 0x0000;
+			testValue = genTestValAndClearMem(&memory, insAddress);
+			memory[0x0000] = insAddress;
 			*sourceReg = testValue;
 
 			// When:
-			cyclesUsed = StoreInstruction::zeroPageHandler(memory, state, instruction.opcode);
+			StoreInstruction::zeroPageHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
-			EXPECT_EQ(memory->data[insAddress], testValue);
+			EXPECT_EQ(memory[insAddress], testValue);
 			EXPECT_EQ(cyclesUsed, 3);
 		}
 
@@ -103,21 +103,21 @@ namespace E6502 {
 			Byte testIndex[] = { 0x10, 0xFF, 0x00 };			// TODO - maybe randmomise?
 			Word targetAddress[] = { 0x0094, 0x0011, 0x0044 };	// = baseAddress[i] + testX[i] | 0xFF
 			Byte testValue[] = { 0x42, 0xF0, 0x01 };			// TODO - maybe randomise?
-			u8 cyclesUsed = 0;
 
 			for (u8 i = 0; i < 3; i++) {
 				// Given
-				state->PC = 0x0000;
-				memory->data[0x000] = baseAddress[i];
+				u8 cyclesUsed = 1;
+				state.PC = 0x0000;
+				memory[0x0000] = baseAddress[i];
 				*sourceReg = testValue[i];
 				*indexReg = testIndex[i];
-				genTestValAndClearMem(memory, targetAddress[i], testValue[i]);
+				genTestValAndClearMem(&memory, targetAddress[i], testValue[i]);
 
 				// When:
-				cyclesUsed = StoreInstruction::zeroPageIndexedHandler(memory, state, instruction.opcode);
+				StoreInstruction::zeroPageIndexedHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
-				EXPECT_EQ(memory->data[targetAddress[i]], testValue[i]);
+				EXPECT_EQ(memory[targetAddress[i]], testValue[i]);
 				EXPECT_EQ(cyclesUsed, expected_cycles);
 			}
 		}
@@ -128,25 +128,25 @@ namespace E6502 {
 			Byte testValues[] = { 0x42, 0xF1 };
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
-			u8 cyclesUsed;
 
-			memory->data[0x0000] = zpBaseAddress;
+			memory[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				// Given:
-				state->PC = 0x0000;
-				genTestValAndClearMem(memory, dataAddress[i], testValues[i]);
-				state->X = testArguments[i];
+				state.PC = 0x0000;
+				genTestValAndClearMem(&memory, dataAddress[i], testValues[i]);
+				state.X = testArguments[i];
 				*sourceReg = testValues[i];
 				Byte zpAddr = zpBaseAddress + testArguments[i];
-				memory->data[zpAddr] = dataAddress[i] & 0x00FF;
-				memory->data[zpAddr + 1] = dataAddress[i] >> 8;
+				memory[zpAddr] = dataAddress[i] & 0x00FF;
+				memory[zpAddr + 1] = dataAddress[i] >> 8;
+				Byte cyclesUsed = 1;
 
 				// When:
-				cyclesUsed = StoreInstruction::indirectXHandler(memory, state, instruction.opcode);
+				StoreInstruction::indirectXHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
-				EXPECT_EQ(memory->data[dataAddress[i]], testValues[i]);
+				EXPECT_EQ(memory[dataAddress[i]], testValues[i]);
 				EXPECT_EQ(cyclesUsed, expected_cycles);
 			}
 		}
@@ -157,27 +157,27 @@ namespace E6502 {
 			Byte testValues[] = { 0x42, 0xF1 };
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		// TODO Randomise?
-			u8 cyclesUsed;
+			u8 testCycles = expectedCycles;
 
-			memory->data[0x0000] = zpBaseAddress;
+			memory[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
-				u8 testCycles = expectedCycles;
+				u8 cyclesUsed = 1;
 
 				// Given:
-				state->PC = 0x0000;
-				state->Y = testArguments[i];
-				state->A = testValues[i];
+				state.PC = 0x0000;
+				state.Y = testArguments[i];
+				state.A = testValues[i];
 				Word dataBaseAddress = (dataAddress[i] & 0xFF00) | (dataAddress[i] - testArguments[i]) & 0x00FF;
-				memory->data[zpBaseAddress] = dataBaseAddress & 0x00FF;
-				memory->data[zpBaseAddress + 1] = dataBaseAddress >> 8;
-				genTestValAndClearMem(memory, dataAddress[i], testValues[i]);			// Clear target address
+				memory[zpBaseAddress] = dataBaseAddress & 0x00FF;
+				memory[zpBaseAddress + 1] = dataBaseAddress >> 8;
+				genTestValAndClearMem(&memory, dataAddress[i], testValues[i]);			// Clear target address
 
 				// When:
-				cyclesUsed = StoreInstruction::indirectYHandler(memory, state, instruction.opcode);
+				StoreInstruction::indirectYHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
-				EXPECT_EQ(memory->data[dataAddress[i]], testValues[i]);
+				EXPECT_EQ(memory[dataAddress[i]], testValues[i]);
 				EXPECT_EQ(cyclesUsed, testCycles);
 			}
 		}
@@ -250,53 +250,50 @@ namespace E6502 {
 
 	 /* Test Absolute Mode execution */
 	TEST_F(TestStoreInstruction, TestStoreAbsolute) {
-		testAbsolute(INS_STA_ABS, &state->A, 4, "STA_ABS");
-		testAbsolute(INS_STX_ABS, &state->X, 4, "STX_ABS");
-		testAbsolute(INS_STY_ABS, &state->Y, 4, "STY_ABS");
+		testAbsolute(INS_STA_ABS, &state.A, 4, "STA_ABS");
+		testAbsolute(INS_STX_ABS, &state.X, 4, "STX_ABS");
+		testAbsolute(INS_STY_ABS, &state.Y, 4, "STY_ABS");
 	}
 
 	/* Tests STA Absolute,X/Y Instructions */
 	TEST_F(TestStoreInstruction, TestStoreAbsoluteXY) {
 		Byte lsb = 0x84;			// TODO - maybe randomise?
 		Byte msb = 0xFF;			// TODO - maybe randomise?
-		Byte index = 0x00;
-		u8 cyclesUsed = 0;
 
-		index = 0x10;
-		absIndexedHelper(INS_STA_ABSX, lsb, msb, index, &state->X, &state->A, 5, "STA ABSX (no overflow or page)");
-		absIndexedHelper(INS_STA_ABSY, lsb, msb, index, &state->Y, &state->A, 5, "STA ABSY (no overflow or page)");
+		//index = 0x10;
+		absIndexedHelper(INS_STA_ABSX, lsb, msb, 0x10, &state.X, &state.A, 5, "STA ABSX (no overflow or page)");
+		absIndexedHelper(INS_STA_ABSY, lsb, msb, 0x10, &state.Y, &state.A, 5, "STA ABSY (no overflow or page)");
 		
-		index = 0xA5;
-		absIndexedHelper(INS_STA_ABSX, lsb, msb, index, &state->X, &state->A, 5, "STA ABSX (overflow)");
-		absIndexedHelper(INS_STA_ABSY, lsb, msb, index, &state->Y, &state->A, 5, "STA ABSY (overflow)");
+		//index = 0xA5;
+		absIndexedHelper(INS_STA_ABSX, lsb, msb, 0xA5, &state.X, &state.A, 5, "STA ABSX (overflow)");
+		absIndexedHelper(INS_STA_ABSY, lsb, msb, 0xA5, &state.Y, &state.A, 5, "STA ABSY (overflow)");
 		
-		msb = 0x37;
-		index = 0xA1;
-		absIndexedHelper(INS_STA_ABSX, lsb, msb, index, &state->X, &state->A, 5, "STA ABSX (page boundry)");
-		absIndexedHelper(INS_STA_ABSY, lsb, msb, index, &state->Y, &state->A, 5, "STA ABSY (page boundry)");		
+		//msb = 0x37; index = 0xA1;
+		absIndexedHelper(INS_STA_ABSX, lsb, 0x37, 0xA1, &state.X, &state.A, 5, "STA ABSX (page boundry)");
+		absIndexedHelper(INS_STA_ABSY, lsb, 0x37, 0xA1, &state.Y, &state.A, 5, "STA ABSY (page boundry)");		
 	}
 
 	/* Tests LD Zero Page Instruction */
 	TEST_F(TestStoreInstruction, TestLStoreZeroPage) {
-		testZeroPage(INS_STA_ZP, &state->A, 3, "STA_ZP");
-		testZeroPage(INS_STX_ZP, &state->X, 3, "STX_ZP");
-		testZeroPage(INS_STY_ZP, &state->Y, 3, "STY_ZP");
+		testZeroPage(INS_STA_ZP, &state.A, 3, "STA_ZP");
+		testZeroPage(INS_STX_ZP, &state.X, 3, "STX_ZP");
+		testZeroPage(INS_STY_ZP, &state.Y, 3, "STY_ZP");
 	}
 
 	/* Tests Store Zero Page,X/Y Instruction */
 	TEST_F(TestStoreInstruction, TestStoreZeroPageX) {
-		testZeroPageIndex(INS_STA_ZPX, &state->X, &state->A, 4, "STA_ZPX");
-		testZeroPageIndex(INS_STX_ZPY, &state->Y, &state->X, 4, "STX_ZPY");
-		testZeroPageIndex(INS_STY_ZPX, &state->X, &state->Y, 4, "STY_ZPX");
+		testZeroPageIndex(INS_STA_ZPX, &state.X, &state.A, 4, "STA_ZPX");
+		testZeroPageIndex(INS_STX_ZPY, &state.Y, &state.X, 4, "STX_ZPY");
+		testZeroPageIndex(INS_STY_ZPX, &state.X, &state.Y, 4, "STY_ZPX");
 	}
 
 	/* Tests Store Indirect,X Instruction */
 	TEST_F(TestStoreInstruction, TestStoreIndirectX) {
-		testIndirectXIndex(INS_STA_INDX, &state->A, 6, "STA_INDX");
+		testIndirectXIndex(INS_STA_INDX, &state.A, 6, "STA_INDX");
 	}
 
 	/* Tests Store Indirect,Y Instruction */
 	TEST_F(TestStoreInstruction, TestStoreIndirectY) {
-		testIndirectYIndex(INS_STA_INDX, &state->A, 6, "STA_INDY");
+		testIndirectYIndex(INS_STA_INDX, &state.A, 6, "STA_INDY");
 	}
 }

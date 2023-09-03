@@ -1,23 +1,16 @@
 #include <gmock/gmock.h>
-#include "types.h"
-#include "cpu.h"
+#include "instruction_utils.h"
 #include "jsr.h"
+
 namespace E6502 {
 
 	class TestJSRInstruction : public testing::Test {
 	public:
 
-		CPUState* state;
-		Memory* memory;
-
 		virtual void SetUp() {
-			state = new CPUState;
-			memory = new Memory;
 		}
 
 		virtual void TearDown() {
-			delete state;
-			delete memory;
 		}
 	};
 
@@ -44,13 +37,19 @@ namespace E6502 {
 
 	/* Test JSR execution */
 	TEST_F(TestJSRInstruction, TestJSRAbsolute) {
+		// Prep
+		CPUState state;
+		Memory memory;
+		InstructionUtils::Loader loader;
+		CPU cpu(&state, &memory, &loader);
+
 		// Fixtures
 		Byte lsb = 0x21;								//TODO - maybe randomise?
 		Byte msb = 0x43;								//TODO - maybe randomise?
 		Word startPC = 0x1234;							// PC Value we would before execution on (ignores actual JSR instruction)
 		Word expectedPCafeterJump = (msb << 8) | lsb;	// PC Value after execution
 		Byte initialSP = 0x42;							//TODO - maybe randomise?
-		u8 cyclesUsed = 0;
+		u8 cyclesUsed = 1;
 
 		/**
 		Before and after state of mem/cpu:
@@ -62,7 +61,7 @@ namespace E6502 {
 			Algorithm:
 			Mem[SP--] = PC>>8
 			MEM[SP--] = PC & 0xFF
-			PC=[arg2<<8 | arg1] --> PC=[35<<8 | 34] --> PC=0x4321
+			PC=[arg2<<8 | arg1] --> PC=[12<<8 | 34] --> PC=0x4321
 
 								   Memory							|	    CPU
 			33		34		35				0x140	0x141	0x142	|	SP		PC
@@ -71,19 +70,19 @@ namespace E6502 {
 		*/
 
 		// Given: 
-		state->setSP(initialSP);
-		state->PC = startPC;
-		memory->data[startPC] = lsb;
-		memory->data[startPC + 1] = msb;
+		state.SP = initialSP;
+		state.PC = startPC;
+		memory[startPC] = lsb;
+		memory[startPC + 1] = msb;
 
 		// When:
-		cyclesUsed = JSR::jsrHandler(memory, state, INS_JSR.opcode);
+		JSR::jsrHandler(&cpu, cyclesUsed, INS_JSR.opcode);
 
 		// Then:
-		EXPECT_EQ(state->PC, (msb << 8) | lsb);						//The PC should be pointed at the target address
-		EXPECT_EQ(memory->data[0x0100 | initialSP], 0x12);		// mem[0x0100 + stackInit] == msb(msbPC)		High order bits of original PC+2
-		EXPECT_EQ(memory->data[0x0100 | initialSP - 1], 0x35);	// mem[0x0100 + stackInit - 1] == lsb(msbPC)	Low order bits of original PC+2
-		EXPECT_EQ(state->getSP(), 0x0100 | (initialSP - 2));	// SP should decrement by 2
+		EXPECT_EQ(state.PC, (msb << 8) | lsb);				//The PC should be pointed at the target address
+		EXPECT_EQ(memory[0x0100 | initialSP], 0x35);		// mem[0x0100 + stackInit] == lsbPC		Low order bits of original PC+2
+		EXPECT_EQ(memory[0x0100 | initialSP - 1], 0x12);	// mem[0x0100 + stackInit - 1] == msbPC	High order bits of original PC+2
+		EXPECT_EQ(state.SP, (initialSP - 2));				// SP should decrement by 2
 		EXPECT_EQ(cyclesUsed, 6);
 	}
 }

@@ -11,6 +11,8 @@ project( E6502Lib)
 
 set (E6502LIB_SOURCES
 	"src/types.h"
+	"src/instruction_handler.h"
+	"src/memory.h"
 	"src/cpu.h"
 	"src/cpu.cpp"
 	"src/instruction_manager.h"

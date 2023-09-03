@@ -35,8 +35,7 @@ set (E6502_SOURCES
 	"src/instructions/store_instruction.cpp"
 
 	"src/test_program.cpp"
-	
-	)
+)
 
 source_group("src" FILES ${E6502_SOURCES})
 

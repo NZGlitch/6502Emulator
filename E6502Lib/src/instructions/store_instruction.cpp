@@ -3,105 +3,88 @@
 
 namespace E6502 {
 	/** Absolute and Absolute-Indexed instructions */
-	u8 StoreInstruction::absoluteHandler(Memory* mem, CPUState* state, Byte opCode) {
-		u8 cycles = 1;	// 1 cycle to load instruction
-		
+	void StoreInstruction::absoluteHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Read address from next two bytes (lsb first)
-		Word address = mem->readWord(cycles, state->incPC());
-		state->incPC();
+		Word address = cpu->readPCWord(cycles);
+		
 
 		// If using an indexed mode, apply the index to the address
 		if (opCode == INS_STA_ABSX.opcode || opCode == INS_STA_ABSY.opcode) {
-			address += (opCode == INS_STA_ABSX ? state->X : state->Y);
+			address += (opCode == INS_STA_ABSX ? cpu->regValue(cycles, CPU::REGISTER_X) : cpu->regValue(cycles, CPU::REGISTER_Y));
 			cycles++;	//Index mode always uses 5 cycles
 		}
 	
 		// Get the value from the source register
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, state);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Write it to memory
-		mem->writeByte(cycles, address, value);
-
-		return cycles;
+		cpu->writeByte(cycles, address, value);
 	};
 
 	/** Zero Page instructions */
-	u8 StoreInstruction::zeroPageHandler(Memory* mem, CPUState* state, Byte opCode) {
-		u8 cycles = 1;	// 1 cycle to load instruction
-
+	void StoreInstruction::zeroPageHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Read zero page address from next byte
-		Word address = 0x00FF & mem->readByte(cycles, state->incPC());
+		Word address = 0x00FF & cpu->readPCByte(cycles);
 
 		// Get the value from the source register
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, state);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Store in memory
-		mem->writeByte(cycles, address, value);
-
-		return cycles;
+		cpu->writeByte(cycles, address, value);
 	}
 
 	/** Zero Page Indexed instructions */
-	u8 StoreInstruction::zeroPageIndexedHandler(Memory* mem, CPUState* state, Byte opCode) {
-		u8 cycles = 1;
-
+	void StoreInstruction::zeroPageIndexedHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Base address
-		Word address = mem->readByte(cycles, state->incPC());
+		Word address = 0x00FF & cpu->readPCByte(cycles);
 
 		// Add Index
 		switch (opCode) {
 		case INS_STA_ZPX.opcode:
 		case INS_STY_ZPX.opcode:
-			address += state->X;
+			address += cpu->regValue(cycles, CPU::REGISTER_X);
 			cycles++;
 			break;
 		case INS_STX_ZPY.opcode:
-			address += state->Y;
+			address += cpu->regValue(cycles, CPU::REGISTER_Y);
 			cycles++;
 			break;
 		}
 
 		// Align to zero page and get value
 		address = 0x00FF & address;
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, state);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Store value and return
-		mem->writeByte(cycles, address, value);
-		return cycles;
+		cpu->writeByte(cycles, address, value);
 	}
 
 	/** X-Indexed Zero Page Indirect instructions */
-	u8 StoreInstruction::indirectXHandler(Memory* mem, CPUState* state, Byte opCode) {
-		u8 cycles = 1;
-
+	void StoreInstruction::indirectXHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Calculate ZP Address
-		Word zpAddress = mem->readByte(cycles, state->incPC());
-		zpAddress = (zpAddress + state->X) & 0x00FF; cycles++;
+		Word zpAddress = 0x00FF & cpu->readPCByte(cycles);
+		zpAddress = (zpAddress + cpu->regValue(cycles, CPU::REGISTER_X)) & 0x00FF; cycles++;
 
 		// Calculate Target Address
-		Word targetAddress = mem->readWord(cycles, zpAddress);
-		Byte value = *InstructionUtils::getRegFromInstruction(opCode, state);
+		Word targetAddress = cpu->readWord(cycles, zpAddress);
+		Byte value = cpu->regValue(cycles, InstructionUtils::getRegFromInstruction(opCode, cpu));
 
 		// Write and save
-		mem->writeByte(cycles, targetAddress, value);
-		return cycles;
+		cpu->writeByte(cycles, targetAddress, value);
 	}
 
 	/** Zero Page Y-Indexed Indirect instructions */
-	u8 StoreInstruction::indirectYHandler(Memory* mem, CPUState* state, Byte opCode) {
-		u8 cycles = 1;
-
+	void StoreInstruction::indirectYHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Calculate ZP Address
-		Word zpAddr = mem->readByte(cycles, state->incPC());
+		Word zpAddr = 0x00FF & cpu->readPCByte(cycles);
 
 		// Caclulcate target Address
-		Word targetAddr = mem->readWord(cycles, zpAddr);
-		targetAddr = (targetAddr & 0xFF00) | ((targetAddr + state->Y) & 0x00FF); cycles++;	// Do not allow carry to affect high 8 bits
-		Byte value = state->A;
+		Word targetAddr = cpu->readWord(cycles, zpAddr);
+		targetAddr = (targetAddr & 0xFF00) | ((targetAddr + cpu->regValue(cycles, CPU::REGISTER_Y)) & 0x00FF); cycles++;	// Do not allow carry to affect high 8 bits
+		Byte value = cpu->regValue(cycles, CPU::REGISTER_A);
 
 		// Write and Save
-		mem->writeByte(cycles, targetAddr, value);
-		return cycles;
+		cpu->writeByte(cycles, targetAddr, value);
 	}
 
 	/** Add store instructions to handlers array */

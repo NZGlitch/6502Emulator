@@ -2,14 +2,35 @@
 #include <vector>
 
 namespace E6502 {
-	u8 JSR::jsrHandler(Memory* mem, CPUState* state, Byte opCode) {
-		u8 cycles = 1;				// Retreiving the instruction takes 1 cycle
-		Byte lsb = mem->readByte(cycles, state->incPC());						// Get the lsb of the target address
-		mem->writeByte(cycles, state->pushSP(), ((state->PC >> 8) & 0xFF));		// Copy the high order bits of PC to stack
-		mem->writeByte(cycles, state->pushSP(), (state->PC & 0xFF));			// Copy the low order bits of PC to stack
-		state->PC = (mem->readByte(cycles, state->incPC()) << 8) | lsb;			// Update the program counter to jump
-		cycles++;
-		return cycles;
+
+	/**
+		JSR writes PC-1 to the stack then jumps to the provided address
+		pseudo code:
+			addressLow = mem[PC++]
+			mem[SP--] = PC >> 8
+			mem[SP--] = PC & 0xFF
+			addressHigh = mem[PC++]
+			PC = targetAddress
+
+		Actual cycles of a 6502:
+			Read ADL; Increment PC
+			Buffer ADL
+			Push PCH; Decrement S
+			Push PCL; Decrement S;
+			Read ADH;
+	*/
+	void JSR::jsrHandler(CPU* cpu, u8& cycles, Byte opCode) {
+		// Read ADL
+		Word targetAddress = cpu->readPCByte(cycles);
+		
+		// Push the current program counter to the stack
+		cpu->pushPCToStack(cycles);
+
+		// Read ADH
+		targetAddress |= (cpu->readPCByte(cycles) << 8);
+
+		// Set PC
+		cpu->setPC(cycles, targetAddress);
 	};
 
 	/** Implementation of addhandlers needs to be after the struct defs */

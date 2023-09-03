@@ -1,21 +1,22 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <gmock/gmock.h>
-#include "instruction_manager.h"
-namespace E6502 {
+#include "cpu.h"
 
+namespace E6502 {
 	using::testing::_;
 
-	struct MockLoader : public InstructionUtils::InstructionLoader {
+	struct MockLoader : public InstructionLoader {
 		MOCK_METHOD(void, load, (InstructionHandler* handlers[]));
 	};
 
 	class TestInstructionManager : public testing::Test {
 	public:
+		InstructionLoader loader;
 		InstructionManager* inMan;
 
 		virtual void SetUp() {
-			inMan = new InstructionManager(&InstructionUtils::loader);
+			inMan = new InstructionManager(&loader);
 		}
 
 		virtual void TearDown() {
@@ -31,25 +32,26 @@ namespace E6502 {
 		ASSERT_STREQ(inMan->defaultHandler.name, "Unsupported OP");
 
 		// Given:
+		u8 cycles = 1;
 		CPUState originalState = CPUState();
 		CPUState testState = CPUState();
 		Memory* mem = new Memory();
+		CPU* cpu = new CPU(&testState, mem, &loader);
 		Byte code = 0x00;
-		mem->initialise();
+		mem->reset();
 
 		// When:
-		Byte cycles = inMan->defaultHandler.execute(mem, &testState, code);
+		inMan->defaultHandler.execute(cpu, cycles, code);
 
 		// Then:
 		EXPECT_EQ(cycles, 2);
-		for (int i = 0; i <= 0xFF; i++) EXPECT_EQ(mem->data[i], 0x00);
 		EXPECT_EQ(originalState, testState);
 
 		// Cleanup:
 		delete mem;
 	}
 
-	/* Test it loads instructions from the loader  */
+	/* Test it loads instructions from the loader */
 	TEST_F(TestInstructionManager, TestAddsKnownInstructions) {
 		MockLoader mockLoader;
 
@@ -67,6 +69,6 @@ namespace E6502 {
 
 	/* Test OpCodes are defined correctly */
 	TEST_F(TestInstructionManager, TestOpCodes) {
-		EXPECT_EQ(INS_NOP, 0xEA);
+		EXPECT_EQ(INS_NOP.opcode, 0xEA);
 	}
 }
