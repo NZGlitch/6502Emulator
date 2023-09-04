@@ -25,8 +25,8 @@ set (E6502LIB_INSTRUCTIONS
 	"src/instructions/instruction_utils.h"	
 	"src/instructions/load_instruction.h"
 	"src/instructions/load_instruction.cpp"
-	"src/instructions/jsr.h"
-	"src/instructions/jsr.cpp"
+	"src/instructions/jump_instruction.h"
+	"src/instructions/jump_instruction.cpp"
 	"src/instructions/store_instruction.h"
 	"src/instructions/store_instruction.cpp"
 )

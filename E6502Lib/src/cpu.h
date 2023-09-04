@@ -56,6 +56,9 @@ namespace E6502 {
 
 		/* Push the current value of the program counter to the stack */
 		void pushPCToStack(u8& cycles);
+
+		/* Pops a word from the stack */
+		Word popStackWord(u8& cycles);
 		
 		/* Set the program counter to the specified value */
 		void setPC(u8& cycles, Word address);

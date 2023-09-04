@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 #include "types.h"
-#include "instructions/jsr.h"
+#include "instructions/jump_instruction.h"
 #include "instructions/load_instruction.h"
 #include "instructions/store_instruction.h"
 #include "instructions/instruction_utils.h"
@@ -20,24 +20,29 @@ namespace E6502 {
 		Word dataSectionAddress = 0x4284;
 
 		/** Loaded at #FFFC jumps to 'program' - MUST be 4 bytes long*/
-		Byte initProgram[4] = { INS_JSR.opcode, palsb, pamsb, 0x00 };
+		Byte initProgram[4] = { INS_JMP_ABS.opcode, palsb, pamsb, 0x00 };
 
 		/* Size of program */
-		const static Word programSize = 0x16;
+		const static Word programSize = 0x1C;
 
 		/* Sample program to test */
 		Byte program[programSize] = {
 			// Test out LDA instructions by loading data into the A register
 			INS_LDX_IMM.opcode,		0x01,				// Set the X-Index register to 01
 			INS_LDY_IMM.opcode,		0x02,				// Set the y-Index register to 02
-			INS_LDA_ABS.opcode,		0x84,	0x42,		// Load the first byte from the data section (0x12)
-			INS_LDA_ABSX.opcode,	0x84,	0x42,		// Load data[x] - A = 0x34
-			INS_LDA_ABSY.opcode,	0x84,	0x42,		// Load data[y] - A = 0x56
-			INS_LDA_IMM.opcode,		0x42,				// Load 0x42 into A
 			INS_LDA_ZP.opcode,		0x02,				// load zp[02] = 0xDD into A
-			INS_LDA_ZPX.opcode,		0x08,				// load (zp+0x08)[x] - A = 0x66
-			//TODO - indirect instructions
-			INS_JSR.opcode,			palsb,	pamsb,		// GOTO 10 - infinite loop
+			INS_JMP_ABIN.opcode,	0x84,	0x42,		// Jump to the address stored in the first word in data section 0x1248
+			INS_NOP.opcode,
+			INS_NOP.opcode,
+			INS_LDA_IMM.opcode,		0x42,				// Set A to 0x42
+			INS_LDX_IMM.opcode,		0x42,				// Set X to 0x42
+			INS_LDY_IMM.opcode,		0x42,				// Set Y to 0x42
+			INS_RTS.opcode,								// Return from subroutine
+			INS_NOP.opcode,
+			INS_NOP.opcode,
+			INS_JSR.opcode,			0x3F,	pamsb,		// GOTO subroutine (puts 0x42 into all 3 registers
+			INS_LDX_ZP.opcode,		0x00,				// Read zp[0] = 0xFF into X
+			INS_JMP_ABS.opcode,		palsb,	pamsb,		// GOTO start of program
 		};
 
 		/* Size of data section */
@@ -45,7 +50,7 @@ namespace E6502 {
 
 		// Heap the progam can use for stuff
 		Byte dataSection[dataSize] = {
-			0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF		//0x0000 -> 0x0007
+			0x48, pamsb, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xFF		//0x0000 -> 0x0007
 		};
 
 		/* Size of ZP section */
@@ -79,7 +84,7 @@ namespace E6502 {
 		s8 clockSpeedMhz = 1;		// 1 instruction per microsecond
 
 
-		u8 insToExecute = 10;		// initProgram(1) + program(9) = 10
+		u8 insToExecute = 12;		// initProgram(1) + program(11) = 12
 
 		// boot routine @ 0xFFFC
 		mem->loadProgram(0xFFFC, initProgram, 4);
@@ -127,18 +132,13 @@ namespace E6502 {
 			start_time = end_time;
 		}
 
-		EXPECT_EQ(state->PC, 0x1234);	// Last instruction (JSR) sets this
-		EXPECT_EQ(state->A, 0x66);	// Last LDA instruction sets this
-		EXPECT_EQ(state->X, 0x01);
-		EXPECT_EQ(state->Y, 0x02);
+		EXPECT_EQ(state->PC, 0x1234);	// Last instruction (JMP) sets this
+		EXPECT_EQ(state->A, 0x42);		// Last subrotine instructions set this
+		EXPECT_EQ(state->X, 0xFF);		// The last LDX_ZP sets this
+		EXPECT_EQ(state->Y, 0x42);		// Last subrotine instructions set this
 
-		// Return address of stack should be programAddr + 0x11 (i.e. the last byte of the program)
-
-		//TODO reinstate once popSP() has been reimplemented
-		//Byte slsb = cpu->readByte(cyclesExecuted, state->popSP());
-		//Byte smsb = cpu->readByte(cyclesExecuted, state->popSP());
-		//Word stackAddr = (smsb << 8) | slsb;
-		//EXPECT_EQ(stackAddr, programAddress + 0x15);
+		// The stack pointer should be back at 0xFF
+		EXPECT_EQ(state->SP, 0xFF);
 
 		delete cpu;
 		delete loader;

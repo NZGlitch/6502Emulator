@@ -128,4 +128,11 @@ namespace E6502 {
 	void CPU::setPC(u8& cycles, Word address) {
 		currentState->PC = address; cycles++;
 	}
+
+	/* Pops a word from the stack */
+	Word CPU::popStackWord(u8& cycles) {
+		Word result = (*mainMemory)[0x0100 | ++currentState->SP] << 8; cycles++;	// read msb
+		result |= (*mainMemory)[0x0100 | ++currentState->SP]; cycles++;				// read lsb
+		return result;
+	}
 }
