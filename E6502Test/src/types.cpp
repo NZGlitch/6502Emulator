@@ -110,20 +110,6 @@ namespace E6502 {
 		EXPECT_EQ(state.getSP(), 0x0101);		// Stack pointer should now be at 0x0101
 	}
 
-	/* Test CPUState setFlags/getFlags */
-	TEST_F(TestTypes, TestCPUGetSetFlags) {
-		//Given:
-		CPUState state;
-		EXPECT_EQ(state.getFlags(), 0x00);
-		Byte testFlags = 0xCF;
-
-		//When:
-		state.setFlags(testFlags);
-
-		//Then:
-		EXPECT_EQ(state.getFlags(), testFlags);
-	}
-
 	/* Test CPUState reset */
 	TEST_F(TestTypes, TestCPUStateReset) {
 		// Given:
@@ -135,7 +121,7 @@ namespace E6502 {
 		state.X = 0x42;
 		state.Y = 0x42;
 
-		state.setFlags(0xFF);
+		state.PS = 0xFF;
 
 		// When:
 		state.reset();
@@ -148,6 +134,6 @@ namespace E6502 {
 		EXPECT_EQ(state.X, 0);
 		EXPECT_EQ(state.Y, 0);
 
-		EXPECT_EQ(state.getFlags(), 0);
+		EXPECT_EQ(state.PS, 0x32);
 	}
 }

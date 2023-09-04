@@ -10,18 +10,33 @@ namespace E6502 {
 
 	class TestLoadInstruction : public testing::Test {
 	public:
-		Memory memory;
-		CPUState state;
-		InstructionLoader loader;
+		Memory* memory;
+		CPUState* state;
 		CPU* cpu;
+		Byte initPS;		// Tests are expected to return state staus flags back to this before completion
 
 		virtual void SetUp() {
-			cpu = new CPU(&state, &memory, &loader);
+			initPS = rand();
+			memory = new Memory;
+			state = new CPUState;
+			cpu = new CPU(state, memory, &InstructionUtils::loader);
 			cpu->reset();
+			state->PS = initPS;
 		}
 
 		virtual void TearDown() {
+			EXPECT_EQ(state->PS, initPS);
+			delete memory;
+			delete state;
 			delete cpu;
+		}
+
+		/* Helper method checks a status flags match the what would be set by the testvalue in a load instruction 
+		 * Resets PS to initPS so the tead down test passes */
+		void testAndResetPS(Byte testValue) {
+			EXPECT_EQ(testValue == 0, state->Flag.Z);
+			EXPECT_EQ(testValue >> 7, state->Flag.N);
+			state->PS = initPS;
 		}
 
 		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
@@ -41,14 +56,15 @@ namespace E6502 {
 			u8 cyclesUsed = 1;
 
 			// Given:
-			state.PC = 0x0000;
+			state->PC = 0x0000;
 			testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x0000] = testValue;
+			(*memory)[0x0000] = testValue;
 
 			// When:
 			LoadInstruction::immediateHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
+			testAndResetPS(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, 2);
 		}
@@ -61,15 +77,16 @@ namespace E6502 {
 			u8 cyclesUsed = 1;
 
 			// Given:
-			state.PC = 0x0000;
+			state->PC = 0x0000;
 			testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x0000] = insAddress;
-			memory[insAddress] = testValue;
+			(*memory)[0x0000] = insAddress;
+			(*memory)[insAddress] = testValue;
 
 			// When:
 			LoadInstruction::zeroPageHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
+			testAndResetPS(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, 3);
 		}
@@ -84,9 +101,9 @@ namespace E6502 {
 
 			for (u8 i = 0; i < 3; i++) {
 				// Load fixtures to memory
-				state.PC = 0x0000;
-				memory[0x000] = baseAddress[i];
-				memory[targetAddress[i]] = testValue[i];
+				state->PC = 0x0000;
+				(*memory)[0x000] = baseAddress[i];
+				(*memory)[targetAddress[i]] = testValue[i];
 				u8 cyclesUsed = 1;
 
 				// Given:
@@ -97,6 +114,7 @@ namespace E6502 {
 				LoadInstruction::zeroPageIndexedHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
+				testAndResetPS(testValue[i]);
 				EXPECT_EQ(*targetReg, testValue[i]);
 				EXPECT_EQ(cyclesUsed, expected_cycles);
 			}
@@ -111,16 +129,17 @@ namespace E6502 {
 			u8 cyclesUsed = 1;
 
 			// Given:
-			state.PC = 0x0000;
+			state->PC = 0x0000;
 			Byte testValue = genTestValAndClearTargetReg(targetReg);
-			memory[0x000] = lsb;
-			memory[0x001] = msb;
-			memory[targetAddress] = testValue;
+			(*memory)[0x000] = lsb;
+			(*memory)[0x001] = msb;
+			(*memory)[targetAddress] = testValue;
 
 			// When:
 			LoadInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
+			testAndResetPS(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
@@ -133,19 +152,20 @@ namespace E6502 {
 			u8 cyclesUsed = 1;
 
 			// Load fixtures to memory
-			memory[0x000] = lsb;
-			memory[0x001] = msb;
+			(*memory)[0x000] = lsb;
+			(*memory)[0x001] = msb;
 			testValue = genTestValAndClearTargetReg(targetReg);
 
 			// Given:
-			memory[targetAddress] = testValue;
-			state.PC = 0x0000;
+			(*memory)[targetAddress] = testValue;
+			state->PC = 0x0000;
 			*indexReg = index;
 
 			// When:
 			LoadInstruction::absoluteHandler(cpu, cyclesUsed, instruction.opcode);
 
 			// Then:
+			testAndResetPS(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, expected_cycles);
 		}
@@ -157,23 +177,24 @@ namespace E6502 {
 			Byte zpBaseAddress = 0xE1;
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		//TODO Randomise?
 
-			memory[0x0000] = zpBaseAddress;
+			(*memory)[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				// Given:
 				u8 cyclesUsed = 1;
-				state.PC = 0x0000;
+				state->PC = 0x0000;
 				genTestValAndClearTargetReg(targetReg, testValues[i]);
-				memory[dataAddress[i]] = testValues[i];
+				(*memory)[dataAddress[i]] = testValues[i];
 				*indexReg = testArguments[i];
 				Byte zpAddr = zpBaseAddress + testArguments[i];
-				memory[zpAddr] = dataAddress[i] & 0x00FF;
-				memory[zpAddr + 1] = dataAddress[i] >> 8;
+				(*memory)[zpAddr] = dataAddress[i] & 0x00FF;
+				(*memory)[zpAddr + 1] = dataAddress[i] >> 8;
 
 				// When:
 				LoadInstruction::indirectHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
+				testAndResetPS(testValues[i]);
 				EXPECT_EQ(*targetReg, testValues[i]);
 				EXPECT_EQ(cyclesUsed, expectedCycles);
 			}
@@ -187,20 +208,20 @@ namespace E6502 {
 			Word dataAddress[] = { 0x5A42, 0xCC05 };		// TODO Randomise?
 			Byte cyclePageCorrection[] = { 0 , 1 };			// Add 1 to expected cycles for INDY when crossing page
 
-			memory[0x0000] = zpBaseAddress;
+			(*memory)[0x0000] = zpBaseAddress;
 
 			for (u8 i = 0; i < 2; i++) {
 				u8 testCycles = expectedCycles;
 				u8 cyclesUsed = 1;
 
 				// Given:
-				state.PC = 0x0000;
+				state->PC = 0x0000;
 				genTestValAndClearTargetReg(targetReg, testValues[i]);
-				memory[dataAddress[i]] = testValues[i];
+				(*memory)[dataAddress[i]] = testValues[i];
 				*indexReg = testArguments[i];
 				Word unIndexed = dataAddress[i] - testArguments[i];
-				memory[zpBaseAddress] = unIndexed & 0x00FF;
-				memory[zpBaseAddress + 1] = unIndexed >> 8;
+				(*memory)[zpBaseAddress] = unIndexed & 0x00FF;
+				(*memory)[zpBaseAddress + 1] = unIndexed >> 8;
 				testCycles += cyclePageCorrection[i];	// Increase cycles by 1 if crossing page
 
 				// Expected call
@@ -210,6 +231,7 @@ namespace E6502 {
 				LoadInstruction::indirectHandler(cpu, cyclesUsed, instruction.opcode);
 
 				// Then:
+				testAndResetPS(testValues[i]);
 				EXPECT_EQ(*targetReg, testValues[i]);
 				EXPECT_EQ(cyclesUsed, testCycles);
 			}
@@ -278,14 +300,14 @@ namespace E6502 {
 
 	/* Test fetchAndSaveToRegister */
 	TEST_F(TestLoadInstruction, TestfetchAndSave) {
-		Byte* registers[] = { &state.A, &state.X, &state.Y };
+		Byte* registers[] = { &state->A, &state->X, &state->Y };
 		u8 registerNames[] = { CPU::REGISTER_A, CPU::REGISTER_X, CPU::REGISTER_Y };
 		Byte testValues[] = { 0x21, 0x42, 0x84 };
 		Word testAddresses[] = { 0x1234, 0xf167, 0x0200 };
 
 		for (int i = 0; i < 3; i++) {
 			// Given
-			memory[testAddresses[i]] = testValues[i];
+			(*memory)[testAddresses[i]] = testValues[i];
 			*registers[i] = ~testValues[i];
 			u8 cycles = 0;
 
@@ -293,6 +315,7 @@ namespace E6502 {
 			LoadInstruction::fetchAndSaveToRegister(&cycles, cpu, testAddresses[i], registerNames[i]);
 
 			// Then:
+			testAndResetPS(testValues[i]);
 			EXPECT_EQ(*registers[i], testValues[i]);
 			EXPECT_EQ(cycles, 1);
 		}
@@ -303,30 +326,30 @@ namespace E6502 {
 
 	 /* Tests LD Immediate Instruction */
 	TEST_F(TestLoadInstruction, TestLoadImmediate) {
-		testImmediate(INS_LDA_IMM, &state.A, 2, "LDA_IMM");
-		testImmediate(INS_LDX_IMM, &state.X, 2, "LDX_IMM");
-		testImmediate(INS_LDY_IMM, &state.Y, 2, "LDY_IMM");
+		testImmediate(INS_LDA_IMM, &state->A, 2, "LDA_IMM");
+		testImmediate(INS_LDX_IMM, &state->X, 2, "LDX_IMM");
+		testImmediate(INS_LDY_IMM, &state->Y, 2, "LDY_IMM");
 	}
 	
 	/* Tests LD Zero Page Instruction */
 	TEST_F(TestLoadInstruction, TestLoadZeroPage) {
-		testZeroPage(INS_LDA_ZP, &state.A, 3, "LDA_ZP");
-		testZeroPage(INS_LDX_ZP, &state.X, 3, "LDX_ZP");
-		testZeroPage(INS_LDY_ZP, &state.Y, 3, "LDY_ZP");
+		testZeroPage(INS_LDA_ZP, &state->A, 3, "LDA_ZP");
+		testZeroPage(INS_LDX_ZP, &state->X, 3, "LDX_ZP");
+		testZeroPage(INS_LDY_ZP, &state->Y, 3, "LDY_ZP");
 	}
 
 	/* Tests LD Zero Page,X/Y Instruction */
 	TEST_F(TestLoadInstruction, TestLoadZeroPageX) {
-		testZeroPageIndex(INS_LDY_ZPX, &state.X, &state.Y, 4, "LDY_ZPX");
-		testZeroPageIndex(INS_LDA_ZPX, &state.X, &state.A, 4, "LDA_ZPX");
-		testZeroPageIndex(INS_LDX_ZPY, &state.Y, &state.X, 4, "LDX_ZPY");
+		testZeroPageIndex(INS_LDY_ZPX, &state->X, &state->Y, 4, "LDY_ZPX");
+		testZeroPageIndex(INS_LDA_ZPX, &state->X, &state->A, 4, "LDA_ZPX");
+		testZeroPageIndex(INS_LDX_ZPY, &state->Y, &state->X, 4, "LDX_ZPY");
 	}
 
 	/* Tests LD Absolute Instruction */
 	TEST_F(TestLoadInstruction, TestLoadAbsolute) {
-		testAbsolute(INS_LDA_ABS, &state.A, 4, "LDA_ABS");
-		testAbsolute(INS_LDX_ABS, &state.X, 4, "LDX_ABS");
-		testAbsolute(INS_LDY_ABS, &state.Y, 4, "LDY_ABS");
+		testAbsolute(INS_LDA_ABS, &state->A, 4, "LDA_ABS");
+		testAbsolute(INS_LDX_ABS, &state->X, 4, "LDX_ABS");
+		testAbsolute(INS_LDY_ABS, &state->Y, 4, "LDY_ABS");
 	}
 
 	/* Tests LD Absolute,X/Y Instruction */
@@ -337,32 +360,32 @@ namespace E6502 {
 		u8 cyclesUsed = 0;
 
 		index = 0x10;
-		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, &state.X, &state.A, 4, "LDA ABSX (no overflow or page)");
-		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, &state.Y, &state.A, 4, "LDA ABSY (no overflow or page)");
-		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, &state.Y, &state.X, 4, "LDX ABSY (no overflow or page)");
-		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, &state.X, &state.Y, 4, "LDY ABSX (no overflow or page)");
+		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, &state->X, &state->A, 4, "LDA ABSX (no overflow or page)");
+		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, &state->Y, &state->A, 4, "LDA ABSY (no overflow or page)");
+		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, &state->Y, &state->X, 4, "LDX ABSY (no overflow or page)");
+		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, &state->X, &state->Y, 4, "LDY ABSX (no overflow or page)");
 
 		index = 0xA5;
-		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, &state.X, &state.A, 5, "LDA ABSX (overflow)");
-		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, &state.Y, &state.A, 5, "LDA ABSY (overflow)");
-		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, &state.Y, &state.X, 5, "LDX ABSY (overflow)");
-		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, &state.X, &state.Y, 5, "LDY ABSX (overflow)");
+		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, &state->X, &state->A, 5, "LDA ABSX (overflow)");
+		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, &state->Y, &state->A, 5, "LDA ABSY (overflow)");
+		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, &state->Y, &state->X, 5, "LDX ABSY (overflow)");
+		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, &state->X, &state->Y, 5, "LDY ABSX (overflow)");
 
 		msb = 0x37;
 		index = 0xA1;
-		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, &state.X, &state.A, 5, "LDA ABSX (page boundry)");
-		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, &state.Y, &state.A, 5, "LDA ABSY (page boundry)");
-		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, &state.Y, &state.X, 5, "LDX ABSY (page boundry)");
-		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, &state.X, &state.Y, 5, "LDY ABSX (page boundry)");
+		absIndexedHelper(INS_LDA_ABSX, lsb, msb, index, &state->X, &state->A, 5, "LDA ABSX (page boundry)");
+		absIndexedHelper(INS_LDA_ABSY, lsb, msb, index, &state->Y, &state->A, 5, "LDA ABSY (page boundry)");
+		absIndexedHelper(INS_LDX_ABSY, lsb, msb, index, &state->Y, &state->X, 5, "LDX ABSY (page boundry)");
+		absIndexedHelper(INS_LDY_ABSX, lsb, msb, index, &state->X, &state->Y, 5, "LDY ABSX (page boundry)");
 	}
 
 	/* Tests LD Indeirect,X Instruction */
 	TEST_F(TestLoadInstruction, TestLoadIndirectX) {
-		testIndirectXIndex(INS_LDA_INDX, &state.X, &state.A, 6, "LDA_INDX");
+		testIndirectXIndex(INS_LDA_INDX, &state->X, &state->A, 6, "LDA_INDX");
 	}
 
 	/* Tests LD Indeirect,Y Instruction */
 	TEST_F(TestLoadInstruction, TestLoadIndirectY) {
-		testIndirectYIndex(INS_LDA_INDY, &state.Y, &state.A, 5, "LDA_INDY");
+		testIndirectYIndex(INS_LDA_INDY, &state->Y, &state->A, 5, "LDA_INDY");
 	}
 }

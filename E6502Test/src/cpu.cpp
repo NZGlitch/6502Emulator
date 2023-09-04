@@ -49,14 +49,14 @@ namespace E6502 {
 			Byte cycles = 0;
 
 			// Given:
-			state->setFlags(initFlags);
+			state->PS = initFlags;
 
 			// When:
 			cpu->saveToRegAndFlag(cycles, targetReg, testValue);
 
 			// Then:
 			EXPECT_EQ(cycles, 0);	//Currently this appears to be a free operation
-			EXPECT_EQ(state->getFlags(), expectFlags);
+			EXPECT_EQ(state->PS, expectFlags);
 			state->reset();
 		}
 	};
@@ -85,16 +85,15 @@ namespace E6502 {
 	TEST_F(TestCPU, TestCPUSetAndGetFlags) {
 		// Given:
 		cpu->reset();
-		Byte flagMask = 0b11011111;		// Bit 5 is never set
 
 		for (u16 i = 0x00; i <= 0x100; i++) {
 			// When:
 			cpu->setFlags(i & 0xFF);
 
 			// Then:
-			EXPECT_EQ(i & flagMask & 0xFF, cpu->getFlags());
-			u8 flags = (state->C << 0) | (state->Z << 1) | (state->I << 2) | (state->D << 3) | (state->B << 4) | (state->O << 6) | (state->N << 7);
-			EXPECT_EQ(i & flagMask & 0xFF, flags);
+			EXPECT_EQ(i & 0xFF, cpu->getFlags());
+			u8 flags = (state->Flag.C << 0) | (state->Flag.Z << 1) | (state->Flag.I << 2) | (state->Flag.D << 3) | (state->Flag.B << 4) | (state->Flag.Unused << 5) | (state->Flag.O << 6) | (state->Flag.N << 7);
+			EXPECT_EQ(i & 0xFF, flags);
 		}
 	};
 
@@ -231,9 +230,9 @@ namespace E6502 {
 	/* Tests setFlags when N and Z flags 0 */
 	TEST_F(TestCPU, TestRegisterSaveAndSetFlags00) {
 		// No Flags (unset exiting)
-		testFlags(CPU::REGISTER_A, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_A) NO ZN - change");
-		testFlags(CPU::REGISTER_X, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_X) NO ZN - change");
-		testFlags(CPU::REGISTER_Y, 0xFF, 0x78, 0x5D, "setFlags(REGISTER_Y) NO ZN - change");
+		testFlags(CPU::REGISTER_A, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_A) NO ZN - change");
+		testFlags(CPU::REGISTER_X, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_X) NO ZN - change");
+		testFlags(CPU::REGISTER_Y, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_Y) NO ZN - change");
 
 		// No Flags (Unchange existing)
 		testFlags(CPU::REGISTER_A, 0x00, 0x78, 0x00, "setFlags(REGISTER_A) NO ZN - no change");
