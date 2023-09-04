@@ -24,19 +24,12 @@ namespace E6502 {
 
 	/* Helper method, allows setting all flags at once */
 	void CPU::setFlags(u8 flags) {
-		currentState->C = (flags & 0b00000001) > 0;
-		currentState->Z = (flags & 0b00000010) > 1;
-		currentState->I = (flags & 0b00000100) > 2;
-		currentState->D = (flags & 0b00001000) > 3;
-		currentState->B = (flags & 0b00010000) > 4;
-		currentState->O = (flags & 0b01000000) > 6;
-		currentState->N = (flags & 0b10000000) > 7;
+		currentState->PS = flags;
 	}
 
 	/* Allows getting all flags in a single byte */
 	u8 CPU::getFlags() {
-		return ((currentState->C << 0) | (currentState->Z << 1) | (currentState->I << 2) |
-			(currentState->D << 3) | (currentState->B << 4) | (currentState->O << 6) | (currentState->N << 7));
+		return currentState->PS;
 	}
 
 	/* Execute <numInstructions> instructions. Return the number of cycles used. */
@@ -92,19 +85,17 @@ namespace E6502 {
 
 	/** Saves the given value to the target register address and sets Z and N status flags based on the value, uses 0 cycles */
 	void CPU::saveToRegAndFlag(u8& cycles, u8 reg, Byte value) {
-		Byte* regAddr = &currentState->A;
 		switch (reg) {
-			case REGISTER_A: break;
-			case REGISTER_X: regAddr = &currentState->X; break;
-			case REGISTER_Y: regAddr = &currentState->Y; break;
-			default: {
-				fprintf(stderr, "Invalid register selected for CPU::saveToRegAndFlag %d", reg);
-				return;
-			}
+			case REGISTER_A: currentState->A = value; break;
+			case REGISTER_X: currentState->X = value; break;
+			case REGISTER_Y: currentState->Y = value; break;
+				default: {
+					fprintf(stderr, "Invalid register selected for CPU::saveToRegAndFlag %d", reg);
+					return;
+				}
 		}
-		(*regAddr) = value;
-		currentState->Z = (*regAddr) == 0x00;
-		currentState->N = ((*regAddr) & 0x80) > 0;
+		currentState->Flag.Z = value == 0x00;
+		currentState->Flag.N = value >> 7;
 	}
 
 	/** gets the value of the specified register (returns 0xFF if invalid register specified), uses 0 cycles */

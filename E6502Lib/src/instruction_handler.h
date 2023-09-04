@@ -1,5 +1,6 @@
 #pragma once
 #include "types.h"
+#include <string>
 
 namespace E6502 {
 
@@ -18,6 +19,10 @@ namespace E6502 {
 
 	inline bool operator==(const Byte& lhs, const InstructionHandler& rhs) {
 		return lhs == rhs.opcode;
+	}
+
+	inline bool operator==(const InstructionHandler& lhs, const InstructionHandler& rhs) {
+		return lhs.opcode == rhs.opcode && lhs.isLegal == rhs.isLegal && strcmp(lhs.name, rhs.name) == 0 && lhs.execute == rhs.execute;
 	}
 
 	struct InstructionLoader {
