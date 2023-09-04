@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 #include "types.h"
-#include "instructions/jsr.h"
+#include "jump_instruction.h"
 #include "instructions/load_instruction.h"
 #include "instructions/store_instruction.h"
 #include "instructions/instruction_utils.h"

@@ -1,4 +1,4 @@
-#include "jsr.h"
+#include "jump_instruction.h"
 #include <vector>
 
 namespace E6502 {
@@ -19,7 +19,7 @@ namespace E6502 {
 			Push PCL; Decrement S;
 			Read ADH;
 	*/
-	void JSR::jsrHandler(CPU* cpu, u8& cycles, Byte opCode) {
+	void Jump::jsrHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Read ADL
 		Word targetAddress = cpu->readPCByte(cycles);
 		
@@ -34,7 +34,12 @@ namespace E6502 {
 	};
 
 	/** Implementation of addhandlers needs to be after the struct defs */
-	void JSR::addHandlers(InstructionHandler* handlers[]) {
-		handlers[INS_JSR.opcode] = &INS_JSR;
+	void Jump::addHandlers(InstructionHandler* handlers[]) {
+		for (InstructionHandler handler : JUMP_INSTRUCTIONS) {
+			handlers[handler.opcode] = new InstructionHandler{
+				handler.opcode, handler.isLegal, handler.name, handler.execute
+			};
+			return;
+		}
 	}
 }

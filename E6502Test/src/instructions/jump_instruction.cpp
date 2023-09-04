@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 #include "instruction_utils.h"
-#include "jsr.h"
+#include "jump_instruction.h"
 
 namespace E6502 {
 
@@ -16,7 +16,15 @@ namespace E6502 {
 
 	/* Test correct OpCodes */
 	TEST_F(TestJSRInstruction, TestInstructionDefs) {
+		// JSR Opcode
 		EXPECT_EQ(INS_JSR.opcode, 0x20);
+
+		// JMP opcodes
+		EXPECT_EQ(INS_JMP_ABS.opcode, 0x4C);
+		EXPECT_EQ(INS_JMP_ABIN.opcode, 0x6C);
+
+		// RTS opode
+		EXPECT_EQ(INS_RTS.opcode, 0x60);
 	}
 
 	/* Test addHandlers func adds JSR handler */
@@ -25,10 +33,17 @@ namespace E6502 {
 		InstructionHandler* handlers[0x100] = { nullptr };
 
 		// When:
-		JSR::addHandlers(handlers);
+		Jump::addHandlers(handlers);
 
 		// Then: For the JSR instruction, Expect *handlers[opcode] to point to a handler with the same opcode
 		EXPECT_EQ(handlers[INS_JSR.opcode]->opcode, INS_JSR.opcode);
+
+		// Then: For the JMP instruction, Expect *handlers[opcode] to point to a handler with the same opcode
+		EXPECT_EQ(handlers[INS_JMP_ABS.opcode]->opcode, INS_JMP_ABS.opcode);
+		EXPECT_EQ(handlers[INS_JMP_ABIN.opcode]->opcode, INS_JMP_ABIN.opcode);
+
+		// Then: For the JSR instruction, Expect *handlers[opcode] to point to a handler with the same opcode
+		EXPECT_EQ(handlers[INS_RTS.opcode]->opcode, INS_RTS.opcode);
 	}
 
 	/*******************************
@@ -76,7 +91,7 @@ namespace E6502 {
 		memory[startPC + 1] = msb;
 
 		// When:
-		JSR::jsrHandler(&cpu, cyclesUsed, INS_JSR.opcode);
+		Jump::jsrHandler(&cpu, cyclesUsed, INS_JSR.opcode);
 
 		// Then:
 		EXPECT_EQ(state.PC, (msb << 8) | lsb);				//The PC should be pointed at the target address
@@ -84,5 +99,17 @@ namespace E6502 {
 		EXPECT_EQ(memory[0x0100 | initialSP - 1], 0x12);	// mem[0x0100 + stackInit - 1] == msbPC	High order bits of original PC+2
 		EXPECT_EQ(state.SP, (initialSP - 2));				// SP should decrement by 2
 		EXPECT_EQ(cyclesUsed, 6);
+	}
+
+	/* Test JMP Absolute execution */
+	TEST_F(TestJSRInstruction, TestJMPPAbsolute) {
+	}
+
+	/* Test JMP Absolute Indirect execution */
+	TEST_F(TestJSRInstruction, TestJMPAbsIndirect) {
+	}
+
+	/* Test RTS Implied execution */
+	TEST_F(TestJSRInstruction, TestRTSImplied) {
 	}
 }

@@ -1,6 +1,6 @@
 #include <gmock/gmock.h>
 #include "instructions/instruction_utils.h"
-#include "instructions/jsr.h"
+#include "instructions/jump_instruction.h"
 #include "instructions/load_instruction.h"
 #include "instructions/store_instruction.h"
 
@@ -49,11 +49,12 @@ namespace E6502 {
 		// When:
 		InstructionUtils::loader.load(handlers);
 
-		// Then (JSR):
-		InstructionHandler& handler = INS_JSR;
-		Byte opcode = handler.opcode;
-		ASSERT_FALSE(handlers[opcode] == nullptr);
-		EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		// Then (JumpInstruction):
+		for (const InstructionHandler& handler : JUMP_INSTRUCTIONS) {
+			Byte opcode = handler.opcode;
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		}
 
 		// Then (LoadInstruction):
 		for (const InstructionHandler& handler : LOAD_INSTRUCTIONS) {

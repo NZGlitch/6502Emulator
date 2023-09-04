@@ -1,5 +1,5 @@
 #pragma once
-#include "jsr.h"
+#include "jump_instruction.h"
 #include "load_instruction.h"
 #include "store_instruction.h"
 
@@ -12,7 +12,7 @@ namespace E6502 {
 			
 			/** Adds all known insturctions to the given handler array */
 			void load(InstructionHandler* handlers[]) override {
-				JSR::addHandlers(handlers);
+				Jump::addHandlers(handlers);
 				LoadInstruction::addHandlers(handlers);
 				StoreInstruction::addHandlers(handlers);
 			}
