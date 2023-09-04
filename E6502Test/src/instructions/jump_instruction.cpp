@@ -7,10 +7,17 @@ namespace E6502 {
 	class TestJSRInstruction : public testing::Test {
 	public:
 
+		CPUState state;
+		Memory memory;
+		InstructionUtils::Loader loader = InstructionUtils::loader;
+		CPU* cpu;
+
 		virtual void SetUp() {
+			cpu = new CPU(&state, &memory, &loader);
 		}
 
 		virtual void TearDown() {
+			delete cpu;
 		}
 	};
 
@@ -52,12 +59,6 @@ namespace E6502 {
 
 	/* Test JSR execution */
 	TEST_F(TestJSRInstruction, TestJSRAbsolute) {
-		// Prep
-		CPUState state;
-		Memory memory;
-		InstructionUtils::Loader loader;
-		CPU cpu(&state, &memory, &loader);
-
 		// Fixtures
 		Byte lsb = 0x21;								//TODO - maybe randomise?
 		Byte msb = 0x43;								//TODO - maybe randomise?
@@ -91,7 +92,7 @@ namespace E6502 {
 		memory[startPC + 1] = msb;
 
 		// When:
-		Jump::jsrHandler(&cpu, cyclesUsed, INS_JSR.opcode);
+		Jump::jsrHandler(cpu, cyclesUsed, INS_JSR.opcode);
 
 		// Then:
 		EXPECT_EQ(state.PC, (msb << 8) | lsb);				//The PC should be pointed at the target address
@@ -103,13 +104,56 @@ namespace E6502 {
 
 	/* Test JMP Absolute execution */
 	TEST_F(TestJSRInstruction, TestJMPPAbsolute) {
+		// Given:
+		state.PC = 0x9A1C;
+		memory[0x9A1C] = INS_JMP_ABS.opcode;
+		memory[0x9A1D] = 0x42;
+		memory[0x9A1E] = 0x81;
+		Byte expectedCycles = 3;
+		
+		// When:
+		Byte cycles = cpu->execute(1);
+
+		// Then:
+		EXPECT_EQ(state.PC, 0x8142);
+		EXPECT_EQ(cycles, expectedCycles);
 	}
 
 	/* Test JMP Absolute Indirect execution */
 	TEST_F(TestJSRInstruction, TestJMPAbsIndirect) {
+		// Given:
+		state.PC = 0x9A1C;
+		memory[0x9A1C] = INS_JMP_ABIN.opcode;
+		memory[0x9A1D] = 0x42;
+		memory[0x9A1E] = 0x81;	// -> address 0x8142 points to the target address
+		memory[0x8142] = 0x13;
+		memory[0x8143] = 0xBF;	// -> target address of 0xBF13
+		Byte expectedCycles = 5;
+
+		// When:
+		Byte cycles = cpu->execute(1);
+
+		// Then:
+		EXPECT_EQ(state.PC, 0xBF13);
+		EXPECT_EQ(cycles, expectedCycles);
 	}
 
 	/* Test RTS Implied execution */
 	TEST_F(TestJSRInstruction, TestRTSImplied) {
+		// Given:
+		state.PC = 0x5241;
+		memory[0x5241] = INS_RTS.opcode;
+		memory[0x1FF] = 0xAB;
+		memory[0x1FE] = 0xCD;
+		state.SP = 0x1FD;
+		Byte expectedCycles = 6;
+
+		// When:
+		Byte cycles = cpu->execute(1);
+
+		// Then:
+		EXPECT_EQ(state.PC, 0xCDAC);		// Address on stack + 1
+		EXPECT_EQ(state.SP, 0xFF);			// Stack incremented 2
+		EXPECT_EQ(cycles, expectedCycles);
 	}
 }

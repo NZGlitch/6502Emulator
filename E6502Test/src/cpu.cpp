@@ -310,6 +310,24 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 2);
 	}
 
+	/* Test popStackWord - should work well with pushPCToStack and pushWordToStack */
+	TEST_F(TestCPU, TestpopStackWord) {
+		u8 cycles = 0;
+		// Given:
+		state->SP = 0xAB;
+		state->PC = 0x8765;
+		cpu->pushPCToStack(cycles);
+		cycles = 0;
+
+		// When
+		Word result = cpu->popStackWord(cycles);
+
+		// Then:
+		EXPECT_EQ(cycles, 2);
+		EXPECT_EQ(state->SP, 0xAB);
+		EXPECT_EQ(result, 0x8765);
+	}
+
 	/* Test setPC */
 	TEST_F(TestCPU, TestsetPC) {
 		// Given:
