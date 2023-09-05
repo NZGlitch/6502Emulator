@@ -1,5 +1,6 @@
 #pragma once
 #include <stdio.h>
+#include <vector>
 
 // TODO -> Move InstructionHandler, inHandlrFn, Memory and CPUState into new files
 namespace E6502 {
@@ -62,5 +63,11 @@ namespace E6502 {
 				A == other.A && X == other.X && Y == other.Y &&
 				PS == other.PS);
 		}
+	};
+
+	struct Program {
+		Word loadAddress = 0x8000;
+		Word size = 0;
+		std::vector<Byte> bytes;
 	};
 }

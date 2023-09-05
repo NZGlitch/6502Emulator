@@ -17,6 +17,8 @@ set (E6502LIB_SOURCES
 	"src/cpu.cpp"
 	"src/instruction_manager.h"
 	"src/instruction_manager.cpp"
+	"src/system.h"
+	"src/system.cpp"
 	)
 
 set (E6502LIB_INSTRUCTIONS

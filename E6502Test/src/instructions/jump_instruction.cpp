@@ -30,10 +30,6 @@ namespace E6502 {
 		EXPECT_EQ(*handlers[0x60], INS_RTS);
 	}
 
-	/*******************************
-	 ***     Execution tests     ***
-	 *******************************/
-
 	/* Test JSR execution */
 	TEST_F(TestJSRInstruction, TestJSRAbsolute) {
 		// Given: 

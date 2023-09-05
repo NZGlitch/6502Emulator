@@ -19,7 +19,7 @@ namespace E6502 {
 		static void addHandlers(InstructionHandler* handlers[]);
 	};
 
-	/** JSR Instruction Code */
+	/** JSR, JMP, RTS Instruction Definitions */
 	constexpr static InstructionHandler INS_JSR = { 0x20, true, "JSR - Jump to Subroutine [Absolute]", Jump::jsrHandler };
 	constexpr static InstructionHandler INS_JMP_ABS = { 0x4C, true, "JMP - Jump [Absolute]", Jump::jmpHandler };
 	constexpr static InstructionHandler INS_JMP_ABIN = { 0x6C, true, "JMP - Jump [Absolute Indirect]", Jump::jmpHandler };
