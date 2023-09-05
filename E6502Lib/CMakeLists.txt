@@ -36,8 +36,8 @@ set (E6502LIB_INSTRUCTIONS
 source_group("src" FILES ${E6502LIB_SOURCES})
 source_group("instructions" FILES ${E6502LIB_INSTRUCTIONS})
 
-add_library( E6502Lib ${E6502LIB_SOURCES} "src/system.h" "src/system.cpp")
-add_library( E6502Instruction ${E6502LIB_INSTRUCTIONS} "src/system.h" "src/system.cpp")
+add_library( E6502Lib ${E6502LIB_SOURCES})
+add_library( E6502Instruction ${E6502LIB_INSTRUCTIONS})
 
 target_include_directories ( E6502Lib PUBLIC "${PROJECT_SOURCE_DIR}/src")
 target_include_directories ( E6502Instruction PUBLIC "${PROJECT_SOURCE_DIR}/src/instructions")
