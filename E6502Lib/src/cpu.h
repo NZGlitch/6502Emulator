@@ -53,7 +53,7 @@ namespace E6502 {
 	};
 
 	
-	/* This represents CPU with additional methods for emulation management - should not be used by isntructions */
+	/* This represents CPU with additional methods for emulation management - should not be used by instructions */
 	class CPUInternal : public CPU {
 
 	private:

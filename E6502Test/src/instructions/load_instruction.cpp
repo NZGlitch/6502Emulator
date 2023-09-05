@@ -7,8 +7,7 @@ namespace E6502 {
 	class TestLoadInstruction : public TestInstruction {
 	public:
 
-		/* Helper method checks a status flags match the what would be set by the testvalue in a load instruction 
-		 * Resets PS to initPS so the tead down test passes */
+		/* Checks a status flags match testalue and Resets PS to initPS so the tear down test passes */
 		void testAndResetPS(Byte testValue) {
 			EXPECT_EQ(testValue == 0, state->Flag.Z);
 			EXPECT_EQ(testValue >> 7, state->Flag.N);
@@ -225,7 +224,7 @@ namespace E6502 {
 		}
 	};
 
-	/* Test addHandlers function */
+	/* Test addHandlers function and instruction opcodes */
 	TEST_F(TestLoadInstruction, TestLDAaddHandlers) {
 		// Given:
 		InstructionHandler* handlers[0x100] = { nullptr };
