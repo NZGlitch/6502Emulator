@@ -103,8 +103,8 @@ namespace E6502 {
 		auto time = end_time - start_time;
 
 		while (insToExecute > 0) {
-			// Execute up to 5 instructions at a time (1 by 1 is just a little to slow as this includes all the overhead in the while loop)
-			u8 numExec = (insToExecute < 5 ? insToExecute : 5);
+			// Execute up to 10 instructions at a time (1 by 1 is just a little to slow as this includes all the overhead in the while loop)
+			u8 numExec = (insToExecute < 10 ? insToExecute : 10);
 			cyclesExecuted = cpu->execute(numExec);
 
 			// Calculate delay if required
