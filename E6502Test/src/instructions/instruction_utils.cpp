@@ -19,7 +19,7 @@ namespace E6502 {
 			Memory* memory = new Memory;
 			CPUState* state = new CPUState;
 			InstructionLoader* loader = new InstructionUtils::Loader;
-			CPU* cpu = new CPU(state, memory, loader);
+			CPUInternal* cpu = new CPUInternal(state, memory, loader);
 
 			u8 testRegs[] = { CPU::REGISTER_Y, CPU::REGISTER_A, CPU::REGISTER_X };		// Maps opcodes 0x00->Y, 0x01->A, 0x02->X
 

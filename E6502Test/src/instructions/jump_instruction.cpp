@@ -38,7 +38,7 @@ namespace E6502 {
 	TEST_F(TestJSRInstruction, TestJSRAbsolute) {
 		// Given: 
 		Byte initialSP = state->SP;
-		(*memory)[programSpace] = INS_JSR.opcode;
+		(*memory)[programSpace]		= INS_JSR.opcode;
 		(*memory)[programSpace + 1] = addressSpace & 0xFF;
 		(*memory)[programSpace + 2] = addressSpace >> 8;
 
@@ -46,14 +46,12 @@ namespace E6502 {
 		u8 cycles = cpu->execute(1);
 
 		// Then:
-		Word sp1 = 0x0100 | initialSP;
-		Word sp2 = 0x0100 | (initialSP - 1);
-
 		EXPECT_EQ(state->PC, addressSpace);					// The PC should be pointed at the target address
-		EXPECT_EQ((*memory)[sp1], programSpace+2 & 0xFF);	// First stack value should be LSB of original PC + 2
-		EXPECT_EQ((*memory)[sp2], programSpace+2 >> 8);		// Second stack alue should be MSB of original PC + 2
 		EXPECT_EQ(state->SP, (initialSP - 2));				// SP should decrement by 2
 		EXPECT_EQ(cycles, 6);
+
+		Word stackAddr = (cpu->popByteFromStack() << 8) | cpu->popByteFromStack();
+		EXPECT_EQ(stackAddr, programSpace+2);	// Stack should contain original PC + 2
 	}
 
 	/* Test JMP Absolute execution */

@@ -1,4 +1,4 @@
-#include <gmock/gmock.h>
+﻿#include <gmock/gmock.h>
 #include "types.h"
 #include "instructions/jump_instruction.h"
 #include "instructions/load_instruction.h"
@@ -76,9 +76,9 @@ namespace E6502 {
 		Memory* mem = new Memory();
 		CPUState* state = new CPUState;
 		InstructionLoader* loader = new InstructionUtils::Loader;
-		CPU* cpu = new CPU(state, mem, loader);
+		CPUInternal* cpu = new CPUInternal(state, mem, loader);
 		cpu->reset();
-		u8 cyclesExecuted = 0;
+		auto cyclesExecuted = 0;
 
 		// Clock stuff
 		s8 clockSpeedMhz = 1;		// 1 instruction per microsecond
@@ -103,21 +103,18 @@ namespace E6502 {
 		auto time = end_time - start_time;
 
 		while (insToExecute > 0) {
-			// Execute One instruction
-			u8 numExec = (insToExecute < 20 ? insToExecute : 50);	//20 at a time?
+			// Execute up to 10 instructions at a time (1 by 1 is just a little to slow as this includes all the overhead in the while loop)
+			u8 numExec = (insToExecute < 10 ? insToExecute : 10);
 			cyclesExecuted = cpu->execute(numExec);
 
 			// Calculate delay if required
-			s8 timeToTake = cyclesExecuted * clockSpeedMhz;
+			auto timeToTake = cyclesExecuted * clockSpeedMhz;
 			end_time = std::chrono::high_resolution_clock::now();
 			auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
 
-			if (elapsed > timeToTake) {
-				// Took too long
-				// printf("%d cycles took %d microseconds to elapse - too long!\n", cyclesExecuted, elapsed);
-			}
+			if (elapsed > timeToTake)	// Too long, test failed.
+				EXPECT_FALSE(true) << cyclesExecuted << " cycles took " << elapsed << " microseconds to execute, should have been less than " << timeToTake << " microseconds";
 			else {
-				// printf("%d cycles took %d microseconds to elapse - sleeping...\n", cyclesExecuted, elapsed);
 				// Sleep 1us at a time until required time is taken
 				while (elapsed < timeToTake) {
 					std::this_thread::sleep_for(std::chrono::microseconds(1));

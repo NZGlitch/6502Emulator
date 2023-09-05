@@ -28,7 +28,7 @@ namespace E6502 {
 		// Access to CPU and internals
 		CPUState* state;
 		Memory* memory;
-		CPU* cpu;
+		CPUInternal* cpu;
 
 		// Used to enforce flag checking on all tests
 		Byte initPS;
@@ -42,7 +42,7 @@ namespace E6502 {
 			// Setup objects
 			memory = new Memory();
 			state = new CPUState;
-			cpu = new CPU(state, memory, &InstructionUtils::loader);
+			cpu = new CPUInternal(state, memory, &InstructionUtils::loader);
 			cpu->reset();
 
 			// Initialise flags
