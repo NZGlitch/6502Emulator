@@ -9,14 +9,14 @@ namespace E6502 {
 
 		CPUState* state;
 		Memory* memory;
-		CPU* cpu;
+		CPUInternal* cpu;
 		Byte initPS = 0x00;
 
 		virtual void SetUp() {
 			initPS = rand();
 			state = new CPUState;
 			memory = new Memory;
-			cpu = new CPU(state, memory, &InstructionUtils::loader);
+			cpu = new CPUInternal(state, memory, &InstructionUtils::loader);
 			cpu->reset();
 			state->PS = initPS;
 		}

@@ -22,7 +22,7 @@ namespace E6502 {
 		CPUState* state; 
 		Memory* memory; 
 		InstructionLoader loader;
-		CPU* cpu;
+		CPUInternal* cpu;
 
 		TestCPU() {
 			state = new CPUState;
@@ -36,7 +36,7 @@ namespace E6502 {
 		}
 
 		virtual void SetUp() {
-			cpu = new CPU(state, memory, &loader);
+			cpu = new CPUInternal(state, memory, &loader);
 		}
 
 		virtual void TearDown() {
@@ -66,7 +66,7 @@ namespace E6502 {
 		// Given:
 		MockMem* mMem = new MockMem;
 		MockState* mState = new MockState;
-		CPU* testCPU = new CPU(mState, mMem, &loader);
+		CPUInternal* testCPU = new CPUInternal(mState, mMem, &loader);
 
 		// Memory is initialised
 		EXPECT_CALL(*mMem, reset()).Times(1);
@@ -339,5 +339,19 @@ namespace E6502 {
 		// Then:
 		EXPECT_EQ(state->PC, 0x9876);
 		EXPECT_EQ(cycles, 1);
+	}
+
+	/* Test popByteFromStack */
+	TEST_F(TestCPU, popByteFromStack) {
+		// Given:
+		state->SP = 0x34;
+		(*memory)[0x0135] = 0x42;
+
+		// When:
+		Byte result = cpu->popByteFromStack();
+
+		// Then:
+		EXPECT_EQ(state->SP, 0x35);
+		EXPECT_EQ(result, 0x42);
 	}
 }

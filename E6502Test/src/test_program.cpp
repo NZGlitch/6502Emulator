@@ -76,7 +76,7 @@ namespace E6502 {
 		Memory* mem = new Memory();
 		CPUState* state = new CPUState;
 		InstructionLoader* loader = new InstructionUtils::Loader;
-		CPU* cpu = new CPU(state, mem, loader);
+		CPUInternal* cpu = new CPUInternal(state, mem, loader);
 		cpu->reset();
 		auto cyclesExecuted = 0;
 

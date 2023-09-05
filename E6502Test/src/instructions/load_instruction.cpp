@@ -12,14 +12,14 @@ namespace E6502 {
 	public:
 		Memory* memory;
 		CPUState* state;
-		CPU* cpu;
+		CPUInternal* cpu;
 		Byte initPS;		// Tests are expected to return state staus flags back to this before completion
 
 		virtual void SetUp() {
 			initPS = rand();
 			memory = new Memory;
 			state = new CPUState;
-			cpu = new CPU(state, memory, &InstructionUtils::loader);
+			cpu = new CPUInternal(state, memory, &InstructionUtils::loader);
 			cpu->reset();
 			state->PS = initPS;
 		}

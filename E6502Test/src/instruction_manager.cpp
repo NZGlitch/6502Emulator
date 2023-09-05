@@ -36,7 +36,7 @@ namespace E6502 {
 		CPUState originalState = CPUState();
 		CPUState testState = CPUState();
 		Memory* mem = new Memory();
-		CPU* cpu = new CPU(&testState, mem, &loader);
+		CPUInternal* cpu = new CPUInternal(&testState, mem, &loader);
 		Byte code = 0x00;
 		mem->reset();
 
