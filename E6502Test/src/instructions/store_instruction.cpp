@@ -7,17 +7,10 @@ namespace E6502 {
 	class TestStoreInstruction : public TestInstruction {
 	public:
 
-		/* Generates a test value and ensures meomory location is clear */
-		Byte genTestValAndClearMem(Word address) {
-			Byte testValue = rand();
-			(*memory)[address] = ~testValue;
-			return testValue;
-		}
-
 		/* Helper function to test Absolute instructions */
 		void testAbsolute(InstructionHandler instruction, Byte* sourceReg, u8 expectedCycles) {
 			// Given:
-			Byte testValue = genTestValAndClearMem(dataSpace);
+			Byte testValue = genTestValAndTargetClearMem(dataSpace);
 			*sourceReg = testValue;
 			(*memory)[programSpace] = instruction.opcode;
 			(*memory)[programSpace + 1] = dataSpace & 0x00FF;
@@ -36,7 +29,7 @@ namespace E6502 {
 			// Given:
 			Byte index = rand();
 			Word targetAddr = dataSpace + index;
-			Byte testValue = genTestValAndClearMem(targetAddr);
+			Byte testValue = genTestValAndTargetClearMem(targetAddr);
 
 			(*memory)[programSpace] = instruction.opcode;
 			(*memory)[programSpace + 1] = dataSpace & 0x00FF;
@@ -56,7 +49,7 @@ namespace E6502 {
 		void testZeroPage(InstructionHandler instruction, Byte* sourceReg, u8 expectedCycles) {
 			// Given:
 			Byte zpAddr = rand();
-			Byte testValue = genTestValAndClearMem(0x00FF & zpAddr);
+			Byte testValue = genTestValAndTargetClearMem(0x00FF & zpAddr);
 			(*memory)[programSpace] = instruction.opcode;
 			(*memory)[programSpace + 1] = zpAddr;
 			*sourceReg = testValue;
@@ -75,7 +68,7 @@ namespace E6502 {
 			Byte zpBaseAddr = rand();
 			Byte testIndex = rand();
 			Word targetAddress = (zpBaseAddr + testIndex) & 0x00FF;
-			Byte testValue = genTestValAndClearMem(targetAddress);
+			Byte testValue = genTestValAndTargetClearMem(targetAddress);
 
 			// Given
 			(*memory)[programSpace] = instruction.opcode;
@@ -93,7 +86,7 @@ namespace E6502 {
 
 		/** Helper for X-Indexed Zero Page Indirect instructions */
 		void testIndirectXIndex(InstructionHandler instruction, Byte* sourceReg, u8 expectedCycles) {
-			Byte testValue = genTestValAndClearMem(dataSpace);
+			Byte testValue = genTestValAndTargetClearMem(dataSpace);
 			Byte zpBaseAddress = rand();
 			Byte testIndex = rand();
 			Byte zpActualAddr = (zpBaseAddress + testIndex) & 0x00FF;
@@ -117,7 +110,7 @@ namespace E6502 {
 		void testIndirectYIndex(InstructionHandler instruction, Byte* sourceReg, u8 expectedCycles) {
 			Byte testIndex = rand();
 			Word targetAddress = dataSpace + testIndex;
-			Byte testValue = genTestValAndClearMem(targetAddress);
+			Byte testValue = genTestValAndTargetClearMem(targetAddress);
 			Byte zpAddress = rand();
 	
 			// Given:

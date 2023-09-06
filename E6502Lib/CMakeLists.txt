@@ -31,6 +31,8 @@ set (E6502LIB_INSTRUCTIONS
 	"src/instructions/jump_instruction.cpp"
 	"src/instructions/store_instruction.h"
 	"src/instructions/store_instruction.cpp"
+	"src/instructions/transfer_instruction.h"
+	"src/instructions/transfer_instruction.cpp"
 )
 
 source_group("src" FILES ${E6502LIB_SOURCES})

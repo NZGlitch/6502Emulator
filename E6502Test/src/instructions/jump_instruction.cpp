@@ -11,7 +11,7 @@ namespace E6502 {
 		InstructionHandler* handlers[0x100] = { nullptr };
 
 		// When:
-		Jump::addHandlers(handlers);
+		JumpInstruction::addHandlers(handlers);
 
 		// Then: For the JSR instruction
 		EXPECT_EQ(INS_JSR.opcode, 0x20);

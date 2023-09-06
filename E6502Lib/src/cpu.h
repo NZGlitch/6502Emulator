@@ -39,6 +39,12 @@ namespace E6502 {
 		/* Tells the CPU to save a value to a register and set flags according */
 		virtual void saveToRegAndFlag(u8& cycles, u8 reg, Byte value) = 0;
 
+		/* Copy the stack pointer to register X */
+		virtual void copyStackToXandFlag(u8& cycles) = 0;
+
+		/* Copy X register to stack pointer */
+		virtual void copyXtoStack(u8& cycles) = 0;
+
 		/* Returns the value currently held in the specified register */
 		virtual Byte regValue(u8& cycles, u8 reg) = 0;
 
@@ -91,5 +97,7 @@ namespace E6502 {
 		virtual void pushPCToStack(u8& cycles);
 		virtual Word popStackWord(u8& cycles);
 		virtual void setPC(u8& cycles, Word address);
+		virtual void copyStackToXandFlag(u8& cycles);
+		virtual void copyXtoStack(u8& cycles);
 	};
 }

@@ -19,7 +19,7 @@ namespace E6502 {
 			Push PCL; Decrement S;
 			Read ADH;
 	*/
-	void Jump::jsrHandler(CPU* cpu, u8& cycles, Byte opCode) {
+	void JumpInstruction::jsrHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Read ADL
 		Word targetAddress = cpu->readPCByte(cycles);
 		
@@ -34,7 +34,7 @@ namespace E6502 {
 	};
 
 	/* Handles JMP instructions */
-	void Jump::jmpHandler(CPU* cpu, u8& cycles, Byte opCode) {
+	void JumpInstruction::jmpHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Note on JMP instrcutions:
 		// An original 6502 has does not correctly fetch the target address if the indirect vector
 		// falls on a page boundary(e.g.$xxFF where xx is any value from $00 to $FF).
@@ -62,7 +62,7 @@ namespace E6502 {
 	}
 
 	/* Handles RTS instructions */
-	void Jump::rstHandler(CPU* cpu, u8& cycles, Byte opCode) {
+	void JumpInstruction::rstHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		Word targetAddress = cpu->popStackWord(cycles);
 		targetAddress++; cycles++;
 		cpu->setPC(cycles, targetAddress); 
@@ -70,7 +70,7 @@ namespace E6502 {
 	}
 
 	/** Implementation of addhandlers needs to be after the struct defs */
-	void Jump::addHandlers(InstructionHandler* handlers[]) {
+	void JumpInstruction::addHandlers(InstructionHandler* handlers[]) {
 		for (InstructionHandler handler : JUMP_INSTRUCTIONS) {
 			handlers[handler.opcode] = new InstructionHandler{
 				handler.opcode, handler.isLegal, handler.name, handler.execute
