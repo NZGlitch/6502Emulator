@@ -72,5 +72,26 @@ namespace E6502 {
 			addressSpace = 0x0000;
 			dataSpace = 0x0000;
 		}
+
+		/* Checks a status flags match testalue and Resets PS to initPS so the tear down test passes */
+		void testAndResetStatusFlags(Byte testValue) {
+			EXPECT_EQ(testValue == 0, state->Flag.Z);
+			EXPECT_EQ(testValue >> 7, state->Flag.N);
+			state->PS = initPS;
+		}
+
+		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
+		Byte genTestValAndClearTargetReg(Byte* targetReg) {
+			Byte testValue = rand() & 0xFF;
+			(*targetReg) = ~testValue;
+			return testValue;
+		}
+
+		/* Generates a test value and ensures meomory location is clear */
+		Byte genTestValAndTargetClearMem(Word address) {
+			Byte testValue = rand();
+			(*memory)[address] = ~testValue;
+			return testValue;
+		}
 	};
 }

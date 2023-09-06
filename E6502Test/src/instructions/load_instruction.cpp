@@ -7,20 +7,6 @@ namespace E6502 {
 	class TestLoadInstruction : public TestInstruction {
 	public:
 
-		/* Checks a status flags match testalue and Resets PS to initPS so the tear down test passes */
-		void testAndResetPS(Byte testValue) {
-			EXPECT_EQ(testValue == 0, state->Flag.Z);
-			EXPECT_EQ(testValue >> 7, state->Flag.N);
-			state->PS = initPS;
-		}
-
-		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
-		Byte genTestValAndClearTargetReg(Byte* targetReg) {
-			Byte testValue = rand() & 0xFF;
-			(*targetReg) = ~testValue;
-			return testValue;
-		}
-
 		/* Helper function to test Immediate instructions */
 		void testImmediate(InstructionHandler instruction, Byte* targetReg, u8 expectedCycles) {
 			// Fixtures
@@ -35,7 +21,7 @@ namespace E6502 {
 			u8 cyclesUsed = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, 2);
 		}
@@ -53,7 +39,7 @@ namespace E6502 {
 			u8 cyclesUsed = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, 3);
 		}
@@ -79,7 +65,7 @@ namespace E6502 {
 			u8 cyclesUsed = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, expectedCycles);
 			
@@ -98,7 +84,7 @@ namespace E6502 {
 			u8 cyclesUsed = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cyclesUsed, expectedCycles);
 		}
@@ -120,7 +106,7 @@ namespace E6502 {
 			u8 cycles = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cycles, expectedCycles);
 		}
@@ -142,7 +128,7 @@ namespace E6502 {
 			u8 cycles = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(cycles, expectedCycles);
 		}
@@ -166,7 +152,7 @@ namespace E6502 {
 			u8 cycles = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(expectedCycles, cycles);
 		}
@@ -191,7 +177,7 @@ namespace E6502 {
 			u8 cycles = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(expectedCycles, cycles);
 		}
@@ -218,7 +204,7 @@ namespace E6502 {
 			u8 cycles = cpu->execute(1);
 
 			// Then:
-			testAndResetPS(testValue);
+			testAndResetStatusFlags(testValue);
 			EXPECT_EQ(*targetReg, testValue);
 			EXPECT_EQ(expectedCycles, cycles);
 		}
@@ -274,7 +260,7 @@ namespace E6502 {
 			LoadInstruction::fetchAndSaveToRegister(&cycles, cpu, testAddresses[i], registerNames[i]);
 
 			// Then:
-			testAndResetPS(testValues[i]);
+			testAndResetStatusFlags(testValues[i]);
 			EXPECT_EQ(*registers[i], testValues[i]);
 			EXPECT_EQ(cycles, 1);
 		}

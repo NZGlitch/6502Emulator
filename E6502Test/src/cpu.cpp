@@ -354,4 +354,38 @@ namespace E6502 {
 		EXPECT_EQ(state->SP, 0x35);
 		EXPECT_EQ(result, 0x42);
 	}
+
+	/* Test virtual copyStackToX(u8& cycles) */
+	TEST_F(TestCPU, copyStackToX) {
+		// Given:
+		Byte testValue = rand();
+		u8 cycles = 0;
+		state->X = ~testValue;
+		state->SP = testValue;
+
+		// When:
+		cpu->copyStackToXandFlag(cycles);
+
+		// Then:
+		EXPECT_EQ(state->X, testValue);
+		EXPECT_EQ(state->SP, testValue);
+		EXPECT_EQ(cycles, 1);
+	}
+
+	/* Test virtual void copyXtoStack(u8& cycles) */
+	TEST_F(TestCPU, copyXToStack) {
+		// Given:
+		Byte testValue = rand();
+		u8 cycles = 0;
+		state->X = testValue;
+		state->SP = ~testValue;
+
+		// When:
+		cpu->copyXtoStack(cycles);
+
+		// Then:
+		EXPECT_EQ(state->X, testValue);
+		EXPECT_EQ(state->SP, testValue);
+		EXPECT_EQ(cycles, 1);
+	}
 }

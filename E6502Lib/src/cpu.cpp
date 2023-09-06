@@ -101,6 +101,18 @@ namespace E6502 {
 		currentState->Flag.N = value >> 7;
 	}
 
+	/* Copy the stack pointer to register X */
+	void CPUInternal::copyStackToXandFlag(u8& cycles) {
+		saveToRegAndFlag(cycles, REGISTER_X, currentState->SP);
+		cycles++;
+	}
+
+	/* Copy X register to stack pointer */
+	void CPUInternal::copyXtoStack(u8& cycles) {
+		currentState->SP = currentState->X;
+		cycles++;
+	}
+
 	/** gets the value of the specified register (returns 0xFF if invalid register specified), uses 0 cycles */
 	Byte CPUInternal::regValue(u8& cycles, u8 reg) {
 		switch (reg) {

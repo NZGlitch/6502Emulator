@@ -3,7 +3,7 @@
 
 namespace E6502 {
 
-	class Jump : public BaseInstruction {
+	class JumpInstruction : public BaseInstruction {
 	public:
 		
 		/** Actually handles execution of JSR instruction */
@@ -20,10 +20,10 @@ namespace E6502 {
 	};
 
 	/** JSR, JMP, RTS Instruction Definitions */
-	constexpr static InstructionHandler INS_JSR = { 0x20, true, "JSR - Jump to Subroutine [Absolute]", Jump::jsrHandler };
-	constexpr static InstructionHandler INS_JMP_ABS = { 0x4C, true, "JMP - Jump [Absolute]", Jump::jmpHandler };
-	constexpr static InstructionHandler INS_JMP_ABIN = { 0x6C, true, "JMP - Jump [Absolute Indirect]", Jump::jmpHandler };
-	constexpr static InstructionHandler INS_RTS = { 0x60, true, "RTS - Return from subroutine [Implied]", Jump::rstHandler };
+	constexpr static InstructionHandler INS_JSR			= { 0x20, true, "JSR - Jump to Subroutine [Absolute]",		JumpInstruction::jsrHandler };
+	constexpr static InstructionHandler INS_JMP_ABS		= { 0x4C, true, "JMP - Jump [Absolute]",					JumpInstruction::jmpHandler };
+	constexpr static InstructionHandler INS_JMP_ABIN	= { 0x6C, true, "JMP - Jump [Absolute Indirect]",			JumpInstruction::jmpHandler };
+	constexpr static InstructionHandler INS_RTS			= { 0x60, true, "RTS - Return from subroutine [Implied]",	JumpInstruction::rstHandler };
 
 	// Handy array of all load instructions
 	static constexpr InstructionHandler JUMP_INSTRUCTIONS[] = {

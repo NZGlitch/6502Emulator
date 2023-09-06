@@ -2,6 +2,7 @@
 #include "jump_instruction.h"
 #include "load_instruction.h"
 #include "store_instruction.h"
+#include "transfer_instruction.h"
 
 namespace E6502 {
 	/**
@@ -12,9 +13,10 @@ namespace E6502 {
 			
 			/** Adds all known insturctions to the given handler array */
 			void load(InstructionHandler* handlers[]) override {
-				Jump::addHandlers(handlers);
+				JumpInstruction::addHandlers(handlers);
 				LoadInstruction::addHandlers(handlers);
 				StoreInstruction::addHandlers(handlers);
+				TransferInstruction::addHandlers(handlers);
 			}
 		};
 
