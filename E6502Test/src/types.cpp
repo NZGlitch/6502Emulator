@@ -16,9 +16,7 @@ namespace E6502 {
 		virtual void TearDown() {
 		}
 	};
-	
 
-	/******** Data types Tests ********/
 	/* Test types are the correct size */
 	TEST_F(TestTypes, TestTypesCorrectLen) {
 		EXPECT_EQ(sizeof(Byte), 1);
@@ -53,63 +51,6 @@ namespace E6502 {
 		EXPECT_TRUE(test16 < 0);
 	}
 	
-	/******** CPUState Tests ********
-	/* Test CPUState incPC gets and increments the PC 
-	TEST_F(TestTypes, TestCPUincPC) {
-		// Given:
-		CPUState state;
-		Word testAddress = 0xABCD;	// TODO - randomise?
-		state.PC = testAddress;
-
-		// When:
-		Word PC = state.incPC();
-
-		// Then:
-		EXPECT_EQ(PC, testAddress);				// Expect the return value to be what PC WAS)
-		EXPECT_EQ(state.PC, testAddress + 1);		// Expect PC to be incremented
-	}
-
-	/* Test CPUState pushSP gets and decrements the SP 
-	TEST_F(TestTypes, TestCPUpushSP) {
-		// Given:
-		CPUState state;
-		Byte testAddress = 0x01;	// TODO - randomise?
-		state.setSP(testAddress);
-		ASSERT_EQ(state.getSP(), 0x0101);
-
-		// When:
-		Word sp01 = state.pushSP();
-		Word sp00 = state.pushSP();
-		Word spff = state.pushSP();
-
-		// Then:
-		EXPECT_EQ(sp01, 0x0101);				// First call should return 0x0101
-		EXPECT_EQ(sp00, 0x0100);				// Next call should return 0x0100 (prev - 1)
-		EXPECT_EQ(spff, 0x01FF);				// Last all should return 0x01FF (prev - 1, underflow wrap)
-		EXPECT_EQ(state.getSP(), 0x01FE);		// Stack pointer should now be at 0x01F8
-	}
-
-	/* Test CPUState popSP increments then gets the SP 
-	TEST_F(TestTypes, TestCPUpopSP) {
-		// Given:
-		CPUState state;
-		Byte testAddress = 0xFE;	// TODO - randomise?
-		state.setSP(testAddress);
-		ASSERT_EQ(state.getSP(), 0x01FE);
-
-		// When:
-		Word spff = state.popSP();
-		Word sp00 = state.popSP();
-		Word sp01 = state.popSP();
-
-		// Then:
-
-		EXPECT_EQ(spff, 0x01FF);				// First all should return 0x01FF (prev + 1)
-		EXPECT_EQ(sp00, 0x0100);				// Next call should return 0x0100 (prev + 1 overflow/wrap)
-		EXPECT_EQ(sp01, 0x0101);				// Last call should return 0x0101
-		EXPECT_EQ(state.getSP(), 0x0101);		// Stack pointer should now be at 0x0101
-	}
-
 	/* Test CPUState reset */
 	TEST_F(TestTypes, TestCPUStateReset) {
 		// Given:
@@ -121,7 +62,7 @@ namespace E6502 {
 		state.X = 0x42;
 		state.Y = 0x42;
 
-		state.PS = 0xFF;
+		state.FLAGS.byte = 0xFF;
 
 		// When:
 		state.reset();
@@ -134,6 +75,6 @@ namespace E6502 {
 		EXPECT_EQ(state.X, 0);
 		EXPECT_EQ(state.Y, 0);
 
-		EXPECT_EQ(state.PS, 0x32);
+		EXPECT_EQ(state.FLAGS.byte, 0x32);
 	}
 }

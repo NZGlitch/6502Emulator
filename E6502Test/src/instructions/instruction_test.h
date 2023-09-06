@@ -31,7 +31,7 @@ namespace E6502 {
 		CPUInternal* cpu;
 
 		// Used to enforce flag checking on all tests
-		Byte initPS;
+		FlagUnion initPS;
 
 		// Memory spaces that can be used for testing - these are randomised every test
 		Word programSpace = 0x0000;
@@ -46,8 +46,8 @@ namespace E6502 {
 			cpu->reset();
 
 			// Initialise flags
-			initPS = rand();
-			state->PS = initPS;
+			state->FLAGS.byte = rand(); 
+			initPS.byte = state->FLAGS.byte;
 
 			// Initialise Memory
 			programSpace = ((0x04 | rand()) & 0x0F) << 8;
@@ -62,7 +62,7 @@ namespace E6502 {
 		}
 
 		virtual void TearDown() {
-			EXPECT_EQ(state->PS, initPS);
+			EXPECT_EQ(state->FLAGS.byte, initPS.byte);
 			delete memory;
 			delete state;
 			delete cpu;
@@ -75,9 +75,9 @@ namespace E6502 {
 
 		/* Checks a status flags match testalue and Resets PS to initPS so the tear down test passes */
 		void testAndResetStatusFlags(Byte testValue) {
-			EXPECT_EQ(testValue == 0, state->Flag.Z);
-			EXPECT_EQ(testValue >> 7, state->Flag.N);
-			state->PS = initPS;
+			EXPECT_EQ(testValue == 0, state->FLAGS.bit.Z);
+			EXPECT_EQ(testValue >> 7, state->FLAGS.bit.N);
+			state->FLAGS.byte = initPS.byte;
 		}
 
 		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
