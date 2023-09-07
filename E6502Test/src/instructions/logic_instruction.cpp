@@ -10,7 +10,7 @@ namespace E6502 {
 		void testAccMode(InstructionHandler instruction, Byte testValue, Byte expectValue, bool carryIn, bool carryOut, u8 expectCycles) {
 			// Given:
 			state->A = testValue;
-			state->Flag.C = carryIn;
+			state->FLAGS.bit.C = carryIn;
 			(*memory)[programSpace] = instruction.opcode;
 
 			// When
@@ -19,7 +19,7 @@ namespace E6502 {
 			// Then
 			EXPECT_EQ(state->A, expectValue);
 			EXPECT_EQ(cycles, expectCycles);
-			EXPECT_EQ(state->Flag.C, carryOut);
+			EXPECT_EQ(state->FLAGS.bit.C, carryOut);
 			testAndResetStatusFlags(expectValue);
 		}
 	};

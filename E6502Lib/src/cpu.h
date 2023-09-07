@@ -38,8 +38,13 @@ namespace E6502 {
 		/** calls readPCByte twice, constructs word */
 		virtual Word readPCWord(u8& cycles) = 0;
 
+
+		/* Returns the value currently held in the specified register */
+		virtual Byte regValue(u8& cycles, u8 reg) = 0;
+
 		/* Tells the CPU to save a value to a register - DOES NOT SET FLAGS! */
 		virtual void saveToReg(u8& cycles, u8 reg, Byte value) = 0;
+
 
 		/* Sets the N flag */
 		virtual void setNegativeFlag(u8& cycles, bool carry) = 0;
@@ -53,14 +58,12 @@ namespace E6502 {
 		/* Sets the C flag */
 		virtual void setCarryFlag(u8& cycles, bool carry) = 0;
 
+
 		/* Copy the stack pointer to register X */
 		virtual void copyStackToXandFlag(u8& cycles) = 0;
 
 		/* Copy X register to stack pointer */
 		virtual void copyXtoStack(u8& cycles) = 0;
-
-		/* Returns the value currently held in the specified register */
-		virtual Byte regValue(u8& cycles, u8 reg) = 0;
 
 
 		/* Push a bute onto the stack */
@@ -119,26 +122,34 @@ namespace E6502 {
 		/** CPU Overrides */
 		virtual Byte readByte(u8& cycles, Word address);
 		virtual void writeByte(u8& cycles, Word address, Byte value);
+
 		virtual Word readWord(u8& cycles, Word address);
+
 		virtual Byte readPCByte(u8& cycles);
 		virtual Word readPCWord(u8& cycles);
-		virtual bool getCarryFlag(u8& cycles);
-		virtual void setCarryFlag(u8& cycles, bool flag);
-		virtual void setNegativeFlag(u8& cycles, bool flag);
-		virtual void setZeroFlag(u8& cycles, bool flag);
+
 		virtual Byte regValue(u8& cycles, u8 reg);
 		virtual void saveToReg(u8& cycles, u8 reg, Byte value);
-		virtual void pushPCToStack(u8& cycles);
-		virtual Word popStackWord(u8& cycles);
-		virtual Word getPC(u8& cycles);
-		virtual void setPC(u8& cycles, Word address);
+
+		virtual void setNegativeFlag(u8& cycles, bool carry);
+		virtual void setZeroFlag(u8& cycles, bool carry);
+		virtual bool getCarryFlag(u8& cycles);
+		virtual void setCarryFlag(u8& cycles, bool carry);
+
+		virtual void copyStackToXandFlag(u8& cycles);
+		virtual void copyXtoStack(u8& cycles);
 
 		virtual void pushStackByte(u8& cycles, Byte value);
 		virtual void pushStackWord(u8& cycles, Word value);
 		virtual Byte pullStackByte(u8& cycles);
 		virtual Word pullStackWord(u8& cycles);
+
 		virtual FlagUnion getFlags(u8& cycles);
-		virtual void setFlags(u8& cycles, FlagUnion);
+		virtual void setFlags(u8& cycles, FlagUnion flags);
+
+		virtual Word getPC(u8& cycles);
+		virtual void setPC(u8& cycles, Word address);
+
 		virtual Byte getSP(u8& cycles);
 		virtual void setSP(u8& cycles, Byte value);
 	};

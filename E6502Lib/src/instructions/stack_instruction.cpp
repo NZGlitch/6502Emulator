@@ -14,7 +14,9 @@ namespace E6502 {
 	void StackInstruction::pullHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		Byte value = cpu->pullStackByte(cycles);
 		if (opCode == INS_PLA) {
-			cpu->saveToRegAndFlag(cycles, CPU::REGISTER_A, value); 
+			cpu->saveToReg(cycles, CPU::REGISTER_A, value); 
+			cpu->setNegativeFlag(cycles, value >> 7);
+			cpu->setZeroFlag(cycles, value == 0);
 			
 		} else if (opCode == INS_PLP.opcode) {
 			FlagUnion flags = cpu->getFlags(cycles);

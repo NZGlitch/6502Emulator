@@ -43,23 +43,6 @@ namespace E6502 {
 		virtual void TearDown() {
 			delete cpu;
 		}
-
-		/** Helper for setFlags test - note given state is reset before and after the test */
-		void testFlags(u8 targetReg, Byte initFlags, Byte testValue, Byte expectFlags, char* test_name) {
-			state->reset();	//always reset to ensure nothing leaks between tests
-			Byte cycles = 0;
-
-			// Given:
-			state->FLAGS.byte = initFlags;
-
-			// When:
-			cpu->saveToRegAndFlag(cycles, targetReg, testValue);
-
-			// Then:
-			EXPECT_EQ(cycles, 0);	//Currently this appears to be a free operation
-			EXPECT_EQ(state->FLAGS.byte, expectFlags);
-			state->reset();
-		}
 	};
 
 	/* Test reset function */
@@ -393,13 +376,13 @@ namespace E6502 {
 	TEST_F(TestCPU, getCarry) {
 		// if it is set to false...
 		Byte cycles = 0;
-		state->Flag.C = false;
+		state->FLAGS.bit.C = false;
 		EXPECT_FALSE(cpu->getCarryFlag(cycles));
 		EXPECT_EQ(cycles, 0);
 
 		// if it is set to true
 		cycles = 0;
-		state->Flag.C = true;
+		state->FLAGS.bit.C = true;
 		EXPECT_TRUE(cpu->getCarryFlag(cycles));
 		EXPECT_EQ(cycles, 0);
 	}
@@ -407,83 +390,83 @@ namespace E6502 {
 	/* Test setCarry */
 	TEST_F(TestCPU, setCarryTrue) {
 		// Given:
-		state->Flag.C = 0;
+		state->FLAGS.bit.C = 0;
 		u8 cycles = 0;
 
 		// When:
 		cpu->setCarryFlag(cycles, true);
 
 		// Then:
-		EXPECT_EQ(state->Flag.C, 1);
+		EXPECT_EQ(state->FLAGS.bit.C, 1);
 		EXPECT_EQ(cycles, 0);
 	}
 
 	/* Test setCarry */
 	TEST_F(TestCPU, setCarryFalse) {
 		// Given:
-		state->Flag.C = 1;
+		state->FLAGS.bit.C = 1;
 		u8 cycles = 0;
 
 		// When:
 		cpu->setCarryFlag(cycles, false);
 
 		// Then:
-		EXPECT_EQ(state->Flag.C, 0);
+		EXPECT_EQ(state->FLAGS.bit.C, 0);
 		EXPECT_EQ(cycles, 0);
 	}
 	/* Test setNegative */
 	TEST_F(TestCPU, setNegativeTrue) {
 		// Given:
-		state->Flag.N = 0;
+		state->FLAGS.bit.N = 0;
 		u8 cycles = 0;
 
 		// When:
 		cpu->setNegativeFlag(cycles, true);
 
 		// Then:
-		EXPECT_EQ(state->Flag.N, 1);
+		EXPECT_EQ(state->FLAGS.bit.N, 1);
 		EXPECT_EQ(cycles, 0);
 	}
 
 	/* Test setNegative */
 	TEST_F(TestCPU, setNegativeFalse) {
 		// Given:
-		state->Flag.N = 1;
+		state->FLAGS.bit.N = 1;
 		u8 cycles = 0;
 
 		// When:
 		cpu->setNegativeFlag(cycles, false);
 
 		// Then:
-		EXPECT_EQ(state->Flag.N, 0);
+		EXPECT_EQ(state->FLAGS.bit.N, 0);
 		EXPECT_EQ(cycles, 0);
 	}
 
 	/* Test setZeroy */
 	TEST_F(TestCPU, setZeroTrue) {
 		// Given:
-		state->Flag.Z = 0;
+		state->FLAGS.bit.Z = 0;
 		u8 cycles = 0;
 
 		// When:
 		cpu->setZeroFlag(cycles, true);
 
 		// Then:
-		EXPECT_EQ(state->Flag.Z, 1);
+		EXPECT_EQ(state->FLAGS.bit.Z, 1);
 		EXPECT_EQ(cycles, 0);
 	}
 
 	/* Test setZero */
 	TEST_F(TestCPU, setZeroFalse) {
 		// Given:
-		state->Flag.Z = 1;
+		state->FLAGS.bit.Z = 1;
 		u8 cycles = 0;
 
 		// When:
 		cpu->setZeroFlag(cycles, false);
 
 		// Then:
-		EXPECT_EQ(state->Flag.Z, 0);
+		EXPECT_EQ(state->FLAGS.bit.Z, 0);
 		EXPECT_EQ(cycles, 0);
 	}
 }

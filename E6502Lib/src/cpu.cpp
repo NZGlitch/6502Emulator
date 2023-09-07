@@ -51,7 +51,6 @@ namespace E6502 {
 		(*mainMemory)[address] = value; cycles++;
 	}
 
-
 	/** Allows an instruction to read a word from memory (Little endiean), uses 2 cycles*/
 	Word CPUInternal::readWord(u8& cycles, Word address) {
 		Word result = (*mainMemory)[address++]; cycles++;
@@ -59,7 +58,6 @@ namespace E6502 {
 		return result;
 	}
 	
-
 	/** Reads the Byte pointed at by the current PC, increments PC, uses 1 cycle */
 	Byte CPUInternal::readPCByte(u8& cycles) {
 		Byte result = (*mainMemory)[currentState->PC++]; cycles++;
@@ -71,6 +69,17 @@ namespace E6502 {
 		Word result = (*mainMemory)[currentState->PC++]; cycles++;
 		result |= ((*mainMemory)[currentState->PC++] << 8 ); cycles++;
 		return result;
+	}
+
+	/** gets the value of the specified register (returns 0xFF if invalid register specified), uses 0 cycles */
+	Byte CPUInternal::regValue(u8& cycles, u8 reg) {
+		switch (reg) {
+		case REGISTER_A: return currentState->A;
+		case REGISTER_X: return currentState->X;
+		case REGISTER_Y: return currentState->Y;
+		}
+		fprintf(stderr, "Attempt to get vaue of invalid register %d ", reg);
+		return 0xFF;
 	}
 
 	/** Saves the given value to the target register address and sets Z and N status flags based on the value, uses 0 cycles */
@@ -87,24 +96,24 @@ namespace E6502 {
 	}
 
 	/* Sets the N flag */
-	void CPUInternal::setNegativeFlag(u8& cycles, bool flag) { currentState->Flag.N = flag; }
+	void CPUInternal::setNegativeFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.N = flag; }
 
 	/* Sets the Z flag */
-	void CPUInternal::setZeroFlag(u8& cycles, bool flag) { currentState->Flag.Z = flag; }
+	void CPUInternal::setZeroFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.Z = flag; }
 
 	/* gets the C flag */
 	bool CPUInternal::getCarryFlag(u8& cycles) {
-		return currentState->Flag.C;
+		return currentState->FLAGS.bit.C;
 	}
 
 	/** Ses the C Flag */
-	void CPUInternal::setCarryFlag(u8& cycles, bool flag) { currentState->Flag.C = flag; }
+	void CPUInternal::setCarryFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.C = flag; }
 
 	/* Copy the stack pointer to register X */
 	void CPUInternal::copyStackToXandFlag(u8& cycles) {
 		saveToReg(cycles, REGISTER_X, currentState->SP);
-		currentState->Flag.Z = (currentState->X == 0);
-		currentState->Flag.N = (currentState->X >> 7);
+		currentState->FLAGS.bit.Z = (currentState->X == 0);
+		currentState->FLAGS.bit.N = (currentState->X >> 7);
 		cycles++;
 	}
 
@@ -112,29 +121,6 @@ namespace E6502 {
 	void CPUInternal::copyXtoStack(u8& cycles) {
 		currentState->SP = currentState->X;
 		cycles++;
-	}
-
-	/** gets the value of the specified register (returns 0xFF if invalid register specified), uses 0 cycles */
-	Byte CPUInternal::regValue(u8& cycles, u8 reg) {
-		switch (reg) {
-			case REGISTER_A: return currentState->A;
-			case REGISTER_X: return currentState->X;
-			case REGISTER_Y: return currentState->Y;
-		}
-		fprintf(stderr, "Attempt to get vaue of invalid register %d ", reg);
-		return 0xFF;
-	}
-
-
-	/* Push the current value of the program counter to the stack, uses 2 cycles */
-	Word CPUInternal::getPC(u8& cycles) {
-		cycles++;
-		return currentState->PC;
-	}
-
-	/* Set the program counter to the specified value, uses 0 cycles */
-	void CPUInternal::setPC(u8& cycles, Word address) {
-		currentState->PC = address; cycles++;
 	}
 
 	/* Push 1 byte of data onto the stack */
@@ -160,7 +146,31 @@ namespace E6502 {
 		result |= (*mainMemory)[0x0100 | ++currentState->SP]; cycles++;				// read lsb
 		return result;
 	}
+	
+	/* Get the current processor status flags */
+	FlagUnion CPUInternal::getFlags(u8& cycles) {
+		cycles++;
+		FlagUnion result = FlagUnion();
+		result.byte = currentState->FLAGS.byte;
+		return result;
+	}
 
+	/* Set the processor status flags */
+	void CPUInternal::setFlags(u8& cycles, FlagUnion flags) {
+		cycles++;
+		currentState->FLAGS.byte = flags.byte;
+	}
+
+	/* Push the current value of the program counter to the stack, uses 2 cycles */
+	Word CPUInternal::getPC(u8& cycles) {
+		cycles++;
+		return currentState->PC;
+	}
+
+	/* Set the program counter to the specified value, uses 0 cycles */
+	void CPUInternal::setPC(u8& cycles, Word address) {
+		currentState->PC = address; cycles++;
+	}
 	
 	/* Get the current value of the stack pointer */
 	Byte CPUInternal::getSP(u8& cycles) {
@@ -173,19 +183,4 @@ namespace E6502 {
 		cycles++;
 		currentState->SP = value;
 	}
-
-
-	/* Get the current processor status flags */
-	FlagUnion CPUInternal::getFlags(u8& cycles) {
-		cycles++;
-		FlagUnion result = FlagUnion();
-		result.byte = currentState->FLAGS.byte;
-		return result;
-	}
-	
-	/* Set the processor status flags */
-	void CPUInternal::setFlags(u8& cycles, FlagUnion flags) {
-		cycles++;
-		currentState->FLAGS.byte = flags.byte;
-	}	
 }

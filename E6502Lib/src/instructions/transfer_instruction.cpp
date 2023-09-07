@@ -25,8 +25,14 @@ namespace E6502 {
 	}
 
 	void TransferInstruction::transferStackHandler(CPU* cpu, u8& cycles, Byte opCode) {
+		Byte value = 0;
 		switch (opCode) {
-			case INS_TSX.opcode: cpu->saveToRegAndFlag(cycles, CPU::REGISTER_X, cpu->getSP(cycles));
+			case INS_TSX.opcode:
+				value = cpu->getSP(cycles);
+				cpu->saveToReg(cycles, CPU::REGISTER_X, value);
+				cpu->setNegativeFlag(cycles, value >> 7);
+				cpu->setZeroFlag(cycles, value == 0);
+				break;
 			case INS_TXS.opcode: cpu->setSP(cycles, cpu->regValue(cycles, CPU::REGISTER_X)); break;
 		}
 	}
