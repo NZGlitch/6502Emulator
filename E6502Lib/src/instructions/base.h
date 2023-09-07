@@ -29,13 +29,7 @@ namespace E6502 {
 	 *  TODO - Use templating and/or inheritence and a static register to automate all of this?
 	 */
 
-	 /** Defines proeprties common to ALL instrcutions. */
-	struct INSTRUCTION_BASE : InstructionHandler {
-		INSTRUCTION_BASE() {
-			isLegal = true;
-		}
-	};
-
+	 
 	/**
 	* Common data and functions shared by all instructions
 	* At present it is not intended that classes are instatiated, rather
@@ -46,7 +40,7 @@ namespace E6502 {
 		BaseInstruction();		// Subclasses should only be used statically
 
 	public:
-		/** Global Adressing Modes - it seems these are not so global */
+		/** Global Adressing Modes - it seems these are not so global, they apply to store/logic ops, TODO fix and move (codes are currently incorrect)*/
 		const static Byte INDIRECT_X = 0b000;	// ??? 000 ??
 		const static Byte ZERO_PAGE = 0b001;	// ??? 001 ??
 		const static Byte IMMEDIATE = 0b010;	// ??? 010 ??

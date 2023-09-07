@@ -1,8 +1,15 @@
 #include "types.h"
 #include "instruction_utils.h"
+#include <vector>
 
 namespace E6502 {
 	
+	/* Used for checking instructionDefs */
+	struct InstructionMap {
+		InstructionHandler handler;
+		Byte opcode;
+	};
+
 	/**
 	* Parent class for all instruction test classes
 	*	- enforces flag handling
@@ -71,6 +78,27 @@ namespace E6502 {
 			programSpace = 0x0000;
 			addressSpace = 0x0000;
 			dataSpace = 0x0000;
+		}
+
+		/* Insturction Defs & Handler helper - very repated task so can justify a short helper method */
+		void testInstructionDef(std::vector<InstructionMap> instructions, void(*addHandlers)(InstructionHandler* handlers[])) {
+			// Given:
+			InstructionHandler* handlers[0x100] = { nullptr };
+
+			// When:
+			addHandlers(handlers);
+
+			// Then: for the each supplied instruction
+			for (InstructionMap ins : instructions) {
+				// We use ASSERT instead of EXPECT here as if the result is incorrect the program will likely crash attempting to access a nonexistent object
+				
+				// Check that the handler opcode is correct
+				EXPECT_EQ(ins.handler.opcode, ins.opcode) << ins.handler.name << " Opcode mismatch\n";
+
+				// Check the handler is put in the correct place
+				ASSERT_NE(nullptr, handlers[ins.opcode]) << ins.handler.name << " Unable to find instruction at correct location in handler list";
+				EXPECT_EQ(*handlers[ins.opcode], ins.handler) << ins.handler.name << " Not added to handler list correclty\n";
+			}
 		}
 
 		/* Checks a status flags match testalue and Resets PS to initPS so the tear down test passes */

@@ -87,13 +87,13 @@ namespace E6502 {
 	}
 
 	/** Saves the given value to the target register address and sets Z and N status flags based on the value, uses 0 cycles */
-	void CPUInternal::saveToRegAndFlag(u8& cycles, u8 reg, Byte value) {
+	void CPUInternal::saveToRegAndFlagNZ(u8& cycles, u8 reg, Byte value) {
 		switch (reg) {
 			case REGISTER_A: currentState->A = value; break;
 			case REGISTER_X: currentState->X = value; break;
 			case REGISTER_Y: currentState->Y = value; break;
 				default: {
-					fprintf(stderr, "Invalid register selected for CPUInternal::saveToRegAndFlag %d", reg);
+					fprintf(stderr, "Invalid register selected for CPUInternal::saveToRegAndFlagNZ %d", reg);
 					return;
 				}
 		}
@@ -101,9 +101,24 @@ namespace E6502 {
 		currentState->Flag.N = value >> 7;
 	}
 
+	/** Saves the given value to the target register address and sets Z and N status flags based on the value, uses 0 cycles */
+	void CPUInternal::saveToRegAndFlagNZC(u8& cycles, u8 reg, Byte value) {
+		switch (reg) {
+		case REGISTER_A: currentState->A = value; break;
+		case REGISTER_X: currentState->X = value; break;
+		case REGISTER_Y: currentState->Y = value; break;
+		default: {
+			fprintf(stderr, "Invalid register selected for CPUInternal::saveToRegAndFlagNZ %d", reg);
+			return;
+		}
+		}
+		currentState->Flag.Z = value == 0x00;
+		currentState->Flag.N = value >> 7;
+	}
+
 	/* Copy the stack pointer to register X */
 	void CPUInternal::copyStackToXandFlag(u8& cycles) {
-		saveToRegAndFlag(cycles, REGISTER_X, currentState->SP);
+		saveToRegAndFlagNZ(cycles, REGISTER_X, currentState->SP);
 		cycles++;
 	}
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "jump_instruction.h"
 #include "load_instruction.h"
+#include "logic_instruction.h"
 #include "store_instruction.h"
 #include "transfer_instruction.h"
 
@@ -15,6 +16,7 @@ namespace E6502 {
 			void load(InstructionHandler* handlers[]) override {
 				JumpInstruction::addHandlers(handlers);
 				LoadInstruction::addHandlers(handlers);
+				LogicInstruction::addHandlers(handlers);
 				StoreInstruction::addHandlers(handlers);
 				TransferInstruction::addHandlers(handlers);
 			}

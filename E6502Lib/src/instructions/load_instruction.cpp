@@ -9,7 +9,7 @@ namespace E6502 {
 		
 		// Read the next byte from PC and put into the appropriate register
 		Byte value = cpu->readPCByte(cycles);
-		cpu->saveToRegAndFlag(cycles, saveRegister, value);
+		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
 	}
 
 	/** Handles ZeroPage Addressing Mode Instructions */
@@ -21,7 +21,7 @@ namespace E6502 {
 
 		// Get and store the value
 		Byte value = cpu->readByte(cycles, address);
-		cpu->saveToRegAndFlag(cycles, saveRegister, value);
+		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
 	}
 
 	/** Handles ZeroPageIndexed Addressing Mode Instructions */
@@ -38,7 +38,7 @@ namespace E6502 {
 
 		// Read the value at address into register
 		Byte value = cpu->readByte(cycles, address);
-		cpu->saveToRegAndFlag(cycles, saveRegister, value);
+		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
 	}
 
 	/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
@@ -72,7 +72,7 @@ namespace E6502 {
 		// Calculate address and read memory into A
 		Word address = (msb << 8) | lsb;
 		Byte value = cpu->readByte(cycles, address);
-		cpu->saveToRegAndFlag(cycles, saveRegister, value);
+		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
 	}
 
 	/** Handles Indirect Addressing Modes */
@@ -99,13 +99,13 @@ namespace E6502 {
 
 		// Save value
 		Byte value = cpu->readByte(cycles, targetAddress);
-		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_A, value);
+		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_A, value);
 	};
 
 	/** Helper method to get a value from memory and store in a register */
 	void LoadInstruction::fetchAndSaveToRegister(u8* cycles, CPU* cpu, Word address, u8 reg) {
 		Byte value = cpu->readByte(*cycles, address);
-		cpu->saveToRegAndFlag(*cycles, reg, value);
+		cpu->saveToRegAndFlagNZ(*cycles, reg, value);
 	}
 
 	/** Called to add Load Instruction handlers to the emulator */

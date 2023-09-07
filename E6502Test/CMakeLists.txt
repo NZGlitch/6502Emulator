@@ -33,6 +33,7 @@ set (E6502_SOURCES
 	"src/instructions/instruction_utils.cpp"
 	"src/instructions/jump_instruction.cpp"
 	"src/instructions/load_instruction.cpp"
+	"src/instructions/logic_instruction.cpp"
 	"src/instructions/store_instruction.cpp"
 	"src/instructions/transfer_instruction.cpp"
 

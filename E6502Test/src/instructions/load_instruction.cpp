@@ -29,11 +29,12 @@ namespace E6502 {
 		/** Helper function for zero page instructions */
 		void testZeroPage(InstructionHandler instruction, Byte* targetReg, u8 expectedCycles) {
 			// Given:
-			Word insAddress = rand() & 0x00FF;
 			Byte testValue = genTestValAndClearTargetReg(targetReg);
+
+			Word zpAddr = rand() & 0x00FF;
 			(*memory)[programSpace] = instruction.opcode;
-			(*memory)[programSpace + 1] = insAddress;
-			(*memory)[insAddress] = testValue;
+			(*memory)[programSpace + 1] = zpAddr;
+			(*memory)[zpAddr] = testValue;
 
 			// When:
 			u8 cyclesUsed = cpu->execute(1);
@@ -212,35 +213,32 @@ namespace E6502 {
 
 	/* Test addHandlers function and instruction opcodes */
 	TEST_F(TestLoadInstruction, TestLDAaddHandlers) {
-		// Given:
-		InstructionHandler* handlers[0x100] = { nullptr };
+		std::vector<InstructionMap> instructions = {
+			// LDA Instructions 
+			{INS_LDA_IMM, 0xA9},
+			{INS_LDA_ZP, 0xA5},
+			{INS_LDA_ZPX, 0xB5},
+			{INS_LDA_ABS, 0xAD},
+			{INS_LDA_ABSX, 0xBD},
+			{INS_LDA_ABSY, 0xB9},
+			{INS_LDA_INDX, 0xA1},
+			{INS_LDA_INDY, 0xB1},
 
-		// When:
-		LoadInstruction::addHandlers(handlers);
-		
-		// LDA Instructions 
-		EXPECT_EQ(INS_LDA_IMM.opcode, 0xA9);	EXPECT_EQ(*handlers[0xA9], INS_LDA_IMM);
-		EXPECT_EQ(INS_LDA_ZP.opcode, 0xA5);		EXPECT_EQ(*handlers[0xA5], INS_LDA_ZP);
-		EXPECT_EQ(INS_LDA_ZPX.opcode, 0xB5);	EXPECT_EQ(*handlers[0xB5], INS_LDA_ZPX);
-		EXPECT_EQ(INS_LDA_ABS.opcode, 0xAD);	EXPECT_EQ(*handlers[0xAD], INS_LDA_ABS);
-		EXPECT_EQ(INS_LDA_ABSX.opcode, 0xBD);	EXPECT_EQ(*handlers[0xBD], INS_LDA_ABSX);
-		EXPECT_EQ(INS_LDA_ABSY.opcode, 0xB9);	EXPECT_EQ(*handlers[0xB9], INS_LDA_ABSY);
-		EXPECT_EQ(INS_LDA_INDX.opcode, 0xA1);	EXPECT_EQ(*handlers[0xA1], INS_LDA_INDX);
-		EXPECT_EQ(INS_LDA_INDY.opcode, 0xB1);	EXPECT_EQ(*handlers[0xB1], INS_LDA_INDY);
+			// LDX Instructions
+			{INS_LDX_IMM, 0xA2},
+			{INS_LDX_ZP, 0xA6},
+			{INS_LDX_ZPY, 0xB6},
+			{INS_LDX_ABS, 0xAE},
+			{INS_LDX_ABSY, 0xBE},
 
-		// LDX Instructions
-		EXPECT_EQ(INS_LDX_IMM.opcode, 0xA2);	EXPECT_EQ(*handlers[0xA2], INS_LDX_IMM);
-		EXPECT_EQ(INS_LDX_ZP.opcode, 0xA6);		EXPECT_EQ(*handlers[0xA6], INS_LDX_ZP);
-		EXPECT_EQ(INS_LDX_ZPY.opcode, 0xB6);	EXPECT_EQ(*handlers[0xB6], INS_LDX_ZPY);
-		EXPECT_EQ(INS_LDX_ABS.opcode, 0xAE);	EXPECT_EQ(*handlers[0xAE], INS_LDX_ABS);
-		EXPECT_EQ(INS_LDX_ABSY.opcode, 0xBE);	EXPECT_EQ(*handlers[0xBE], INS_LDX_ABSY);
-
-		// LDY Instructions
-		EXPECT_EQ(INS_LDY_IMM.opcode, 0xA0);	EXPECT_EQ(*handlers[0xA0], INS_LDY_IMM);
-		EXPECT_EQ(INS_LDY_ZP.opcode, 0xA4);		EXPECT_EQ(*handlers[0xA4], INS_LDY_ZP);
-		EXPECT_EQ(INS_LDY_ZPX.opcode, 0xB4);	EXPECT_EQ(*handlers[0xB4], INS_LDY_ZPX);
-		EXPECT_EQ(INS_LDY_ABS.opcode, 0xAC);	EXPECT_EQ(*handlers[0xAC], INS_LDY_ABS);
-		EXPECT_EQ(INS_LDY_ABSX.opcode, 0xBC);	EXPECT_EQ(*handlers[0xBC], INS_LDY_ABSX);
+			// LDY Instructions
+			{INS_LDY_IMM, 0xA0},
+			{INS_LDY_ZP, 0xA4},
+			{INS_LDY_ZPX, 0xB4},
+			{INS_LDY_ABS, 0xAC},
+			{INS_LDY_ABSX, 0xBC},
+		};
+		testInstructionDef(instructions, LoadInstruction::addHandlers);
 	}
 
 	/* Test fetchAndSaveToRegister */

@@ -29,6 +29,8 @@ set (E6502LIB_INSTRUCTIONS
 	"src/instructions/load_instruction.cpp"
 	"src/instructions/jump_instruction.h"
 	"src/instructions/jump_instruction.cpp"
+	"src/instructions/logic_instruction.h"
+	"src/instructions/logic_instruction.cpp"
 	"src/instructions/store_instruction.h"
 	"src/instructions/store_instruction.cpp"
 	"src/instructions/transfer_instruction.h"

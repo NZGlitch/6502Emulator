@@ -52,7 +52,7 @@ namespace E6502 {
 			state->PS = initFlags;
 
 			// When:
-			cpu->saveToRegAndFlag(cycles, targetReg, testValue);
+			cpu->saveToRegAndFlagNZ(cycles, targetReg, testValue);
 
 			// Then:
 			EXPECT_EQ(cycles, 0);	//Currently this appears to be a free operation
@@ -217,9 +217,9 @@ namespace E6502 {
 		u8 cycles = 0;
 
 		// When:
-		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_A, regA);
-		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_X, regX);
-		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_Y, regY);
+		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_A, regA);
+		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_X, regX);
+		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_Y, regY);
 
 		// Then:
 		EXPECT_EQ(state->A, regA);
@@ -228,7 +228,7 @@ namespace E6502 {
 	}
 
 	/* Tests setFlags when N and Z flags 0 */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlags00) {
+	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZ_00) {
 		// No Flags (unset exiting)
 		testFlags(CPU::REGISTER_A, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_A) NO ZN - change");
 		testFlags(CPU::REGISTER_X, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_X) NO ZN - change");
@@ -241,7 +241,7 @@ namespace E6502 {
 	}
 
 	/* Tests setFlags when Z flag changes */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsZ) {
+	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZ_Z) {
 		// Z-Flag should be unset
 		testFlags(CPU::REGISTER_A, 0x02, 0x78, 0x00, "setFlags(REGISTER_A) unset Z");
 		testFlags(CPU::REGISTER_X, 0x02, 0x78, 0x00, "setFlags(REGISTER_X) unset Z");
@@ -254,7 +254,7 @@ namespace E6502 {
 	}
 
 	/* Tests setFlags when N flag changes */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsN) {
+	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZ_N) {
 		// N-Flag should be unset
 		testFlags(CPU::REGISTER_A, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_A) unset N");
 		testFlags(CPU::REGISTER_X, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_X) unset N");
@@ -264,6 +264,12 @@ namespace E6502 {
 		testFlags(CPU::REGISTER_A, 0x00, 0x80, 0x80, "setFlags(REGISTER_A) set N");
 		testFlags(CPU::REGISTER_X, 0x00, 0x80, 0x80, "setFlags(REGISTER_X) set N");
 		testFlags(CPU::REGISTER_Y, 0x00, 0x80, 0x80, "setFlags(REGISTER_Y) set N");
+	}
+
+
+	/* Tests setFlags NZC */
+	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZC) {
+		EXPECT_TRUE(false); //TODO
 	}
 
 	/* Tests regValue */
