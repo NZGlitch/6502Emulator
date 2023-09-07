@@ -2,6 +2,7 @@
 #include "jump_instruction.h"
 #include "load_instruction.h"
 #include "logic_instruction.h"
+#include "stack_instruction.h"
 #include "store_instruction.h"
 #include "transfer_instruction.h"
 
@@ -19,6 +20,7 @@ namespace E6502 {
 				LogicInstruction::addHandlers(handlers);
 				StoreInstruction::addHandlers(handlers);
 				TransferInstruction::addHandlers(handlers);
+				StackInstruction::addHandlers(handlers);
 			}
 		};
 

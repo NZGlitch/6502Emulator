@@ -24,13 +24,17 @@ namespace E6502 {
 		Word targetAddress = cpu->readPCByte(cycles);
 		
 		// Push the current program counter to the stack
-		cpu->pushPCToStack(cycles);
+		Word pc = cpu->getPC(cycles);
+		cpu->pushStackWord(cycles, pc);
 
 		// Read ADH
 		targetAddress |= (cpu->readPCByte(cycles) << 8);
 
 		// Set PC
 		cpu->setPC(cycles, targetAddress);
+
+		// Cycle correction
+		cycles--;
 	};
 
 	/* Handles JMP instructions */
@@ -63,7 +67,7 @@ namespace E6502 {
 
 	/* Handles RTS instructions */
 	void JumpInstruction::rstHandler(CPU* cpu, u8& cycles, Byte opCode) {
-		Word targetAddress = cpu->popStackWord(cycles);
+		Word targetAddress = cpu->pullStackWord(cycles);
 		targetAddress++; cycles++;
 		cpu->setPC(cycles, targetAddress); 
 		cycles++;

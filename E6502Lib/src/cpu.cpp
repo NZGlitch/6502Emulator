@@ -31,27 +31,12 @@ namespace E6502 {
 		return cyclesUsed;
 	}
 
-	/* Allows getting all flags in a single byte */
-	u8 CPUInternal::getFlags() {
-		return currentState->PS;
-	}
-
-	/* Pops the most recently added item from the stack */
-	Byte CPUInternal::popByteFromStack() {
-		Byte res = (*mainMemory)[0x0100 | ++currentState->SP];
-		return res;
-	}
-
 	/* Resets the CPU state - Until this is called, CPU state is undefined */
 	void CPUInternal::reset() {
 		currentState->reset();	// Resets the state
 		mainMemory->reset();	// Reset Memory
 	}
 
-	/* Helper method, allows setting all flags at once */
-	void CPUInternal::setFlags(u8 flags) {
-		currentState->PS = flags;
-	}
 
 	/** CPU Overrides */
 	
@@ -61,17 +46,19 @@ namespace E6502 {
 		return result;
 	}
 
+	/** Allows an instruction to write a byte to memory, uses 1 cycles */
+	void CPUInternal::writeByte(u8& cycles, Word address, Byte value) {
+		(*mainMemory)[address] = value; cycles++;
+	}
+
+
 	/** Allows an instruction to read a word from memory (Little endiean), uses 2 cycles*/
 	Word CPUInternal::readWord(u8& cycles, Word address) {
 		Word result = (*mainMemory)[address++]; cycles++;
 		result |=  ( (*mainMemory)[address] << 8) ; cycles++;
 		return result;
 	}
-
-	/** Allows an instruction to write a byte to memory, uses 1 cycles */
-	void CPUInternal::writeByte(u8& cycles, Word address, Byte value) {
-		(*mainMemory)[address] = value; cycles++;
-	}
+	
 
 	/** Reads the Byte pointed at by the current PC, increments PC, uses 1 cycle */
 	Byte CPUInternal::readPCByte(u8& cycles) {
@@ -138,10 +125,11 @@ namespace E6502 {
 		return 0xFF;
 	}
 
+
 	/* Push the current value of the program counter to the stack, uses 2 cycles */
-	void CPUInternal::pushPCToStack(u8& cycles) {
-		(*mainMemory)[0x0100 | currentState->SP--] = currentState->PC; cycles++;		// Write lsb
-		(*mainMemory)[0x0100 | currentState->SP--] = currentState->PC >> 8; cycles++;	// Write msb
+	Word CPUInternal::getPC(u8& cycles) {
+		cycles++;
+		return currentState->PC;
 	}
 
 	/* Set the program counter to the specified value, uses 0 cycles */
@@ -149,10 +137,55 @@ namespace E6502 {
 		currentState->PC = address; cycles++;
 	}
 
+	/* Push 1 byte of data onto the stack */
+	void CPUInternal::pushStackByte(u8& cycles, Byte value) {
+		(*mainMemory)[0x0100 | currentState->SP--] = value; cycles++;
+	}
+
+	/* Push 1 word of data onto the stack (Little end gets pushed first) */
+	void CPUInternal::pushStackWord(u8& cycles, Word value) {
+		(*mainMemory)[0x0100 | currentState->SP--] = value & 0xFF; cycles++;
+		(*mainMemory)[0x0100 | currentState->SP--] = value >> 8; cycles++;
+	}
+
+	/* Pull the next byte off the stack */
+	Byte CPUInternal::pullStackByte(u8& cycles) {
+		Byte result = (*mainMemory)[0x0100 | ++currentState->SP]; cycles++;
+		return result;
+	}
+
 	/* Pops a word from the stack */
-	Word CPUInternal::popStackWord(u8& cycles) {
+	Word CPUInternal::pullStackWord(u8& cycles) {
 		Word result = (*mainMemory)[0x0100 | ++currentState->SP] << 8; cycles++;	// read msb
 		result |= (*mainMemory)[0x0100 | ++currentState->SP]; cycles++;				// read lsb
 		return result;
 	}
+
+	
+	/* Get the current value of the stack pointer */
+	Byte CPUInternal::getSP(u8& cycles) {
+		cycles++;
+		return currentState->SP;
+	}
+
+	/* Set the value of the stack pointer */
+	void CPUInternal::setSP(u8& cycles, Byte value) {
+		cycles++;
+		currentState->SP = value;
+	}
+
+
+	/* Get the current processor status flags */
+	FlagUnion CPUInternal::getFlags(u8& cycles) {
+		cycles++;
+		FlagUnion result = FlagUnion();
+		result.byte = currentState->FLAGS.byte;
+		return result;
+	}
+	
+	/* Set the processor status flags */
+	void CPUInternal::setFlags(u8& cycles, FlagUnion flags) {
+		cycles++;
+		currentState->FLAGS.byte = flags.byte;
+	}	
 }

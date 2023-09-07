@@ -33,7 +33,7 @@ namespace E6502 {
 		EXPECT_EQ(state->SP, (initialSP - 2));				// SP should decrement by 2
 		EXPECT_EQ(cycles, 6);
 
-		Word stackAddr = (cpu->popByteFromStack() << 8) | cpu->popByteFromStack();
+		Word stackAddr = (*memory)[0x100 | state->SP + 1] << 8 | (*memory)[0x100 | state->SP + 2];
 		EXPECT_EQ(stackAddr, programSpace+2);	// Stack should contain original PC + 2
 	}
 
