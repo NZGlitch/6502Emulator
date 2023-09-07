@@ -19,8 +19,9 @@ namespace E6502 {
 
 	public:
 
-		CPUState* state; 
-		Memory* memory; 
+		Byte registers[3] = { CPU::REGISTER_A, CPU::REGISTER_X, CPU::REGISTER_Y };
+		CPUState* state;
+		Memory* memory;
 		InstructionLoader loader;
 		CPUInternal* cpu;
 
@@ -41,23 +42,6 @@ namespace E6502 {
 
 		virtual void TearDown() {
 			delete cpu;
-		}
-
-		/** Helper for setFlags test - note given state is reset before and after the test */
-		void testFlags(u8 targetReg, Byte initFlags, Byte testValue, Byte expectFlags, char* test_name) {
-			state->reset();	//always reset to ensure nothing leaks between tests
-			Byte cycles = 0;
-
-			// Given:
-			state->PS = initFlags;
-
-			// When:
-			cpu->saveToRegAndFlagNZ(cycles, targetReg, testValue);
-
-			// Then:
-			EXPECT_EQ(cycles, 0);	//Currently this appears to be a free operation
-			EXPECT_EQ(state->PS, expectFlags);
-			state->reset();
 		}
 	};
 
@@ -227,49 +211,132 @@ namespace E6502 {
 		EXPECT_EQ(state->Y, regY);
 	}
 
-	/* Tests setFlags when N and Z flags 0 */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZ_00) {
-		// No Flags (unset exiting)
-		testFlags(CPU::REGISTER_A, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_A) NO ZN - change");
-		testFlags(CPU::REGISTER_X, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_X) NO ZN - change");
-		testFlags(CPU::REGISTER_Y, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_Y) NO ZN - change");
+	/* Test setting of Z flag on saveAndSetFlagsNZ */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_setZ) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0x7D;
 
-		// No Flags (Unchange existing)
-		testFlags(CPU::REGISTER_A, 0x00, 0x78, 0x00, "setFlags(REGISTER_A) NO ZN - no change");
-		testFlags(CPU::REGISTER_X, 0x00, 0x78, 0x00, "setFlags(REGISTER_X) NO ZN - no change");
-		testFlags(CPU::REGISTER_Y, 0x00, 0x78, 0x00, "setFlags(REGISTER_Y) NO ZN - no change");
+			// When:
+			cpu->saveToRegAndFlagNZ(cycles, registers[i], 0x00);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0x7F);
+		}
 	}
 
-	/* Tests setFlags when Z flag changes */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZ_Z) {
-		// Z-Flag should be unset
-		testFlags(CPU::REGISTER_A, 0x02, 0x78, 0x00, "setFlags(REGISTER_A) unset Z");
-		testFlags(CPU::REGISTER_X, 0x02, 0x78, 0x00, "setFlags(REGISTER_X) unset Z");
-		testFlags(CPU::REGISTER_Y, 0x02, 0x78, 0x00, "setFlags(REGISTER_Y) unset Z");
+	/* Test unsetting of Z flag on saveAndSetFlagsNZ */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_unsetZ) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0x7F;
 
-		// Z-Flag sould be set
-		testFlags(CPU::REGISTER_A, 0x00, 0x00, 0x02, "setFlags(REGISTER_A) set Z");
-		testFlags(CPU::REGISTER_X, 0x00, 0x00, 0x02, "setFlags(REGISTER_X) set Z");
-		testFlags(CPU::REGISTER_Y, 0x00, 0x00, 0x02, "setFlags(REGISTER_Y) set Z");
+			// When:
+			cpu->saveToRegAndFlagNZ(cycles, registers[i], (rand()&0x7F)|0x1);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0x7D);
+		}
 	}
 
-	/* Tests setFlags when N flag changes */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZ_N) {
-		// N-Flag should be unset
-		testFlags(CPU::REGISTER_A, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_A) unset N");
-		testFlags(CPU::REGISTER_X, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_X) unset N");
-		testFlags(CPU::REGISTER_Y, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_Y) unset N");
+	/* Test setting of N flag on saveAndSetFlagsNZ */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_setN) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0x7D;
 
-		// N-Flag sould be set
-		testFlags(CPU::REGISTER_A, 0x00, 0x80, 0x80, "setFlags(REGISTER_A) set N");
-		testFlags(CPU::REGISTER_X, 0x00, 0x80, 0x80, "setFlags(REGISTER_X) set N");
-		testFlags(CPU::REGISTER_Y, 0x00, 0x80, 0x80, "setFlags(REGISTER_Y) set N");
+			// When:
+			cpu->saveToRegAndFlagNZ(cycles, registers[i], 0x80);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0xFD);
+		}
 	}
 
+	/* Test unsetting of N flag on saveAndSetFlagsNZ */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_unsetN) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0xFD;
 
-	/* Tests setFlags NZC */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsNZC) {
-		EXPECT_TRUE(false); //TODO
+			// When:
+			cpu->saveToRegAndFlagNZ(cycles, registers[i], rand() & 0x7F);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0x7D);
+		}
+	}
+
+	/* Test setting of Z flag on saveAndSetFlagsNZC */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_setZ) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0x7D;
+
+			// When:
+			cpu->saveToRegAndFlagNZC(cycles, registers[i], 0x00);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0x7F);
+		}
+	}
+
+	/* Test unsetting of Z flag on saveAndSetFlagsNZC */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_unsetZ) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0x7F;
+
+			// When:
+			cpu->saveToRegAndFlagNZC(cycles, registers[i], (rand() & 0x7F) | 0x1);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0x7D);
+		}
+	}
+
+	/* Test setting of N flag on saveAndSetFlagsNZC */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_setN) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0x7D;
+
+			// When:
+			cpu->saveToRegAndFlagNZC(cycles, registers[i], 0x80);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0xFD);
+		}
+	}
+
+	/* Test unsetting of N flag on saveAndSetFlagsNZC */
+	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_unsetN) {
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Byte cycles = 0;
+			state->PS = 0xFD;
+
+			// When:
+			cpu->saveToRegAndFlagNZC(cycles, registers[i], rand() & 0x7F);
+
+			//Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(state->PS, 0x7D);
+		}
 	}
 
 	/* Tests regValue */
