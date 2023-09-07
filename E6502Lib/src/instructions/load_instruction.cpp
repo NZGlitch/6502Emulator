@@ -9,7 +9,9 @@ namespace E6502 {
 		
 		// Read the next byte from PC and put into the appropriate register
 		Byte value = cpu->readPCByte(cycles);
-		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
+		cpu->saveToReg(cycles, saveRegister, value);
+		cpu->setNegativeFlag(cycles, value >> 7);
+		cpu->setZeroFlag(cycles, value == 0);
 	}
 
 	/** Handles ZeroPage Addressing Mode Instructions */
@@ -21,7 +23,9 @@ namespace E6502 {
 
 		// Get and store the value
 		Byte value = cpu->readByte(cycles, address);
-		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
+		cpu->saveToReg(cycles, saveRegister, value);
+		cpu->setNegativeFlag(cycles, value >> 7);
+		cpu->setZeroFlag(cycles, value == 0);
 	}
 
 	/** Handles ZeroPageIndexed Addressing Mode Instructions */
@@ -38,7 +42,9 @@ namespace E6502 {
 
 		// Read the value at address into register
 		Byte value = cpu->readByte(cycles, address);
-		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
+		cpu->saveToReg(cycles, saveRegister, value);
+		cpu->setNegativeFlag(cycles, value >> 7);
+		cpu->setZeroFlag(cycles, value == 0);
 	}
 
 	/** Handles Absolute and Absolute Indexed Addressing Mode Instructions */
@@ -72,7 +78,9 @@ namespace E6502 {
 		// Calculate address and read memory into A
 		Word address = (msb << 8) | lsb;
 		Byte value = cpu->readByte(cycles, address);
-		cpu->saveToRegAndFlagNZ(cycles, saveRegister, value);
+		cpu->saveToReg(cycles, saveRegister, value);
+		cpu->setNegativeFlag(cycles, value >> 7);
+		cpu->setZeroFlag(cycles, value == 0);
 	}
 
 	/** Handles Indirect Addressing Modes */
@@ -99,13 +107,17 @@ namespace E6502 {
 
 		// Save value
 		Byte value = cpu->readByte(cycles, targetAddress);
-		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_A, value);
+		cpu->saveToReg(cycles, CPU::REGISTER_A, value);
+		cpu->setNegativeFlag(cycles, value >> 7);
+		cpu->setZeroFlag(cycles, value == 0);
 	};
 
 	/** Helper method to get a value from memory and store in a register */
-	void LoadInstruction::fetchAndSaveToRegister(u8* cycles, CPU* cpu, Word address, u8 reg) {
-		Byte value = cpu->readByte(*cycles, address);
-		cpu->saveToRegAndFlagNZ(*cycles, reg, value);
+	void LoadInstruction::fetchAndSaveToRegister(u8& cycles, CPU* cpu, Word address, u8 reg) {
+		Byte value = cpu->readByte(cycles, address);
+		cpu->saveToReg(cycles, reg, value);
+		cpu->setNegativeFlag(cycles, value >> 7);
+		cpu->setZeroFlag(cycles, value == 0);
 	}
 
 	/** Called to add Load Instruction handlers to the emulator */

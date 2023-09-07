@@ -110,7 +110,7 @@ namespace E6502 {
 
 		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
 		Byte genTestValAndClearTargetReg(Byte* targetReg) {
-			Byte testValue = rand() & 0xFF;
+			Byte testValue = rand();
 			(*targetReg) = ~testValue;
 			return testValue;
 		}

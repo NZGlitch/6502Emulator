@@ -19,7 +19,9 @@ namespace E6502 {
 		Byte value = cpu->regValue(cycles, source);
 
 		// Save reg and set flags
-		cpu->saveToRegAndFlagNZ(cycles, target, value);
+		cpu->saveToReg(cycles, target, value);
+		cpu->setNegativeFlag(cycles, value >> 7);
+		cpu->setZeroFlag(cycles, value == 0);
 	}
 
 	void TransferInstruction::transferStackHandler(CPU* cpu, u8& cycles, Byte opCode) {

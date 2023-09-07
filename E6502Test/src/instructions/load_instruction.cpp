@@ -255,7 +255,7 @@ namespace E6502 {
 			u8 cycles = 0;
 
 			// When:
-			LoadInstruction::fetchAndSaveToRegister(&cycles, cpu, testAddresses[i], registerNames[i]);
+			LoadInstruction::fetchAndSaveToRegister(cycles, cpu, testAddresses[i], registerNames[i]);
 
 			// Then:
 			testAndResetStatusFlags(testValues[i]);

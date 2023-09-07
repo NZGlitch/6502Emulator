@@ -6,19 +6,33 @@ namespace E6502 {
 	class LogicInstruction : public BaseInstruction {
 	public:
 
-		/** Actually handles execution of JSR instruction */
+		// Operations mapped to op field value (Opfield is bits 7,6,5,1,0 of the OpCode)
+		constexpr static Byte OP_ASL = 0x2;	// Arithmatic shift Left
+		constexpr static Byte OP_LSR = 0xA;	// Logical shift right
+
+		/** Handles execution of all logical instructions */
 		static void logicHandler(CPU* cpu, u8& cycles, Byte opCode);
 
-		/** Called to add LDA Instruction handlers to the emulator */
+		/** Called to add logic instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);
+
+		/* Helper method actually performs the required operation */
+		static void performOp(CPU* cpu, u8& cycles, Byte op, Byte& value, Byte& carry);		
 	};
 
-	/** ASL Instruction Definitions */
+	/** ASL Instruction Definitions Field A: 000, Field C: 10 */
 	constexpr static InstructionHandler INS_ASL_ACC = { 0x0A, true, "ASL - Arithmetic Shift Left [Accumulator]",	LogicInstruction::logicHandler };
+
+	/** LSR Instruction Definitions Field A 010, Field C: 10 */
+	constexpr static InstructionHandler INS_LSR_ACC = { 0x4A, true, "LSR - Logical Shift Right [Accumulator]",	LogicInstruction::logicHandler };
 	
 
 	// Array of all logic instructions
 	static constexpr InstructionHandler LOGIC_INSTRUCTIONS[] = {
-		INS_ASL_ACC
+		/** ASL Instruction Definitions */
+		INS_ASL_ACC,
+
+		/** LSR Instruction Definitions */
+		INS_LSR_ACC
 	};
 }

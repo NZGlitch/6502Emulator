@@ -201,142 +201,14 @@ namespace E6502 {
 		u8 cycles = 0;
 
 		// When:
-		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_A, regA);
-		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_X, regX);
-		cpu->saveToRegAndFlagNZ(cycles, CPU::REGISTER_Y, regY);
+		cpu->saveToReg(cycles, CPU::REGISTER_A, regA);
+		cpu->saveToReg(cycles, CPU::REGISTER_X, regX);
+		cpu->saveToReg(cycles, CPU::REGISTER_Y, regY);
 
 		// Then:
 		EXPECT_EQ(state->A, regA);
 		EXPECT_EQ(state->X, regX);
 		EXPECT_EQ(state->Y, regY);
-	}
-
-	/* Test setting of Z flag on saveAndSetFlagsNZ */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_setZ) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0x7D;
-
-			// When:
-			cpu->saveToRegAndFlagNZ(cycles, registers[i], 0x00);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0x7F);
-		}
-	}
-
-	/* Test unsetting of Z flag on saveAndSetFlagsNZ */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_unsetZ) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0x7F;
-
-			// When:
-			cpu->saveToRegAndFlagNZ(cycles, registers[i], (rand()&0x7F)|0x1);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0x7D);
-		}
-	}
-
-	/* Test setting of N flag on saveAndSetFlagsNZ */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_setN) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0x7D;
-
-			// When:
-			cpu->saveToRegAndFlagNZ(cycles, registers[i], 0x80);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0xFD);
-		}
-	}
-
-	/* Test unsetting of N flag on saveAndSetFlagsNZ */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZ_unsetN) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0xFD;
-
-			// When:
-			cpu->saveToRegAndFlagNZ(cycles, registers[i], rand() & 0x7F);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0x7D);
-		}
-	}
-
-	/* Test setting of Z flag on saveAndSetFlagsNZC */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_setZ) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0x7D;
-
-			// When:
-			cpu->saveToRegAndFlagNZC(cycles, registers[i], 0x00);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0x7F);
-		}
-	}
-
-	/* Test unsetting of Z flag on saveAndSetFlagsNZC */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_unsetZ) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0x7F;
-
-			// When:
-			cpu->saveToRegAndFlagNZC(cycles, registers[i], (rand() & 0x7F) | 0x1);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0x7D);
-		}
-	}
-
-	/* Test setting of N flag on saveAndSetFlagsNZC */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_setN) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0x7D;
-
-			// When:
-			cpu->saveToRegAndFlagNZC(cycles, registers[i], 0x80);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0xFD);
-		}
-	}
-
-	/* Test unsetting of N flag on saveAndSetFlagsNZC */
-	TEST_F(TestCPU, TestSaveAndSetFlagsNZC_unsetN) {
-		for (int i = 0; i < 3; i++) {
-			// Given:
-			Byte cycles = 0;
-			state->PS = 0xFD;
-
-			// When:
-			cpu->saveToRegAndFlagNZC(cycles, registers[i], rand() & 0x7F);
-
-			//Then:
-			EXPECT_EQ(cycles, 0);
-			EXPECT_EQ(state->PS, 0x7D);
-		}
 	}
 
 	/* Tests regValue */
@@ -460,5 +332,88 @@ namespace E6502 {
 		EXPECT_EQ(state->X, testValue);
 		EXPECT_EQ(state->SP, testValue);
 		EXPECT_EQ(cycles, 1);
+	}
+
+	/* Test setCarry */
+	TEST_F(TestCPU, setCarryTrue) {
+		// Given:
+		state->Flag.C = 0;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setCarryFlag(cycles, true);
+
+		// Then:
+		EXPECT_EQ(state->Flag.C, 1);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setCarry */
+	TEST_F(TestCPU, setCarryFalse) {
+		// Given:
+		state->Flag.C = 1;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setCarryFlag(cycles, false);
+
+		// Then:
+		EXPECT_EQ(state->Flag.C, 0);
+		EXPECT_EQ(cycles, 0);
+	}
+	/* Test setNegative */
+	TEST_F(TestCPU, setNegativeTrue) {
+		// Given:
+		state->Flag.N = 0;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setNegativeFlag(cycles, true);
+
+		// Then:
+		EXPECT_EQ(state->Flag.N, 1);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setNegative */
+	TEST_F(TestCPU, setNegativeFalse) {
+		// Given:
+		state->Flag.N = 1;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setNegativeFlag(cycles, false);
+
+		// Then:
+		EXPECT_EQ(state->Flag.N, 0);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setZeroy */
+	TEST_F(TestCPU, setZeroTrue) {
+		// Given:
+		state->Flag.Z = 0;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setZeroFlag(cycles, true);
+
+		// Then:
+		EXPECT_EQ(state->Flag.Z, 1);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setZero */
+	TEST_F(TestCPU, setZeroFalse) {
+		// Given:
+		state->Flag.Z = 1;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setZeroFlag(cycles, false);
+
+		// Then:
+		EXPECT_EQ(state->Flag.Z, 0);
+		EXPECT_EQ(cycles, 0);
 	}
 }
