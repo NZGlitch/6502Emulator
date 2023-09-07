@@ -18,9 +18,10 @@ namespace E6502 {
 		// Perform the operation (method based on the Op Mode), set the carry byte as required
 		performOp(cpu, cycles, op, data, carry);
 
-		// Set the N and Z flags based on the result
+		// Set the N, Z, C flags based on the result
 		cpu->setNegativeFlag(cycles, data >> 7);
 		cpu->setZeroFlag(cycles, data == 0);
+		cpu->setCarryFlag(cycles, carry);
 
 		// Save the data based on the memory mode.
 		saveByteForMode(cpu, cycles, md, data);
@@ -32,13 +33,16 @@ namespace E6502 {
 			case OP_ASL:		/* Arithmetic Shift Left */
 				carry = value >> 7;
 				value = value << 1; cycles++;
-				cpu->setCarryFlag(cycles, carry);
+				break;
+			case OP_ROL:		/* Rotate Left */
+				carry = value >> 7;
+				value = value << 1; cycles++;
+				if (cpu->getCarryFlag(cycles)) value |= 0x01;
 				break;
 
 			case OP_LSR:		/* Logical shift Right */
 				carry = value & 0x01;
 				value = value >> 1; cycles++;
-				cpu->setCarryFlag(cycles, carry);
 				break;
 
 			default:

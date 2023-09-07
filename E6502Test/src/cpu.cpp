@@ -334,6 +334,21 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 1);
 	}
 
+	/* Test getCarry */
+	TEST_F(TestCPU, getCarry) {
+		// if it is set to false...
+		Byte cycles = 0;
+		state->Flag.C = false;
+		EXPECT_FALSE(cpu->getCarryFlag(cycles));
+		EXPECT_EQ(cycles, 0);
+
+		// if it is set to true
+		cycles = 0;
+		state->Flag.C = true;
+		EXPECT_TRUE(cpu->getCarryFlag(cycles));
+		EXPECT_EQ(cycles, 0);
+	}
+
 	/* Test setCarry */
 	TEST_F(TestCPU, setCarryTrue) {
 		// Given:

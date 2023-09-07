@@ -45,6 +45,9 @@ namespace E6502 {
 		/* Sets the Z flag */
 		virtual void setZeroFlag(u8& cycles, bool carry) = 0;
 
+		/* gets the C flag */
+		virtual bool getCarryFlag(u8& cycles) = 0;
+
 		/* Sets the C flag */
 		virtual void setCarryFlag(u8& cycles, bool carry) = 0;
 
@@ -101,6 +104,7 @@ namespace E6502 {
 		virtual void writeByte(u8& cycles, Word address, Byte value);
 		virtual Byte readPCByte(u8& cycles);
 		virtual Word readPCWord(u8& cycles);
+		virtual bool getCarryFlag(u8& cycles);
 		virtual void setCarryFlag(u8& cycles, bool flag);
 		virtual void setNegativeFlag(u8& cycles, bool flag);
 		virtual void setZeroFlag(u8& cycles, bool flag);

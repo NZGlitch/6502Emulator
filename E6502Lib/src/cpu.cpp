@@ -105,6 +105,11 @@ namespace E6502 {
 	/* Sets the Z flag */
 	void CPUInternal::setZeroFlag(u8& cycles, bool flag) { currentState->Flag.Z = flag; }
 
+	/* gets the C flag */
+	bool CPUInternal::getCarryFlag(u8& cycles) {
+		return currentState->Flag.C;
+	}
+
 	/** Ses the C Flag */
 	void CPUInternal::setCarryFlag(u8& cycles, bool flag) { currentState->Flag.C = flag; }
 
