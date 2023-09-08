@@ -34,6 +34,7 @@ namespace E6502 {
 		/* Helper method for testing operations using absolute addressing mode */
 		void testAbsOp(InstructionHandler instruction, Byte testValue, Byte expectValue, bool carryIn, bool carryOut, u8 expectCycles) {
 			// Given:
+			state->A = ~testValue;
 			dataSpace |= (rand() & 0xFF);	// Pick a random location in the data page
 			state->FLAGS.bit.C = carryIn;
 			(*memory)[programSpace] = instruction.opcode;
@@ -51,6 +52,7 @@ namespace E6502 {
 
 		void testAbsXOp(InstructionHandler instruction, Byte testValue, Byte expectValue, bool carryIn, bool carryOut, u8 expectCycles) {
 			// Given:
+			state->A = ~testValue;
 			dataSpace |= (rand() & 0xFF);	// Pick a random location in the data page
 			Byte index = rand();
 			Word abs = dataSpace - index;
@@ -68,6 +70,23 @@ namespace E6502 {
 			EXPECT_EQ(cycles, expectCycles);
 			finishTest(expectValue, carryOut);
 		}
+
+		void testZPOp(InstructionHandler instruction, Byte testValue, Byte expectValue, bool carryIn, bool carryOut, u8 expectCycles) {
+			// Given:
+			state->A = ~testValue;
+			Byte index = rand();
+			state->FLAGS.bit.C = carryIn;
+			(*memory)[programSpace] = instruction.opcode;
+			(*memory)[programSpace + 1] = index;
+			(*memory)[0x00FF & index] = testValue;
+
+			// When
+			u8 cycles = cpu->execute(1);
+
+			// Then
+			EXPECT_EQ(cycles, expectCycles);
+			finishTest(expectValue, carryOut);
+		}
 	};
 
 	/* Test defs & addHandlers func */
@@ -75,16 +94,16 @@ namespace E6502 {
 
 		std::vector<InstructionMap> instructions = {
 			// ASL Instructions
-			{INS_ASL_ACC, 0x0A}, {INS_ASL_ABS, 0x0E}, {INS_ASL_ABX, 0x1E},
+			{INS_ASL_ACC, 0x0A}, {INS_ASL_ABS, 0x0E}, {INS_ASL_ABX, 0x1E}, {INS_ASL_ZP0, 0x06},
 
 			// ROL Instructions
-			{INS_ROL_ACC, 0x2A}, {INS_ROL_ABS, 0x2E}, {INS_ROL_ABX, 0x3E},
+			{INS_ROL_ACC, 0x2A}, {INS_ROL_ABS, 0x2E}, {INS_ROL_ABX, 0x3E}, {INS_ROL_ZP0, 0x26},
 
 			// LSL Instructions
-			{INS_LSR_ACC, 0x4A}, {INS_LSR_ABS, 0x4E}, {INS_LSR_ABX, 0x5E},
+			{INS_LSR_ACC, 0x4A}, {INS_LSR_ABS, 0x4E}, {INS_LSR_ABX, 0x5E}, {INS_LSR_ZP0, 0x46},
 
 			// ROR Instructions
-			{INS_ROR_ACC, 0x6A}, {INS_ROR_ABS, 0x6E}, {INS_ROR_ABX, 0x7E},
+			{INS_ROR_ACC, 0x6A}, {INS_ROR_ABS, 0x6E}, {INS_ROR_ABX, 0x7E}, {INS_ROR_ZP0, 0x66},
 		};
 		testInstructionDef(instructions, ShiftInstruction::addHandlers);
 	}
@@ -101,6 +120,10 @@ namespace E6502 {
 	// ABS-X
 	TEST_F(TestShiftInstruction, TestASLAbsXNoCarry) { Byte tVal = (rand() & 0x7F);	testAbsXOp(INS_ASL_ABX, tVal, tVal << 1, 1, 0, 7); }
 	TEST_F(TestShiftInstruction, TestASLAbsXWiCarry) { Byte tVal = (rand() | 0x80);	testAbsXOp(INS_ASL_ABX, tVal, tVal << 1, 0, 1, 7); }
+
+	// ZeroPage
+	TEST_F(TestShiftInstruction, TestASLZPNoCarry) { Byte tVal = (rand() & 0x7F);	testZPOp(INS_ASL_ZP0, tVal, tVal << 1, 1, 0, 5); }
+	TEST_F(TestShiftInstruction, TestASLZPWiCarry) { Byte tVal = (rand() | 0x80);	testZPOp(INS_ASL_ZP0, tVal, tVal << 1, 0, 1, 5); }
 
 	/* Test ROL Execution */
 	// ACC
@@ -121,6 +144,12 @@ namespace E6502 {
 	TEST_F(TestShiftInstruction, TestROLAbsXC10) { Byte tVal = rand() & 0x7F; testAbsXOp(INS_ROL_ABX, tVal, (tVal << 1) | 0x01, 1, 0, 7); }
 	TEST_F(TestShiftInstruction, TestROLAbsXC11) { Byte tVal = rand() | 0x80; testAbsXOp(INS_ROL_ABX, tVal, (tVal << 1) | 0x01, 1, 1, 7); }
 
+	// Zero Page
+	TEST_F(TestShiftInstruction, TestROLZPC00) { Byte tVal = rand() & 0x7F; testZPOp(INS_ROL_ZP0, tVal, (tVal << 1) & 0xFE, 0, 0, 5); }
+	TEST_F(TestShiftInstruction, TestROLZPC01) { Byte tVal = rand() | 0x80; testZPOp(INS_ROL_ZP0, tVal, (tVal << 1) & 0xFE, 0, 1, 5); }
+	TEST_F(TestShiftInstruction, TestROLZPC10) { Byte tVal = rand() & 0x7F; testZPOp(INS_ROL_ZP0, tVal, (tVal << 1) | 0x01, 1, 0, 5); }
+	TEST_F(TestShiftInstruction, TestROLZPC11) { Byte tVal = rand() | 0x80; testZPOp(INS_ROL_ZP0, tVal, (tVal << 1) | 0x01, 1, 1, 5); }
+
 	/* Test LSR Execution */
 	// ACC
 	TEST_F(TestShiftInstruction, TestLSRAccNoCarry) { Byte tVal = (rand() & 0xFE);	testAccOp(INS_LSR_ACC, tVal, (tVal >> 1) & 0x7F, 1, 0, 2); }
@@ -133,6 +162,10 @@ namespace E6502 {
 	// ABS-X
 	TEST_F(TestShiftInstruction, TestLSRAbsXNoCarry) { Byte tVal = (rand() & 0xFE);	testAbsXOp(INS_LSR_ABX, tVal, (tVal >> 1) & 0x7F, 1, 0, 7); }
 	TEST_F(TestShiftInstruction, TestLSRAbsXWiCarry) { Byte tVal = (rand() | 0x01);	testAbsXOp(INS_LSR_ABX, tVal, (tVal >> 1) & 0x7F, 0, 1, 7); }
+	
+	// Zero Page
+	TEST_F(TestShiftInstruction, TestLSRZPNoCarry) { Byte tVal = (rand() & 0xFE);	testZPOp(INS_LSR_ZP0, tVal, (tVal >> 1) & 0x7F, 1, 0, 5); }
+	TEST_F(TestShiftInstruction, TestLSRZPWiCarry) { Byte tVal = (rand() | 0x01);	testZPOp(INS_LSR_ZP0, tVal, (tVal >> 1) & 0x7F, 0, 1, 5); }
 
 	/* Test ROR Execution */
 	// ACC
@@ -152,4 +185,10 @@ namespace E6502 {
 	TEST_F(TestShiftInstruction, TestRORAbsXC01) { Byte tVal = rand() | 0x01; testAbsXOp(INS_ROR_ABX, tVal, (tVal >> 1) & 0x7F, 0, 1, 7); }
 	TEST_F(TestShiftInstruction, TestRORAbsXC10) { Byte tVal = rand() & 0xFE; testAbsXOp(INS_ROR_ABX, tVal, (tVal >> 1) | 0x80, 1, 0, 7); }
 	TEST_F(TestShiftInstruction, TestRORAbsXC11) { Byte tVal = rand() | 0x01; testAbsXOp(INS_ROR_ABX, tVal, (tVal >> 1) | 0x80, 1, 1, 7); }
+
+	// Zero Page
+	TEST_F(TestShiftInstruction, TestRORZPC00) { Byte tVal = rand() & 0xFE; testZPOp(INS_ROR_ZP0, tVal, (tVal >> 1) & 0x7F, 0, 0, 5); }
+	TEST_F(TestShiftInstruction, TestRORZPC01) { Byte tVal = rand() | 0x01; testZPOp(INS_ROR_ZP0, tVal, (tVal >> 1) & 0x7F, 0, 1, 5); }
+	TEST_F(TestShiftInstruction, TestRORZPC10) { Byte tVal = rand() & 0xFE; testZPOp(INS_ROR_ZP0, tVal, (tVal >> 1) | 0x80, 1, 0, 5); }
+	TEST_F(TestShiftInstruction, TestRORZPC11) { Byte tVal = rand() | 0x01; testZPOp(INS_ROR_ZP0, tVal, (tVal >> 1) | 0x80, 1, 1, 5); }
 }
