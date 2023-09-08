@@ -24,6 +24,7 @@ namespace E6502 {
 
 	/** ASL Instruction Definitions Field A: 000, Field C: 10 */
 	constexpr static InstructionHandler INS_ASL_ACC = { 0x0A, true, "ASL - Arithmetic Shift Left [Accumulator]",	ShiftInstruction::shiftHandler };
+	constexpr static InstructionHandler INS_ASL_ABS = { 0x0E, true, "ASL - Arithmetic Shift Left [Absolute]",		ShiftInstruction::shiftHandler };
 
 	/** ROL Instruction Definitions Field A: 001, Field C: 10 */
 	constexpr static InstructionHandler INS_ROL_ACC = { 0x2A, true, "ROL - Rotate Left [Accumulator]",				ShiftInstruction::shiftHandler };
@@ -37,7 +38,7 @@ namespace E6502 {
 	// Array of all logic instructions
 	static constexpr InstructionHandler SHIFT_INSTRUCTIONS[] = {
 		/** ASL Instruction Definitions */
-		INS_ASL_ACC,
+		INS_ASL_ACC,INS_ASL_ABS,
 
 		/** ROL Instruction Definitions */
 		INS_ROL_ACC,

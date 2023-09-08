@@ -14,6 +14,7 @@ namespace E6502 {
 	using u16 = unsigned short;
 	using s16 = signed short;
 
+	/* Bitwise flag register */
 	struct StatusFlags {
 		// Status Flags
 		Byte C : 1;			// Carry Flag				(0)
@@ -26,6 +27,7 @@ namespace E6502 {
 		Byte N : 1;			// Negative Flag			(7)	
 	};
 
+	/* Useful structure to record flags as both a bitwise SatusFlag object and/or a byte */
 	struct FlagUnion {
 		union {
 			Byte byte;
@@ -33,6 +35,7 @@ namespace E6502 {
 		};
 	};
 
+	/* Represents the internal state of a CPU (Not including memory) */
 	struct CPUState {
 
 	public:
@@ -73,5 +76,14 @@ namespace E6502 {
 		Word loadAddress = 0x8000;
 		Word size = 0;
 		std::vector<Byte> bytes;
+	};
+
+	/* Useful for passing interchangble memory or register references (Only one can be valid at a given time) */
+	struct Reference {
+		u8 referenceType;
+		union {
+			Word memoryAddress;
+			u8 reg;
+		};
 	};
 }

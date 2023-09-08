@@ -21,6 +21,9 @@ namespace E6502 {
 		constexpr static u8 REGISTER_X = 1;
 		constexpr static u8 REGISTER_Y = 2;
 
+		const static u8 REFERENCE_REG = 0;
+		const static u8 REFERENCE_MEM = 1;
+
 		/** Read a Byte from memory */
 		virtual Byte readByte(u8& cycles, Word address) = 0;
 
@@ -91,6 +94,13 @@ namespace E6502 {
 
 		/* Write the stack pointer register */
 		virtual void setSP(u8& cycles, Byte value) = 0;
+
+		/* Read the byte stored at the location provided by the given reference */
+		virtual Byte readReferenceByte(u8& cycles, Reference& ref) = 0;
+		
+		/* Write the given byte to the location specified by the given reference */
+		virtual void writeReferenceByte(u8& cycles, Reference& ref, Byte data) = 0;
+
 	};
 
 	
@@ -142,5 +152,8 @@ namespace E6502 {
 
 		virtual Byte getSP(u8& cycles);
 		virtual void setSP(u8& cycles, Byte value);
+
+		virtual Byte readReferenceByte(u8& cycles, Reference& ref) ;
+		virtual void writeReferenceByte(u8& cycles, Reference& ref, Byte data);
 	};
 }

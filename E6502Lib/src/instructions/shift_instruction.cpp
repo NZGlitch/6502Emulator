@@ -12,8 +12,9 @@ namespace E6502 {
 		// Carry needs to be set by the op
 		Byte carry = 0;
 
-		// Get the data (method based on the Memory Mode)
-		Byte data = getByteForMode(cpu, cycles, md);
+		// Get a refrence to the data location based on the memory mode
+		Reference ref = getReferenceForMode(cpu, cycles, md);
+		Byte data = cpu->readReferenceByte(cycles, ref);
 
 		// Perform the operation (method based on the Op Mode), set the carry argument as required
 		performOp(cpu, cycles, op, data, carry);
@@ -23,8 +24,8 @@ namespace E6502 {
 		cpu->setZeroFlag(cycles, data == 0);
 		cpu->setCarryFlag(cycles, (carry != 0));
 
-		// Save the data based on the memory mode.
-		saveByteForMode(cpu, cycles, md, data);
+		// Save the data to accumulator
+		cpu->saveToReg(cycles, CPU::REGISTER_A, data);
 	}
 
 	/* Helper method actually performs the required operation */
