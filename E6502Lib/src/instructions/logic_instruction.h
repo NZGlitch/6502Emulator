@@ -10,6 +10,7 @@ namespace E6502 {
 		constexpr static Byte OP_ASL = 0x2;		// Arithmatic shift Left
 		constexpr static Byte OP_ROL = 0x6;		// Rotate left
 		constexpr static Byte OP_LSR = 0xA;		// Logical shift right
+		constexpr static Byte OP_ROR = 0xE;		// Logical shift right
 
 		/** Handles execution of all logical instructions */
 		static void logicHandler(CPU* cpu, u8& cycles, Byte opCode);
@@ -30,6 +31,9 @@ namespace E6502 {
 	/** LSR Instruction Definitions Field A: 010, Field C: 10 */
 	constexpr static InstructionHandler INS_LSR_ACC = { 0x4A, true, "LSR - Logical Shift Right [Accumulator]",		LogicInstruction::logicHandler };
 
+	/** ROR Instruction Definitions Field A: 011, Field C: 10 */
+	constexpr static InstructionHandler INS_ROR_ACC = { 0x6A, true, "ROR - Rotate Right [Accumulator]",				LogicInstruction::logicHandler };
+
 	// Array of all logic instructions
 	static constexpr InstructionHandler LOGIC_INSTRUCTIONS[] = {
 		/** ASL Instruction Definitions */
@@ -40,5 +44,8 @@ namespace E6502 {
 
 		/** LSR Instruction Definitions */
 		INS_LSR_ACC,
+
+		/** ROR Instruction Definitions */
+		INS_ROR_ACC,
 	};
 }

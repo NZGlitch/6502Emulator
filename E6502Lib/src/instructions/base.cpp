@@ -4,9 +4,9 @@ namespace E6502 {
 	
 	BaseInstruction::BaseInstruction() {}
 
-	/* Uses Field B (Bits 4,3,2) to determine the addressing mode and reads a Byte from the relvant location
+	/* Uses Field B (Bits 4,3,2) to determine the addressing mode and reads a Byte from the relevant location
 	* NOTE: modes that require bytes from the instruction will cause the PC to change
-	* Will not affect any processor falgs
+	* Will not affect any processor flags
 	*/
 	Byte BaseInstruction::getByteForMode(CPU * cpu, u8 & cycles, Byte mode) {
 		switch (mode) {
@@ -20,9 +20,9 @@ namespace E6502 {
 		}
 	}
 
-	/* Uses Field B (Bits 4,3,2) to determine the addressing mode and writes a Byte from the relvant location
+	/* Uses Field B (Bits 4,3,2) to determine the addressing mode and writes a Byte from the relevant location
 	 * NOTE: modes that require bytes from the instruction will cause the PC to change
-	 * Will not affect any processor falgs
+	 * Will not affect any processor flags
 	 */
 	void BaseInstruction::saveByteForMode(CPU * cpu, u8 & cycles, Byte mode, Byte valueToSave) {
 		switch (mode) {

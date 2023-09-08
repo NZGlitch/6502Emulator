@@ -46,6 +46,12 @@ namespace E6502 {
 				carry = value & 0x01;
 				value = value >> 1; cycles++;
 				break;
+			/* Rotate Right */
+			case OP_ROR:
+				carry = value & 0x01;
+				value = value >> 1; cycles++;
+				if (cpu->getCarryFlag(cycles)) value |= 0x80;
+				break;
 			/* Unknown operation */
 			default:
 				fprintf(stderr, "Unknown operation %d for logical instruction\n", op);
