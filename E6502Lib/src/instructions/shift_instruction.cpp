@@ -1,10 +1,10 @@
 #pragma once
-#include "logic_instruction.h"
+#include "shift_instruction.h"
 
 namespace E6502 {
 
 	/** Handles execution of all logical instructions */
-	void LogicInstruction::logicHandler(CPU* cpu, u8& cycles, Byte opCode) {
+	void ShiftInstruction::shiftHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Split opcode into more useful fields
 		Byte op = ((opCode >> 3) & 0x1C) | (opCode & 0x03);		// Op Mode (bits 7,6,5,1,0)
 		Byte md = (opCode >> 2) & 0x7;							// Memory Mode (bits 4,3,2)
@@ -12,8 +12,9 @@ namespace E6502 {
 		// Carry needs to be set by the op
 		Byte carry = 0;
 
-		// Get the data (method based on the Memory Mode)
-		Byte data = getByteForMode(cpu, cycles, md);
+		// Get a refrence to the data location based on the memory mode
+		Reference ref = getReferenceForMode(cpu, cycles, md);
+		Byte data = cpu->readReferenceByte(cycles, ref);
 
 		// Perform the operation (method based on the Op Mode), set the carry argument as required
 		performOp(cpu, cycles, op, data, carry);
@@ -23,12 +24,12 @@ namespace E6502 {
 		cpu->setZeroFlag(cycles, data == 0);
 		cpu->setCarryFlag(cycles, (carry != 0));
 
-		// Save the data based on the memory mode.
-		saveByteForMode(cpu, cycles, md, data);
+		// Save the data to accumulator
+		cpu->saveToReg(cycles, CPU::REGISTER_A, data);
 	}
 
 	/* Helper method actually performs the required operation */
-	void LogicInstruction::performOp(CPU* cpu, u8& cycles, Byte op, Byte& value, Byte& carry) {
+	void ShiftInstruction::performOp(CPU* cpu, u8& cycles, Byte op, Byte& value, Byte& carry) {
 		switch (op) {
 			/* Arithmetic Shift Left */
 			case OP_ASL:
@@ -60,8 +61,8 @@ namespace E6502 {
 	}
 
 	/** Called to add logic instruction handlers to the emulator */
-	void LogicInstruction::addHandlers(InstructionHandler* handlers[]) {
-		for (InstructionHandler handler : LOGIC_INSTRUCTIONS) {
+	void ShiftInstruction::addHandlers(InstructionHandler* handlers[]) {
+		for (InstructionHandler handler : SHIFT_INSTRUCTIONS) {
 			handlers[handler.opcode] = new InstructionHandler{
 				handler.opcode, handler.isLegal, handler.name, handler.execute
 			};

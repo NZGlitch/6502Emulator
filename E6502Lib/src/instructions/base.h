@@ -41,25 +41,17 @@ namespace E6502 {
 
 	public:
 
-		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and reads a Byte from the relevant location 
-		 * NOTE: modes that require bytes from the instruction will cause the PC to change
-		 * Will not affect any processor flags
-		 */
-		static Byte getByteForMode(CPU* cpu, u8& cycles, Byte mode);
-
-		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and writes a Byte from the relevant location
-		 * NOTE: modes that require bytes from the instruction will cause the PC to change
-		 * Will not affect any processor flags
-		 */
-		static void saveByteForMode(CPU* cpu, u8& cycles, Byte mode, Byte valueToSave);
+		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and returns a reference to the correct location */
+		static Reference getReferenceForMode(CPU* cpu, u8& cycles, Byte mode);
 
 		/** Global Adressing Modes - Commented modes need to be rechecked */
-		const static Byte ADDRESS_MODE_ACCUMULATOR = 0x02;		// 010		//TODO - I suspect ACC and IMM have the same code!
+		const static Byte ADDRESS_MODE_ACCUMULATOR	= 0b010;		// 010		//TODO - I suspect ACC and IMM have the same code!
+		const static Byte ADDRESS_MODE_ABSOLUTE		= 0b011;
 
 		//const static Byte INDIRECT_X = 0b000;	// ??? 000 ??
 		//const static Byte ZERO_PAGE = 0b001;	// ??? 001 ??
 		//const static Byte IMMEDIATE = 0b010;	// ??? 010 ??
-		//const static Byte ABSOLUTE = 0b011;		// ??? 011 ??
+		
 		//const static Byte INDIRECT_Y = 0b100;	// ??? 100 ??
 		//const static Byte ZERO_PAGE_X = 0b101;	// ??? 101 ??
 		//const static Byte ABSOLUTE_Y = 0b110;	// ??? 110 ??

@@ -170,4 +170,24 @@ namespace E6502 {
 		cycles++;
 		currentState->SP = value;
 	}
+
+	/* Read the byte stored at the location provided by the given reference */
+	Byte CPUInternal::readReferenceByte(u8& cycles, Reference& ref) {
+		switch (ref.referenceType) {
+			case CPU::REFERENCE_REG:
+				return regValue(cycles, ref.reg);
+			case CPU::REFERENCE_MEM:
+				return readByte(cycles, ref.memoryAddress);
+		}
+	}
+
+	/* Write the given byte to the location specified by the given reference */
+	void CPUInternal::writeReferenceByte(u8& cycles, Reference& ref, Byte data) {
+		switch (ref.referenceType) {
+		case CPU::REFERENCE_REG:
+			saveToReg(cycles, ref.reg, data);
+		case CPU::REFERENCE_MEM:
+			writeByte(cycles, ref.memoryAddress, data);
+		}
+	}
 }

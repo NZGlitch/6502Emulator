@@ -466,4 +466,79 @@ namespace E6502 {
 		EXPECT_EQ(state->FLAGS.bit.Z, 0);
 		EXPECT_EQ(cycles, 0);
 	}
+
+	/* Test readReference Byte can read from register */
+	TEST_F(TestCPU, readReferenceByteReg) {
+		u8 registerIdx[] = { CPU::REGISTER_A, CPU::REGISTER_X, CPU::REGISTER_Y };
+		Byte* registerRef[] = { &state->A, &state->X, &state->Y };
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Reference ref = Reference{ CPU::REFERENCE_REG, registers[i]};
+			Byte testValue = rand();
+			*registerRef[i] = testValue;
+			Byte cycles = 0;
+
+			// When:
+			Byte result = cpu->readReferenceByte(cycles, ref);
+
+			// Then:
+			EXPECT_EQ(cycles, 0);
+			EXPECT_EQ(result, testValue);
+		}
+		
+	}
+
+	/* Test writeReferenceByte can write to register */
+	TEST_F(TestCPU, writeReferenceByteReg) {
+		u8 registerIdx[] = { CPU::REGISTER_A, CPU::REGISTER_X, CPU::REGISTER_Y };
+		Byte* registerRef[] = { &state->A, &state->X, &state->Y };
+		for (int i = 0; i < 3; i++) {
+			// Given:
+			Reference ref = Reference{ CPU::REFERENCE_REG, registers[i] };
+			Byte testValue = rand();
+			*registerRef[i] = ~testValue;
+			Byte cycles = 0;
+
+			// When:
+			cpu->writeReferenceByte(cycles, ref, testValue);
+
+			// Then:
+			EXPECT_EQ(cycles, 1);
+			EXPECT_EQ(*registerRef[i], testValue);
+		}
+	}
+
+	/* Test readReference Byte can read from memory */
+	TEST_F(TestCPU, readReferenceByteMem) {
+		// Given:
+		Byte testAddress = rand();
+		Byte testValue = rand();
+		Reference ref = Reference{ CPU::REFERENCE_MEM, testAddress };
+		(*memory)[testAddress] = testValue;
+		Byte cycles = 0;
+		
+		// When:
+		Byte result = cpu->readReferenceByte(cycles, ref);
+
+		// Then:
+		EXPECT_EQ(cycles, 1);
+		EXPECT_EQ(result, testValue);
+	}
+
+	/* Test writeReferenceByte can write to memory */
+	TEST_F(TestCPU, writeReferenceByteMem) {
+		// Given:
+		Byte testAddress = rand();
+		Byte testValue = rand();
+		Reference ref = Reference{ CPU::REFERENCE_MEM, testAddress };
+		(*memory)[testAddress] = ~testValue;
+		Byte cycles = 0;
+
+		// When:
+		cpu->writeReferenceByte(cycles, ref, testValue);
+
+		// Then:
+		EXPECT_EQ(cycles, 1);
+		EXPECT_EQ((*memory)[testAddress], testValue);
+	}
 }
