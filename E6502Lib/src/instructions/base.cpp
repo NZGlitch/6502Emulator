@@ -16,6 +16,11 @@ namespace E6502 {
 				addr = cpu->readPCByte(cycles);
 				addr |= (cpu->readPCByte(cycles) << 8); cycles++;
 				return Reference{ CPU::REFERENCE_MEM, addr };
+			case ADDRESS_MODE_ABSOLUTE_X:
+				addr = cpu->readPCByte(cycles);
+				addr |= (cpu->readPCByte(cycles) << 8); cycles++;
+				addr += cpu->regValue(cycles, CPU::REGISTER_X); cycles++;
+				return Reference{ CPU::REFERENCE_MEM, addr };
 			default: {
 				fprintf(stderr, "Unknown memory mode %d in BaseInstruction::getByteForMode\n", mode);
 				return Reference{};
