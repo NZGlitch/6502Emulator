@@ -41,15 +41,15 @@ namespace E6502 {
 
 	public:
 
-		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and reads a Byte from the relvant location 
+		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and reads a Byte from the relevant location 
 		 * NOTE: modes that require bytes from the instruction will cause the PC to change
-		 * Will not affect any processor falgs
+		 * Will not affect any processor flags
 		 */
 		static Byte getByteForMode(CPU* cpu, u8& cycles, Byte mode);
 
-		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and writes a Byte from the relvant location
+		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and writes a Byte from the relevant location
 		 * NOTE: modes that require bytes from the instruction will cause the PC to change
-		 * Will not affect any processor falgs
+		 * Will not affect any processor flags
 		 */
 		static void saveByteForMode(CPU* cpu, u8& cycles, Byte mode, Byte valueToSave);
 

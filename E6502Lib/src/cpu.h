@@ -94,7 +94,7 @@ namespace E6502 {
 	};
 
 	
-	/* This represents CPU with additional methods for emulation management and dirct access to CPUState/Memory - should not be used by instructions */
+	/* This represents CPU with additional methods for emulation management and direct access to CPUState/Memory - should not be used by instructions */
 	class CPUInternal : public CPU {
 
 	private:

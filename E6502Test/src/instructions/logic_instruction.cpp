@@ -32,7 +32,7 @@ namespace E6502 {
 			{INS_ASL_ACC, 0x0A},
 			{INS_ROL_ACC, 0x2A},
 			{INS_LSR_ACC, 0x4A},
-//			{INS_ROR_ACC, 0x6A},
+			{INS_ROR_ACC, 0x6A},
 		};
 		testInstructionDef(instructions, LogicInstruction::addHandlers);
 	}
@@ -51,10 +51,9 @@ namespace E6502 {
 	TEST_F(TestLogicInstruction, TestLSRAccNoCarry) { Byte tVal = (rand() & 0xFE);	testAccOp(INS_LSR_ACC, tVal, (tVal >> 1) & 0x7F, 1, 0, 2); }
 	TEST_F(TestLogicInstruction, TestLSRAccWiCarry) { Byte tVal = (rand() | 0x01);	testAccOp(INS_LSR_ACC, tVal, (tVal >> 1) & 0x7F, 0, 1, 2); }
 
-	/* Test ROR Execution 
-	TEST_F(TestLogicInstruction, TestRORAccC00) { Byte tVal = rand() & 0xFE; testAccOp(INS_ROL_ACC, tVal, (tVal >> 1) & 0x7F, 0, 0, 2); }
-	TEST_F(TestLogicInstruction, TestRORAccC01) { Byte tVal = rand() | 0x01; testAccOp(INS_ROL_ACC, tVal, (tVal >> 1) & 0x7F, 0, 1, 2); }
-	TEST_F(TestLogicInstruction, TestRORAccC10) { Byte tVal = rand() & 0xFE; testAccOp(INS_ROL_ACC, tVal, (tVal >> 1) | 0x80, 1, 0, 2); }
-	TEST_F(TestLogicInstruction, TestRORAccC11) { Byte tVal = rand() | 0x01; testAccOp(INS_ROL_ACC, tVal, (tVal >> 1) | 0x80, 1, 1, 2); }
-	*/
+	/* Test ROR Execution */
+	TEST_F(TestLogicInstruction, TestRORAccC00) { Byte tVal = rand() & 0xFE; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) & 0x7F, 0, 0, 2); }
+	TEST_F(TestLogicInstruction, TestRORAccC01) { Byte tVal = rand() | 0x01; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) & 0x7F, 0, 1, 2); }
+	TEST_F(TestLogicInstruction, TestRORAccC10) { Byte tVal = rand() & 0xFE; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) | 0x80, 1, 0, 2); }
+	TEST_F(TestLogicInstruction, TestRORAccC11) { Byte tVal = rand() | 0x01; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) | 0x80, 1, 1, 2); }
 }
