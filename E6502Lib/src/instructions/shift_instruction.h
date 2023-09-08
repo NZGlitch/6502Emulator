@@ -32,6 +32,7 @@ namespace E6502 {
 
 	/** LSR Instruction Definitions Field A: 010, Field C: 10 */
 	constexpr static InstructionHandler INS_LSR_ACC = { 0x4A, true, "LSR - Logical Shift Right [Accumulator]",		ShiftInstruction::shiftHandler };
+	constexpr static InstructionHandler INS_LSR_ABS = { 0x4E, true, "LSR - Logical Shift Right [Absolute]",			ShiftInstruction::shiftHandler };
 
 	/** ROR Instruction Definitions Field A: 011, Field C: 10 */
 	constexpr static InstructionHandler INS_ROR_ACC = { 0x6A, true, "ROR - Rotate Right [Accumulator]",				ShiftInstruction::shiftHandler };
@@ -45,7 +46,7 @@ namespace E6502 {
 		INS_ROL_ACC, INS_ROL_ABS,
 
 		/** LSR Instruction Definitions */
-		INS_LSR_ACC,
+		INS_LSR_ACC, INS_LSR_ABS,
 
 		/** ROR Instruction Definitions */
 		INS_ROR_ACC,

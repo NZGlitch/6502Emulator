@@ -55,15 +55,13 @@ namespace E6502 {
 
 		std::vector<InstructionMap> instructions = {
 			// ASL Instructions
-			{INS_ASL_ACC, 0x0A},
-			{INS_ASL_ABS, 0x0E},
+			{INS_ASL_ACC, 0x0A}, {INS_ASL_ABS, 0x0E},
 
 			// ROL Instructions
-			{INS_ROL_ACC, 0x2A},
-			{INS_ROL_ABS, 0x2E},
+			{INS_ROL_ACC, 0x2A}, {INS_ROL_ABS, 0x2E},
 
 			// LSL Instructions
-			{INS_LSR_ACC, 0x4A},
+			{INS_LSR_ACC, 0x4A}, {INS_LSR_ABS, 0x4E},
 
 			// ROR Instructions
 			{INS_ROR_ACC, 0x6A},
@@ -94,8 +92,13 @@ namespace E6502 {
 	TEST_F(TestShiftInstruction, TestROLAbsC11) { Byte tVal = rand() | 0x80; testAbsOp(INS_ROL_ABS, tVal, (tVal << 1) | 0x01, 1, 1, 6); }
 
 	/* Test LSR Execution */
+	// ACC
 	TEST_F(TestShiftInstruction, TestLSRAccNoCarry) { Byte tVal = (rand() & 0xFE);	testAccOp(INS_LSR_ACC, tVal, (tVal >> 1) & 0x7F, 1, 0, 2); }
 	TEST_F(TestShiftInstruction, TestLSRAccWiCarry) { Byte tVal = (rand() | 0x01);	testAccOp(INS_LSR_ACC, tVal, (tVal >> 1) & 0x7F, 0, 1, 2); }
+
+	// ABS
+	TEST_F(TestShiftInstruction, TestLSRAbsNoCarry) { Byte tVal = (rand() & 0xFE);	testAbsOp(INS_LSR_ABS, tVal, (tVal >> 1) & 0x7F, 1, 0, 6); }
+	TEST_F(TestShiftInstruction, TestLSRAbsWiCarry) { Byte tVal = (rand() | 0x01);	testAbsOp(INS_LSR_ABS, tVal, (tVal >> 1) & 0x7F, 0, 1, 6); }
 
 	/* Test ROR Execution */
 	TEST_F(TestShiftInstruction, TestRORAccC00) { Byte tVal = rand() & 0xFE; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) & 0x7F, 0, 0, 2); }
