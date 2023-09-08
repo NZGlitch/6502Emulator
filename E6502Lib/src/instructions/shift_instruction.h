@@ -26,38 +26,38 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_ASL_ACC = { 0x0A, true, "ASL - Arithmetic Shift Left [Accumulator]", ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_ASL_ABS = { 0x0E, true, "ASL - Arithmetic Shift Left [Absolute]", ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_ASL_ABX = { 0x1E, true, "ASL - Arithmetic Shift Left [X-Indexed Absolute]",	ShiftInstruction::shiftHandler };
-	constexpr static InstructionHandler INS_ASL_ZP0 = { 0x1E, true, "ASL - Arithmetic Shift Left [Zero Page]",	ShiftInstruction::shiftHandler };
+	constexpr static InstructionHandler INS_ASL_ZP0 = { 0x06, true, "ASL - Arithmetic Shift Left [Zero Page]",	ShiftInstruction::shiftHandler };
 
 	/** ROL Instruction Definitions Field A: 001, Field C: 10 */
 	constexpr static InstructionHandler INS_ROL_ACC = { 0x2A, true, "ROL - Rotate Left [Accumulator]", ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_ROL_ABS = { 0x2E, true, "ROL - Rotate Left [Absolute]",	ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_ROL_ABX = { 0x3E, true, "ROL - Rotate Left [X-Indexed Absolute]", ShiftInstruction::shiftHandler };
-	constexpr static InstructionHandler INS_ROL_ZP0 = { 0x3E, true, "ROL - Rotate Left [Zero Page]", ShiftInstruction::shiftHandler };
+	constexpr static InstructionHandler INS_ROL_ZP0 = { 0x26, true, "ROL - Rotate Left [Zero Page]", ShiftInstruction::shiftHandler };
 
 	/** LSR Instruction Definitions Field A: 010, Field C: 10 */
 	constexpr static InstructionHandler INS_LSR_ACC = { 0x4A, true, "LSR - Logical Shift Right [Accumulator]", ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_LSR_ABS = { 0x4E, true, "LSR - Logical Shift Right [Absolute]",	ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_LSR_ABX = { 0x5E, true, "LSR - Logical Shift Right [X-Indexed Absolute]", ShiftInstruction::shiftHandler };
-	constexpr static InstructionHandler INS_LSR_ZP0 = { 0x5E, true, "LSR - Logical Shift Right [Zero Page]", ShiftInstruction::shiftHandler };
+	constexpr static InstructionHandler INS_LSR_ZP0 = { 0x46, true, "LSR - Logical Shift Right [Zero Page]", ShiftInstruction::shiftHandler };
 
 	/** ROR Instruction Definitions Field A: 011, Field C: 10 */
 	constexpr static InstructionHandler INS_ROR_ACC = { 0x6A, true, "ROR - Rotate Right [Accumulator]",	ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_ROR_ABS = { 0x6E, true, "ROR - Rotate Right [Absolute]", ShiftInstruction::shiftHandler };
 	constexpr static InstructionHandler INS_ROR_ABX = { 0x7E, true, "ROR - Rotate Right [X-Indexed Absolute]", ShiftInstruction::shiftHandler };
-	constexpr static InstructionHandler INS_ROR_ZP0 = { 0x7E, true, "ROR - Rotate Right [Zero Page]", ShiftInstruction::shiftHandler };
+	constexpr static InstructionHandler INS_ROR_ZP0 = { 0x66, true, "ROR - Rotate Right [Zero Page]", ShiftInstruction::shiftHandler };
 
 	// Array of all logic instructions
 	static constexpr InstructionHandler SHIFT_INSTRUCTIONS[] = {
 		/** ASL Instruction Definitions */
-		INS_ASL_ACC, INS_ASL_ABS, INS_ASL_ABX,
+		INS_ASL_ACC, INS_ASL_ABS, INS_ASL_ABX, INS_ASL_ZP0,
 
 		/** ROL Instruction Definitions */
-		INS_ROL_ACC, INS_ROL_ABS, INS_ROL_ABX,
+		INS_ROL_ACC, INS_ROL_ABS, INS_ROL_ABX, INS_ROL_ZP0,
 
 		/** LSR Instruction Definitions */
-		INS_LSR_ACC, INS_LSR_ABS, INS_LSR_ABX,
+		INS_LSR_ACC, INS_LSR_ABS, INS_LSR_ABX, INS_LSR_ZP0,
 
 		/** ROR Instruction Definitions */
-		INS_ROR_ACC, INS_ROR_ABS, INS_ROR_ABX,
+		INS_ROR_ACC, INS_ROR_ABS, INS_ROR_ABX, INS_ROR_ZP0,
 	};
 }
