@@ -7,27 +7,14 @@ namespace E6502 {
 
 	/* Test addHandlers func adds JSR handler */
 	TEST_F(TestJSRInstruction, TestJSRaddHandlers) {
-		// Given:
-		InstructionHandler* handlers[0x100] = { nullptr };
+		std::vector<InstructionMap> instructions = {
+			{INS_JSR, 0x20},
+			{INS_JMP_ABS, 0x4C},
+			{INS_JMP_ABIN, 0x6C},
+			{INS_RTS, 0x60},
+		};
 
-		// When:
-		JumpInstruction::addHandlers(handlers);
-
-		// Then: For the JSR instruction
-		EXPECT_EQ(INS_JSR.opcode, 0x20);
-		EXPECT_EQ(*handlers[0x20], INS_JSR);
-
-		// Then: For the JMP ABS instruction
-		EXPECT_EQ(INS_JMP_ABS.opcode, 0x4C);
-		EXPECT_EQ(*handlers[0x4C], INS_JMP_ABS);
-
-		// Then: For the JMP ABIN instruction
-		EXPECT_EQ(INS_JMP_ABIN.opcode, 0x6C);
-		EXPECT_EQ(*handlers[0x6C], INS_JMP_ABIN);
-
-		// Then: For the RTS instruction
-		EXPECT_EQ(INS_RTS.opcode, 0x60);
-		EXPECT_EQ(*handlers[0x60], INS_RTS);
+		testInstructionDef(instructions, JumpInstruction::addHandlers);
 	}
 
 	/* Test JSR execution */
@@ -46,7 +33,7 @@ namespace E6502 {
 		EXPECT_EQ(state->SP, (initialSP - 2));				// SP should decrement by 2
 		EXPECT_EQ(cycles, 6);
 
-		Word stackAddr = (cpu->popByteFromStack() << 8) | cpu->popByteFromStack();
+		Word stackAddr = (*memory)[0x100 | state->SP + 1] << 8 | (*memory)[0x100 | state->SP + 2];
 		EXPECT_EQ(stackAddr, programSpace+2);	// Stack should contain original PC + 2
 	}
 

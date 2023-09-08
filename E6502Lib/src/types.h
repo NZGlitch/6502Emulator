@@ -26,19 +26,23 @@ namespace E6502 {
 		Byte N : 1;			// Negative Flag			(7)	
 	};
 
+	struct FlagUnion {
+		union {
+			Byte byte;
+			StatusFlags bit;
+		};
+	};
+
 	struct CPUState {
 
 	public:
 		static constexpr Word DEFAULT_RESET_VECTOR = 0xFFFC;
 		static constexpr Byte DEFAULT_SP = 0xFF;
 
-		CPUState() { PS = 0x32; }		// Initialise flags to 0b00100000
+		CPUState() { FLAGS.byte = 0x32; }		// Initialise flags to 0b00100000
 
 		// Flags
-		union {
-			Byte PS;
-			StatusFlags Flag;
-		};
+		FlagUnion FLAGS;
 
 		// Internal Registers
 		Word PC = 0xFFFC;	// Program Counter
@@ -54,14 +58,14 @@ namespace E6502 {
 			A = X = Y = 0;
 			PC = DEFAULT_RESET_VECTOR;
 			SP = DEFAULT_SP;
-			PS = 0x32;
+			FLAGS.byte = 0x32;
 		}
 
 		bool operator==(CPUState other) const {
 			return (
 				PC == other.PC && SP == other.SP &&
 				A == other.A && X == other.X && Y == other.Y &&
-				PS == other.PS);
+				FLAGS.byte == other.FLAGS.byte);
 		}
 	};
 

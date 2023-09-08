@@ -132,34 +132,33 @@ namespace E6502 {
 
 	/* Test addHandlers func adds ST handlers and instructions have the correct opcodes */
 	TEST_F(TestStoreInstruction, TestStoreAddHandlers) {
-		// Given:
-		InstructionHandler* handlers[0x100] = { nullptr };
 
-		// When:
-		StoreInstruction::addHandlers(handlers);
-
+		std::vector<InstructionMap> instructions = {
 		/* Absolute and Absolute Indexed Instructions */
-		EXPECT_EQ(INS_STA_ABS.opcode, 0x8D);	EXPECT_EQ(*handlers[0x8D], INS_STA_ABS);
-		EXPECT_EQ(INS_STX_ABS.opcode, 0x8E);	EXPECT_EQ(*handlers[0x8E], INS_STX_ABS);
-		EXPECT_EQ(INS_STY_ABS.opcode, 0x8C);	EXPECT_EQ(*handlers[0x8C], INS_STY_ABS);
-		EXPECT_EQ(INS_STA_ABSX.opcode, 0x9D);	EXPECT_EQ(*handlers[0x9D], INS_STA_ABSX);
-		EXPECT_EQ(INS_STA_ABSY.opcode, 0x99);	EXPECT_EQ(*handlers[0x99], INS_STA_ABSY);
+		{INS_STA_ABS, 0x8D},
+		{INS_STX_ABS, 0x8E},
+		{INS_STY_ABS, 0x8C},
+		{INS_STA_ABSX, 0x9D},
+		{INS_STA_ABSY, 0x99},
 
 		/* Zero Page Instructions */
-		EXPECT_EQ(INS_STA_ZP.opcode, 0x85);		EXPECT_EQ(*handlers[0x85], INS_STA_ZP);
-		EXPECT_EQ(INS_STX_ZP.opcode, 0x86);		EXPECT_EQ(*handlers[0x86], INS_STX_ZP);
-		EXPECT_EQ(INS_STY_ZP.opcode, 0x84);		EXPECT_EQ(*handlers[0x84], INS_STY_ZP);
+		{INS_STA_ZP, 0x85},
+		{INS_STX_ZP, 0x86},
+		{INS_STY_ZP, 0x84},
 
 		/* Zero Page X,Y Indexed Instructions */
-		EXPECT_EQ(INS_STA_ZPX.opcode, 0x95);	EXPECT_EQ(*handlers[0x95], INS_STA_ZPX);
-		EXPECT_EQ(INS_STX_ZPY.opcode, 0x96);	EXPECT_EQ(*handlers[0x96], INS_STX_ZPY);
-		EXPECT_EQ(INS_STY_ZPX.opcode, 0x94);	EXPECT_EQ(*handlers[0x94], INS_STY_ZPX);
+		{INS_STA_ZPX, 0x95},
+		{INS_STX_ZPY, 0x96},
+		{INS_STY_ZPX, 0x94},
 
 		/* X-Indexed Zero Page Indirect instructions */
-		EXPECT_EQ(INS_STA_INDX.opcode, 0x81);	EXPECT_EQ(*handlers[0x81], INS_STA_INDX);
+		{INS_STA_INDX, 0x81},
 
 		/* Zero Page Y-Indexed Indirect instructions */
-		EXPECT_EQ(INS_STA_INDY.opcode, 0x91);	EXPECT_EQ(*handlers[0x91], INS_STA_INDY);
+		{INS_STA_INDY, 0x91},
+
+		};
+		testInstructionDef(instructions, StoreInstruction::addHandlers);
 	}
 
 	 /* Test Absolute Mode execution */

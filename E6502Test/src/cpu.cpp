@@ -19,8 +19,9 @@ namespace E6502 {
 
 	public:
 
-		CPUState* state; 
-		Memory* memory; 
+		Byte registers[3] = { CPU::REGISTER_A, CPU::REGISTER_X, CPU::REGISTER_Y };
+		CPUState* state;
+		Memory* memory;
 		InstructionLoader loader;
 		CPUInternal* cpu;
 
@@ -41,23 +42,6 @@ namespace E6502 {
 
 		virtual void TearDown() {
 			delete cpu;
-		}
-
-		/** Helper for setFlags test - note given state is reset before and after the test */
-		void testFlags(u8 targetReg, Byte initFlags, Byte testValue, Byte expectFlags, char* test_name) {
-			state->reset();	//always reset to ensure nothing leaks between tests
-			Byte cycles = 0;
-
-			// Given:
-			state->PS = initFlags;
-
-			// When:
-			cpu->saveToRegAndFlag(cycles, targetReg, testValue);
-
-			// Then:
-			EXPECT_EQ(cycles, 0);	//Currently this appears to be a free operation
-			EXPECT_EQ(state->PS, expectFlags);
-			state->reset();
 		}
 	};
 
@@ -81,29 +65,13 @@ namespace E6502 {
 
 	};
 
-	/* Test CPU Flags Getter & Setter */
-	TEST_F(TestCPU, TestCPUSetAndGetFlags) {
-		// Given:
-		cpu->reset();
-
-		for (u16 i = 0x00; i <= 0x100; i++) {
-			// When:
-			cpu->setFlags(i & 0xFF);
-
-			// Then:
-			EXPECT_EQ(i & 0xFF, cpu->getFlags());
-			u8 flags = (state->Flag.C << 0) | (state->Flag.Z << 1) | (state->Flag.I << 2) | (state->Flag.D << 3) | (state->Flag.B << 4) | (state->Flag.Unused << 5) | (state->Flag.O << 6) | (state->Flag.N << 7);
-			EXPECT_EQ(i & 0xFF, flags);
-		}
-	};
-
 	/* Test cpu execute function */
 	TEST_F(TestCPU, TestCPUExecuteFunction) {
 		// Given:
 		Byte flagMask = 0b11011111;		// Bit 5 is never set
 		cpu->reset();
 		Byte initFlags = (rand() & 0xFF & flagMask);
-		cpu->setFlags(initFlags);
+		state->FLAGS.byte = initFlags;
 		ASSERT_EQ(state->PC, 0xFFFC);
 		(*memory)[0xFFFC] = INS_NOP.opcode;		//insert a NOP instruction for the test
 		Byte cycles = 0;
@@ -217,53 +185,14 @@ namespace E6502 {
 		u8 cycles = 0;
 
 		// When:
-		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_A, regA);
-		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_X, regX);
-		cpu->saveToRegAndFlag(cycles, CPU::REGISTER_Y, regY);
+		cpu->saveToReg(cycles, CPU::REGISTER_A, regA);
+		cpu->saveToReg(cycles, CPU::REGISTER_X, regX);
+		cpu->saveToReg(cycles, CPU::REGISTER_Y, regY);
 
 		// Then:
 		EXPECT_EQ(state->A, regA);
 		EXPECT_EQ(state->X, regX);
 		EXPECT_EQ(state->Y, regY);
-	}
-
-	/* Tests setFlags when N and Z flags 0 */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlags00) {
-		// No Flags (unset exiting)
-		testFlags(CPU::REGISTER_A, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_A) NO ZN - change");
-		testFlags(CPU::REGISTER_X, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_X) NO ZN - change");
-		testFlags(CPU::REGISTER_Y, 0xFF, 0x78, 0x7D, "setFlags(REGISTER_Y) NO ZN - change");
-
-		// No Flags (Unchange existing)
-		testFlags(CPU::REGISTER_A, 0x00, 0x78, 0x00, "setFlags(REGISTER_A) NO ZN - no change");
-		testFlags(CPU::REGISTER_X, 0x00, 0x78, 0x00, "setFlags(REGISTER_X) NO ZN - no change");
-		testFlags(CPU::REGISTER_Y, 0x00, 0x78, 0x00, "setFlags(REGISTER_Y) NO ZN - no change");
-	}
-
-	/* Tests setFlags when Z flag changes */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsZ) {
-		// Z-Flag should be unset
-		testFlags(CPU::REGISTER_A, 0x02, 0x78, 0x00, "setFlags(REGISTER_A) unset Z");
-		testFlags(CPU::REGISTER_X, 0x02, 0x78, 0x00, "setFlags(REGISTER_X) unset Z");
-		testFlags(CPU::REGISTER_Y, 0x02, 0x78, 0x00, "setFlags(REGISTER_Y) unset Z");
-
-		// Z-Flag sould be set
-		testFlags(CPU::REGISTER_A, 0x00, 0x00, 0x02, "setFlags(REGISTER_A) set Z");
-		testFlags(CPU::REGISTER_X, 0x00, 0x00, 0x02, "setFlags(REGISTER_X) set Z");
-		testFlags(CPU::REGISTER_Y, 0x00, 0x00, 0x02, "setFlags(REGISTER_Y) set Z");
-	}
-
-	/* Tests setFlags when N flag changes */
-	TEST_F(TestCPU, TestRegisterSaveAndSetFlagsN) {
-		// N-Flag should be unset
-		testFlags(CPU::REGISTER_A, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_A) unset N");
-		testFlags(CPU::REGISTER_X, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_X) unset N");
-		testFlags(CPU::REGISTER_Y, 0xDD, 0x78, 0x5d, "setFlags(REGISTER_Y) unset N");
-
-		// N-Flag sould be set
-		testFlags(CPU::REGISTER_A, 0x00, 0x80, 0x80, "setFlags(REGISTER_A) set N");
-		testFlags(CPU::REGISTER_X, 0x00, 0x80, 0x80, "setFlags(REGISTER_X) set N");
-		testFlags(CPU::REGISTER_Y, 0x00, 0x80, 0x80, "setFlags(REGISTER_Y) set N");
 	}
 
 	/* Tests regValue */
@@ -289,42 +218,51 @@ namespace E6502 {
 		
 	}
 
-	/* Test pushPCToStack() */
-	TEST_F(TestCPU, TestpushPCToStack) {
+	/* Test getPC() */
+	TEST_F(TestCPU, TestgetPC) {
 		// Given:
-		state->SP = 0x68;
-		(*memory)[0x0168] = 0x00;
-		(*memory)[0x0167] = 0x00;
-		state->PC = 0x4321;
+		Word initPC = rand();
+		state->PC = initPC;
 		u8 cycles = 0;
 
 		// When:
-		cpu->pushPCToStack(cycles);
+		Word value = cpu->getPC(cycles);
 
 		// Then:
-		EXPECT_EQ(state->SP, 0x66);
-		EXPECT_EQ((*memory)[0x0168], 0x21);
-		EXPECT_EQ((*memory)[0x0167], 0x43);
-		EXPECT_EQ(state->PC, 0x4321);
-		EXPECT_EQ(cycles, 2);
+		EXPECT_EQ(value, initPC);
+		EXPECT_EQ(state->PC, initPC);
+		EXPECT_EQ(cycles, 1);
 	}
 
-	/* Test popStackWord - should work well with pushPCToStack and pushWordToStack */
-	TEST_F(TestCPU, TestpopStackWord) {
+	/* Test pullStackWord and pushStackWord */
+	TEST_F(TestCPU, TestPushPullStackWord) {
 		u8 cycles = 0;
 		// Given:
-		state->SP = 0xAB;
-		state->PC = 0x8765;
-		cpu->pushPCToStack(cycles);
+		Word testWord = rand();
+		Byte initialSP = (rand() & 0x7F) | 0x07;	// Set the stack to a random place away from the top or bottom
+		state->SP = initialSP;
+		
+		// Clear memory
+		(*memory)[state->SP] = ~testWord & 0xFF;
+		(*memory)[state->SP - 1] = ~testWord >> 8;
 		cycles = 0;
 
 		// When
-		Word result = cpu->popStackWord(cycles);
+		cpu->pushStackWord(cycles, testWord);
 
 		// Then:
 		EXPECT_EQ(cycles, 2);
-		EXPECT_EQ(state->SP, 0xAB);
-		EXPECT_EQ(result, 0x8765);
+		EXPECT_EQ(state->SP, initialSP - 2);
+		EXPECT_EQ((*memory)[0x0100 | initialSP], testWord & 0xFF);
+		EXPECT_EQ((*memory)[0x0100 | initialSP - 1], testWord >> 8);
+
+		// When
+		Word result = cpu->pullStackWord(cycles);
+
+		// Then:
+		EXPECT_EQ(cycles, 4);
+		EXPECT_EQ(state->SP, initialSP);
+		EXPECT_EQ(testWord, result);
 	}
 
 	/* Test setPC */
@@ -341,51 +279,191 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 1);
 	}
 
-	/* Test popByteFromStack */
-	TEST_F(TestCPU, popByteFromStack) {
+	/* Test CPU Flags Getter & Setter */
+	TEST_F(TestCPU, TestCPUSetAndGetFlags) {
 		// Given:
-		state->SP = 0x34;
-		(*memory)[0x0135] = 0x42;
+		cpu->reset();
+		FlagUnion testValue = FlagUnion();
+
+		for (u16 i = 0x00; i <= 0x100; i++) {
+			// When:
+			Byte cycles = 0;
+			testValue.byte = i;
+			cpu->setFlags(cycles, testValue);
+
+			// Then:
+			EXPECT_EQ(cycles, 1);
+			EXPECT_EQ(testValue.byte, state->FLAGS.byte);
+			EXPECT_EQ(testValue.byte, cpu->getFlags(cycles).byte);
+			EXPECT_EQ(cycles, 2);
+			EXPECT_EQ(cycles, 2);
+		}
+	};
+
+	/* Test pullStackByte */
+	TEST_F(TestCPU, pullStackByte) {
+		// Given:
+		u8 cycles = 0;
+		Byte initialSP = (rand() | 0x80);
+		Byte testValue = rand();
+
+		state->SP = initialSP;
+		(*memory)[0x0100 | initialSP + 1] = testValue;
 
 		// When:
-		Byte result = cpu->popByteFromStack();
+		Byte result = cpu->pullStackByte(cycles);
 
 		// Then:
-		EXPECT_EQ(state->SP, 0x35);
-		EXPECT_EQ(result, 0x42);
+		EXPECT_EQ(state->SP, initialSP + 1);
+		EXPECT_EQ(result, testValue);
+		EXPECT_EQ(cycles, 1);
 	}
 
-	/* Test virtual copyStackToX(u8& cycles) */
-	TEST_F(TestCPU, copyStackToX) {
+	/* Test pushStackByte(u8& cycles, Byte value) */
+	TEST_F(TestCPU, pushStackByte) {
 		// Given:
-		Byte testValue = rand();
 		u8 cycles = 0;
-		state->X = ~testValue;
+		Byte initialSP = (rand() | 0x80);
+		Byte testValue = rand();
+
+		state->SP = initialSP;
+		(*memory)[0x0100 | initialSP] = ~testValue;
+
+		// When:
+		cpu->pushStackByte(cycles, testValue);
+
+		// Then:
+		EXPECT_EQ(state->SP, initialSP - 1);
+		EXPECT_EQ((*memory)[0x0100 | initialSP], testValue);
+		EXPECT_EQ(cycles, 1);
+	}
+
+	/* Test Byte getSP(u8& cycles) */
+	TEST_F(TestCPU, getSP) {
+		// Given:
+		Byte cycles = 0;
+		Byte testValue = rand();
 		state->SP = testValue;
 
 		// When:
-		cpu->copyStackToXandFlag(cycles);
+		Byte result = cpu->getSP(cycles);
 
 		// Then:
-		EXPECT_EQ(state->X, testValue);
+		EXPECT_EQ(result, testValue);
 		EXPECT_EQ(state->SP, testValue);
 		EXPECT_EQ(cycles, 1);
 	}
 
-	/* Test virtual void copyXtoStack(u8& cycles) */
-	TEST_F(TestCPU, copyXToStack) {
+	/* Test setSP(u8& cycles, Byte value) */
+	TEST_F(TestCPU, setSP) { 
 		// Given:
+		Byte cycles = 0;
 		Byte testValue = rand();
-		u8 cycles = 0;
-		state->X = testValue;
 		state->SP = ~testValue;
 
 		// When:
-		cpu->copyXtoStack(cycles);
+		cpu->setSP(cycles, testValue);
 
 		// Then:
-		EXPECT_EQ(state->X, testValue);
 		EXPECT_EQ(state->SP, testValue);
 		EXPECT_EQ(cycles, 1);
+	}
+
+	/* Test getCarry */
+	TEST_F(TestCPU, getCarry) {
+		// if it is set to false...
+		Byte cycles = 0;
+		state->FLAGS.bit.C = false;
+		EXPECT_FALSE(cpu->getCarryFlag(cycles));
+		EXPECT_EQ(cycles, 0);
+
+		// if it is set to true
+		cycles = 0;
+		state->FLAGS.bit.C = true;
+		EXPECT_TRUE(cpu->getCarryFlag(cycles));
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setCarry */
+	TEST_F(TestCPU, setCarryTrue) {
+		// Given:
+		state->FLAGS.bit.C = 0;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setCarryFlag(cycles, true);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.C, 1);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setCarry */
+	TEST_F(TestCPU, setCarryFalse) {
+		// Given:
+		state->FLAGS.bit.C = 1;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setCarryFlag(cycles, false);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.C, 0);
+		EXPECT_EQ(cycles, 0);
+	}
+	/* Test setNegative */
+	TEST_F(TestCPU, setNegativeTrue) {
+		// Given:
+		state->FLAGS.bit.N = 0;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setNegativeFlag(cycles, true);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.N, 1);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setNegative */
+	TEST_F(TestCPU, setNegativeFalse) {
+		// Given:
+		state->FLAGS.bit.N = 1;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setNegativeFlag(cycles, false);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.N, 0);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setZero */
+	TEST_F(TestCPU, setZeroTrue) {
+		// Given:
+		state->FLAGS.bit.Z = 0;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setZeroFlag(cycles, true);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.Z, 1);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setZero */
+	TEST_F(TestCPU, setZeroFalse) {
+		// Given:
+		state->FLAGS.bit.Z = 1;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setZeroFlag(cycles, false);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.Z, 0);
+		EXPECT_EQ(cycles, 0);
 	}
 }

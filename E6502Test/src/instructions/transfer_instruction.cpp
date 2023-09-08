@@ -26,21 +26,18 @@ namespace E6502 {
 
 	/* Test addHandlers function and instruction opcodes */
 	TEST_F(TestTransferInstruction, TestLDAaddHandlers) {
-		// Given:
-		InstructionHandler* handlers[0x100] = { nullptr };
+		std::vector<InstructionMap> instructions = {
+			// Register transfers
+			{INS_TAX, 0xAA},
+			{INS_TAY, 0xA8},
+			{INS_TXA, 0x8A},
+			{INS_TYA, 0x98},
 
-		// When:
-		TransferInstruction::addHandlers(handlers);
-
-		// Register transfers
-		EXPECT_EQ(INS_TAX.opcode, 0xAA);	EXPECT_EQ(*handlers[0xAA], INS_TAX);	// 101 010 10
-		EXPECT_EQ(INS_TAY.opcode, 0xA8);	EXPECT_EQ(*handlers[0xA8], INS_TAY);	// 101 010 00
-		EXPECT_EQ(INS_TXA.opcode, 0x8A);	EXPECT_EQ(*handlers[0x8A], INS_TXA);	// 100 010 10
-		EXPECT_EQ(INS_TYA.opcode, 0x98);	EXPECT_EQ(*handlers[0x98], INS_TYA);	// 100 110 00
-
-		// Stack transfers
-		EXPECT_EQ(INS_TSX.opcode, 0xBA);	EXPECT_EQ(*handlers[0xBA], INS_TSX);	// 101 110 10
-		EXPECT_EQ(INS_TXS.opcode, 0x9A);	EXPECT_EQ(*handlers[0x9A], INS_TXS);	// 100 110 10
+			// Stack transfers
+			{INS_TSX, 0xBA},
+			{INS_TXS, 0x9A},
+		};
+		testInstructionDef(instructions, TransferInstruction::addHandlers);
 	}
 
 	TEST_F(TestTransferInstruction, TestTAX) { testTransfer(INS_TAX, &state->A, &state->X, 2, true); }
