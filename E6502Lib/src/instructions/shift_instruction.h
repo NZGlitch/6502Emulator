@@ -36,6 +36,7 @@ namespace E6502 {
 
 	/** ROR Instruction Definitions Field A: 011, Field C: 10 */
 	constexpr static InstructionHandler INS_ROR_ACC = { 0x6A, true, "ROR - Rotate Right [Accumulator]",				ShiftInstruction::shiftHandler };
+	constexpr static InstructionHandler INS_ROR_ABS = { 0x6E, true, "ROR - Rotate Right [Absolute]",				ShiftInstruction::shiftHandler };
 
 	// Array of all logic instructions
 	static constexpr InstructionHandler SHIFT_INSTRUCTIONS[] = {
@@ -49,6 +50,6 @@ namespace E6502 {
 		INS_LSR_ACC, INS_LSR_ABS,
 
 		/** ROR Instruction Definitions */
-		INS_ROR_ACC,
+		INS_ROR_ACC,INS_ROR_ABS,
 	};
 }

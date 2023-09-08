@@ -64,7 +64,7 @@ namespace E6502 {
 			{INS_LSR_ACC, 0x4A}, {INS_LSR_ABS, 0x4E},
 
 			// ROR Instructions
-			{INS_ROR_ACC, 0x6A},
+			{INS_ROR_ACC, 0x6A}, {INS_ROR_ABS, 0x6E},
 		};
 		testInstructionDef(instructions, ShiftInstruction::addHandlers);
 	}
@@ -101,8 +101,15 @@ namespace E6502 {
 	TEST_F(TestShiftInstruction, TestLSRAbsWiCarry) { Byte tVal = (rand() | 0x01);	testAbsOp(INS_LSR_ABS, tVal, (tVal >> 1) & 0x7F, 0, 1, 6); }
 
 	/* Test ROR Execution */
+	// ACC
 	TEST_F(TestShiftInstruction, TestRORAccC00) { Byte tVal = rand() & 0xFE; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) & 0x7F, 0, 0, 2); }
 	TEST_F(TestShiftInstruction, TestRORAccC01) { Byte tVal = rand() | 0x01; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) & 0x7F, 0, 1, 2); }
 	TEST_F(TestShiftInstruction, TestRORAccC10) { Byte tVal = rand() & 0xFE; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) | 0x80, 1, 0, 2); }
 	TEST_F(TestShiftInstruction, TestRORAccC11) { Byte tVal = rand() | 0x01; testAccOp(INS_ROR_ACC, tVal, (tVal >> 1) | 0x80, 1, 1, 2); }
+
+	// ABS
+	TEST_F(TestShiftInstruction, TestRORAbsC00) { Byte tVal = rand() & 0xFE; testAbsOp(INS_ROR_ABS, tVal, (tVal >> 1) & 0x7F, 0, 0, 6); }
+	TEST_F(TestShiftInstruction, TestRORAbsC01) { Byte tVal = rand() | 0x01; testAbsOp(INS_ROR_ABS, tVal, (tVal >> 1) & 0x7F, 0, 1, 6); }
+	TEST_F(TestShiftInstruction, TestRORAbsC10) { Byte tVal = rand() & 0xFE; testAbsOp(INS_ROR_ABS, tVal, (tVal >> 1) | 0x80, 1, 0, 6); }
+	TEST_F(TestShiftInstruction, TestRORAbsC11) { Byte tVal = rand() | 0x01; testAbsOp(INS_ROR_ABS, tVal, (tVal >> 1) | 0x80, 1, 1, 6); }
 }
