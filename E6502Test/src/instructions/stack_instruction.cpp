@@ -49,7 +49,6 @@ namespace E6502 {
 		// Then:
 		EXPECT_EQ((*memory)[0x0100 | initialSP], testValue);
 		EXPECT_EQ(state->SP, initialSP - 1);
-	
 	}
 
 	TEST_F(TestStackInstruction, TestPLA) {

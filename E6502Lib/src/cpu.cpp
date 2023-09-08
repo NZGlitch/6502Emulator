@@ -12,6 +12,7 @@ namespace E6502 {
 	}
 
 	/* Execute <numInstructions> instructions. Return the number of cycles used. */
+	//TODO consider reading all the bytes for an instruction at the fetch stage and passing them as an array to handles?
 	u8 CPUInternal::execute(u8 numInstructions) {
 		u8 cyclesUsed = 0;
 		while (numInstructions > 0) {
@@ -46,7 +47,7 @@ namespace E6502 {
 		return result;
 	}
 
-	/** Allows an instruction to write a byte to memory, uses 1 cycles */
+	/** Allows an instruction to write a byte to memory, uses 1 cycle */
 	void CPUInternal::writeByte(u8& cycles, Word address, Byte value) {
 		(*mainMemory)[address] = value; cycles++;
 	}
@@ -89,7 +90,7 @@ namespace E6502 {
 			case REGISTER_X: currentState->X = value; break;
 			case REGISTER_Y: currentState->Y = value; break;
 				default: {
-					fprintf(stderr, "Invalid register selected for CPUInternal::saveToRegAndFlagNZ %d", reg);
+					fprintf(stderr, "Invalid register selected for CPUInternal::saveToReg %d", reg);
 					return;
 				}
 		}
@@ -109,20 +110,6 @@ namespace E6502 {
 	/** Ses the C Flag */
 	void CPUInternal::setCarryFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.C = flag; }
 
-	/* Copy the stack pointer to register X */
-	void CPUInternal::copyStackToXandFlag(u8& cycles) {
-		saveToReg(cycles, REGISTER_X, currentState->SP);
-		currentState->FLAGS.bit.Z = (currentState->X == 0);
-		currentState->FLAGS.bit.N = (currentState->X >> 7);
-		cycles++;
-	}
-
-	/* Copy X register to stack pointer */
-	void CPUInternal::copyXtoStack(u8& cycles) {
-		currentState->SP = currentState->X;
-		cycles++;
-	}
-
 	/* Push 1 byte of data onto the stack */
 	void CPUInternal::pushStackByte(u8& cycles, Byte value) {
 		(*mainMemory)[0x0100 | currentState->SP--] = value; cycles++;
@@ -140,7 +127,7 @@ namespace E6502 {
 		return result;
 	}
 
-	/* Pops a word from the stack */
+	/* Pull a word from the stack */
 	Word CPUInternal::pullStackWord(u8& cycles) {
 		Word result = (*mainMemory)[0x0100 | ++currentState->SP] << 8; cycles++;	// read msb
 		result |= (*mainMemory)[0x0100 | ++currentState->SP]; cycles++;				// read lsb

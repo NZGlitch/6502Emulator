@@ -18,9 +18,9 @@ namespace E6502 {
 				JumpInstruction::addHandlers(handlers);
 				LoadInstruction::addHandlers(handlers);
 				LogicInstruction::addHandlers(handlers);
+				StackInstruction::addHandlers(handlers);
 				StoreInstruction::addHandlers(handlers);
 				TransferInstruction::addHandlers(handlers);
-				StackInstruction::addHandlers(handlers);
 			}
 		};
 

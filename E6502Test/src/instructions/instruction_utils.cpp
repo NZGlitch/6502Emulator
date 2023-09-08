@@ -87,6 +87,33 @@ namespace E6502 {
 			ASSERT_FALSE(handlers[opcode] == nullptr);
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}
+
+		// Print instruction set
+		char sname[4];
+		printf("\nInstruction set loaded:\n");
+		printf("\n-------------------------------------------------------------------------------------\n");
+		printf("%5s", "");
+		for (int col = 0; col < 0x10; col++) {
+			printf("  x%X ", col);
+		}
+		printf("\n");
+		for (int row = 0; row < 0x10; row++) {
+			printf("%Xx:  ", row);
+			for (int col = 0; col < 0x10; col++) {
+				Byte opcode = (row * 0x10) | col;
+				if (handlers[opcode] == nullptr) {
+					sname[0] = sname[1] = sname[2] = ' ';
+					sname[3] = '\0';
+				}
+				else {
+					const char* name = (*handlers[(row * 0x10) | col]).name;
+					strncpy(sname, name, 3);
+				}
+				printf(" %3s ", sname);
+			}
+			printf("\n");
+		}
+		printf("-------------------------------------------------------------------------------------\n\n");
 	}
 
 	/* Test getRegFromInstruction */

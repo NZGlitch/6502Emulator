@@ -41,11 +41,20 @@ namespace E6502 {
 
 	public:
 
+		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and reads a Byte from the relvant location 
+		 * NOTE: modes that require bytes from the instruction will cause the PC to change
+		 * Will not affect any processor falgs
+		 */
 		static Byte getByteForMode(CPU* cpu, u8& cycles, Byte mode);
+
+		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and writes a Byte from the relvant location
+		 * NOTE: modes that require bytes from the instruction will cause the PC to change
+		 * Will not affect any processor falgs
+		 */
 		static void saveByteForMode(CPU* cpu, u8& cycles, Byte mode, Byte valueToSave);
 
 		/** Global Adressing Modes - Commented modes need to be rechecked */
-		const static Byte ADDRESS_MODE_ACCUMULATOR = 0x02;		// 010
+		const static Byte ADDRESS_MODE_ACCUMULATOR = 0x02;		// 010		//TODO - I suspect ACC and IMM have the same code!
 
 		//const static Byte INDIRECT_X = 0b000;	// ??? 000 ??
 		//const static Byte ZERO_PAGE = 0b001;	// ??? 001 ??

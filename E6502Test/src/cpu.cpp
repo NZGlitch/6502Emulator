@@ -234,7 +234,7 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 1);
 	}
 
-	/* Test pullStackWord - should work well with pushWordToStack(inop) */
+	/* Test pullStackWord and pushStackWord */
 	TEST_F(TestCPU, TestPushPullStackWord) {
 		u8 cycles = 0;
 		// Given:
@@ -263,7 +263,6 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 4);
 		EXPECT_EQ(state->SP, initialSP);
 		EXPECT_EQ(testWord, result);
-		
 	}
 
 	/* Test setPC */
@@ -298,7 +297,6 @@ namespace E6502 {
 			EXPECT_EQ(testValue.byte, cpu->getFlags(cycles).byte);
 			EXPECT_EQ(cycles, 2);
 			EXPECT_EQ(cycles, 2);
-			
 		}
 	};
 
@@ -346,7 +344,6 @@ namespace E6502 {
 		Byte cycles = 0;
 		Byte testValue = rand();
 		state->SP = testValue;
-
 
 		// When:
 		Byte result = cpu->getSP(cycles);
@@ -442,7 +439,7 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 0);
 	}
 
-	/* Test setZeroy */
+	/* Test setZero */
 	TEST_F(TestCPU, setZeroTrue) {
 		// Given:
 		state->FLAGS.bit.Z = 0;

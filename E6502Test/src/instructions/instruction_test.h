@@ -80,7 +80,7 @@ namespace E6502 {
 			dataSpace = 0x0000;
 		}
 
-		/* Insturction Defs & Handler helper - very repated task so can justify a short helper method */
+		/* Instruction Defs & Handler helper - very repeated task so can justify a short helper method */
 		void testInstructionDef(std::vector<InstructionMap> instructions, void(*addHandlers)(InstructionHandler* handlers[])) {
 			// Given:
 			InstructionHandler* handlers[0x100] = { nullptr };
@@ -90,32 +90,36 @@ namespace E6502 {
 
 			// Then: for the each supplied instruction
 			for (InstructionMap ins : instructions) {
-				// We use ASSERT instead of EXPECT here as if the result is incorrect the program will likely crash attempting to access a nonexistent object
-				
 				// Check that the handler opcode is correct
 				EXPECT_EQ(ins.handler.opcode, ins.opcode) << ins.handler.name << " Opcode mismatch\n";
 
-				// Check the handler is put in the correct place
+				// This assert will prevent program carsh if the memory is not correctly initialised
 				ASSERT_NE(nullptr, handlers[ins.opcode]) << ins.handler.name << " Unable to find instruction at correct location in handler list";
+				
+				// Check the handler is put in the correct place
 				EXPECT_EQ(*handlers[ins.opcode], ins.handler) << ins.handler.name << " Not added to handler list correclty\n";
 			}
 		}
 
-		/* Checks a status flags match testalue and Resets PS to initPS so the tear down test passes */
+		/* Checks a status flags match testValue and Resets PS to initPS so the tear down test passes
+		* TODO - As we get more flag ops it seems likely this method needs to be removed or altered
+		* ONLY checks N and Z flags.
+		*/
 		void testAndResetStatusFlags(Byte testValue) {
+			//EXPECT_TRUE(false) << " Seed 68751 fails here";
 			EXPECT_EQ(testValue == 0, state->FLAGS.bit.Z);
 			EXPECT_EQ(testValue >> 7, state->FLAGS.bit.N);
 			state->FLAGS.byte = initPS.byte;
 		}
 
-		/* Creates a test value (if not provided), ensures the target reg doesnt contain it and returns the testvalue */
+		/* Creates a test value (if not provided), ensures the target reg does not already contain it and returns the testvalue */
 		Byte genTestValAndClearTargetReg(Byte* targetReg) {
 			Byte testValue = rand();
 			(*targetReg) = ~testValue;
 			return testValue;
 		}
 
-		/* Generates a test value and ensures meomory location is clear */
+		/* Generates a test value and ensures meomory location does not already contain it */
 		Byte genTestValAndTargetClearMem(Word address) {
 			Byte testValue = rand();
 			(*memory)[address] = ~testValue;

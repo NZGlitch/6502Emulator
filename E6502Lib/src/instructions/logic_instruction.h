@@ -7,9 +7,9 @@ namespace E6502 {
 	public:
 
 		// Operations mapped to op field value (Opfield is bits 7,6,5,1,0 of the OpCode)
-		constexpr static Byte OP_ASL = 0x2;	// Arithmatic shift Left
-		constexpr static Byte OP_ROL = 0x6; // Rotate left
-		constexpr static Byte OP_LSR = 0xA;	// Logical shift right
+		constexpr static Byte OP_ASL = 0x2;		// Arithmatic shift Left
+		constexpr static Byte OP_ROL = 0x6;		// Rotate left
+		constexpr static Byte OP_LSR = 0xA;		// Logical shift right
 
 		/** Handles execution of all logical instructions */
 		static void logicHandler(CPU* cpu, u8& cycles, Byte opCode);
@@ -17,7 +17,7 @@ namespace E6502 {
 		/** Called to add logic instruction handlers to the emulator */
 		static void addHandlers(InstructionHandler* handlers[]);
 
-		/* Helper method actually performs the required operation */
+		/* Helper method actually performs the required operation, if after the op the carry Byte is not 0 the carry flag will be set, if 0 it will be unset  */
 		static void performOp(CPU* cpu, u8& cycles, Byte op, Byte& value, Byte& carry);		
 	};
 

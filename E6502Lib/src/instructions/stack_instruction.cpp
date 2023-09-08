@@ -2,6 +2,7 @@
 
 namespace E6502 {
 
+	/** Handle stack push ops */
 	void StackInstruction::pushHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		Byte value = 0x00;
 		if (opCode == INS_PHA.opcode)
@@ -11,6 +12,7 @@ namespace E6502 {
 		cpu->pushStackByte(cycles, value);
 	}
 
+	/** Handle stack pull ops */
 	void StackInstruction::pullHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		Byte value = cpu->pullStackByte(cycles);
 		if (opCode == INS_PLA) {
@@ -26,7 +28,7 @@ namespace E6502 {
 		cycles += 2;
 	}
 
-	/** Add TransferInstruction Handlers */
+	/** Called to add TransferInstruction handlers to the emulator */
 	void StackInstruction::addHandlers(InstructionHandler* handlers[]) {
 		for (InstructionHandler handler : STACK_INSTRUCTIONS) {
 			handlers[handler.opcode] = new InstructionHandler{

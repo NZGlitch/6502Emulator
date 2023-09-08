@@ -24,7 +24,7 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_PLA = { 0x68, true, "PLA - Pull Accumulator From Stack",		StackInstruction::pullHandler };
 	constexpr static InstructionHandler INS_PLP = { 0x28, true, "PLP - Pull Processor Status From Stack",	StackInstruction::pullHandler };
 
-	// Handy array of all transfer instructions
+	// Array of all transfer instructions
 	static constexpr InstructionHandler STACK_INSTRUCTIONS[] = {
 		/* Push ops */
 		INS_PHA, INS_PHP,
