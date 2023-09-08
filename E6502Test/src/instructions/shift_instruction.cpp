@@ -53,7 +53,7 @@ namespace E6502 {
 			// Given:
 			dataSpace |= (rand() & 0xFF);	// Pick a random location in the data page
 			Byte index = rand();
-			Byte abs = dataSpace - index;
+			Word abs = dataSpace - index;
 			state->FLAGS.bit.C = carryIn;
 			state->X = index;
 			(*memory)[programSpace] = instruction.opcode;
