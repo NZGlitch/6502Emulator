@@ -13,7 +13,7 @@ namespace E6502 {
 		switch (mode) {
 			//Accumulator mode
 			case ADDRESS_MODE_ZERO_PAGE:
-				addr = cpu->readPCByte(cycles); cycles++;
+				addr = cpu->readPCByte(cycles);
 				return Reference{ CPU::REFERENCE_MEM, (Word)(0x00FF & addr) };
 			case ADDRESS_MODE_ACCUMULATOR:
 				return Reference{ CPU::REFERENCE_REG, CPU::REGISTER_A };
