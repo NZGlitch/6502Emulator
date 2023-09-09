@@ -74,11 +74,31 @@ namespace E6502 {
 		void testZPOp(InstructionHandler instruction, Byte testValue, Byte expectValue, bool carryIn, bool carryOut, u8 expectCycles) {
 			// Given:
 			state->A = ~testValue;
-			Byte index = rand();
+			Byte zpAddr = rand();
 			state->FLAGS.bit.C = carryIn;
 			(*memory)[programSpace] = instruction.opcode;
-			(*memory)[programSpace + 1] = index;
-			(*memory)[0x00FF & index] = testValue;
+			(*memory)[programSpace + 1] = zpAddr;
+			(*memory)[0x00FF & zpAddr] = testValue;
+
+			// When
+			u8 cycles = cpu->execute(1);
+
+			// Then
+			EXPECT_EQ(cycles, expectCycles);
+			finishTest(expectValue, carryOut);
+		}
+
+		void testZPXOp(InstructionHandler instruction, Byte testValue, Byte expectValue, bool carryIn, bool carryOut, u8 expectCycles) {
+			// Given:
+			state->A = ~testValue;
+			Byte zpAddr = rand();
+			Byte index = rand();
+			state->X = index;
+			Word expectAddr = 0x00FF & (zpAddr + index);
+			state->FLAGS.bit.C = carryIn;
+			(*memory)[programSpace] = instruction.opcode;
+			(*memory)[programSpace + 1] = zpAddr;
+			(*memory)[expectAddr] = testValue;
 
 			// When
 			u8 cycles = cpu->execute(1);
@@ -94,16 +114,16 @@ namespace E6502 {
 
 		std::vector<InstructionMap> instructions = {
 			// ASL Instructions
-			{INS_ASL_ACC, 0x0A}, {INS_ASL_ABS, 0x0E}, {INS_ASL_ABX, 0x1E}, {INS_ASL_ZP0, 0x06},
+			{INS_ASL_ACC, 0x0A}, {INS_ASL_ABS, 0x0E}, {INS_ASL_ABX, 0x1E}, {INS_ASL_ZP0, 0x06}, {INS_ASL_ZPX, 0x16},
 
 			// ROL Instructions
-			{INS_ROL_ACC, 0x2A}, {INS_ROL_ABS, 0x2E}, {INS_ROL_ABX, 0x3E}, {INS_ROL_ZP0, 0x26},
+			{INS_ROL_ACC, 0x2A}, {INS_ROL_ABS, 0x2E}, {INS_ROL_ABX, 0x3E}, {INS_ROL_ZP0, 0x26}, {INS_ROL_ZPX, 0x36},
 
-			// LSL Instructions
-			{INS_LSR_ACC, 0x4A}, {INS_LSR_ABS, 0x4E}, {INS_LSR_ABX, 0x5E}, {INS_LSR_ZP0, 0x46},
+			// LSR Instructions
+			{INS_LSR_ACC, 0x4A}, {INS_LSR_ABS, 0x4E}, {INS_LSR_ABX, 0x5E}, {INS_LSR_ZP0, 0x46}, {INS_LSR_ZPX, 0x56},
 
 			// ROR Instructions
-			{INS_ROR_ACC, 0x6A}, {INS_ROR_ABS, 0x6E}, {INS_ROR_ABX, 0x7E}, {INS_ROR_ZP0, 0x66},
+			{INS_ROR_ACC, 0x6A}, {INS_ROR_ABS, 0x6E}, {INS_ROR_ABX, 0x7E}, {INS_ROR_ZP0, 0x66}, {INS_ROR_ZPX, 0x76},
 		};
 		testInstructionDef(instructions, ShiftInstruction::addHandlers);
 	}
@@ -124,6 +144,10 @@ namespace E6502 {
 	// ZeroPage
 	TEST_F(TestShiftInstruction, TestASLZPNoCarry) { Byte tVal = (rand() & 0x7F);	testZPOp(INS_ASL_ZP0, tVal, tVal << 1, 1, 0, 5); }
 	TEST_F(TestShiftInstruction, TestASLZPWiCarry) { Byte tVal = (rand() | 0x80);	testZPOp(INS_ASL_ZP0, tVal, tVal << 1, 0, 1, 5); }
+
+	// X-Indexed ZeroPage 
+	TEST_F(TestShiftInstruction, TestASLZPXNoCarry) { Byte tVal = (rand() & 0x7F);	testZPXOp(INS_ASL_ZPX, tVal, tVal << 1, 1, 0, 6); }
+	TEST_F(TestShiftInstruction, TestASLZPXWiCarry) { Byte tVal = (rand() | 0x80);	testZPXOp(INS_ASL_ZPX, tVal, tVal << 1, 0, 1, 6); }
 
 	/* Test ROL Execution */
 	// ACC
@@ -150,6 +174,12 @@ namespace E6502 {
 	TEST_F(TestShiftInstruction, TestROLZPC10) { Byte tVal = rand() & 0x7F; testZPOp(INS_ROL_ZP0, tVal, (tVal << 1) | 0x01, 1, 0, 5); }
 	TEST_F(TestShiftInstruction, TestROLZPC11) { Byte tVal = rand() | 0x80; testZPOp(INS_ROL_ZP0, tVal, (tVal << 1) | 0x01, 1, 1, 5); }
 
+	// X-Indexed Zero Page
+	TEST_F(TestShiftInstruction, TestROLZPXC00) { Byte tVal = rand() & 0x7F; testZPXOp(INS_ROL_ZPX, tVal, (tVal << 1) & 0xFE, 0, 0, 6); }
+	TEST_F(TestShiftInstruction, TestROLZPXC01) { Byte tVal = rand() | 0x80; testZPXOp(INS_ROL_ZPX, tVal, (tVal << 1) & 0xFE, 0, 1, 6); }
+	TEST_F(TestShiftInstruction, TestROLZPXC10) { Byte tVal = rand() & 0x7F; testZPXOp(INS_ROL_ZPX, tVal, (tVal << 1) | 0x01, 1, 0, 6); }
+	TEST_F(TestShiftInstruction, TestROLZPXC11) { Byte tVal = rand() | 0x80; testZPXOp(INS_ROL_ZPX, tVal, (tVal << 1) | 0x01, 1, 1, 6); }
+
 	/* Test LSR Execution */
 	// ACC
 	TEST_F(TestShiftInstruction, TestLSRAccNoCarry) { Byte tVal = (rand() & 0xFE);	testAccOp(INS_LSR_ACC, tVal, (tVal >> 1) & 0x7F, 1, 0, 2); }
@@ -166,6 +196,10 @@ namespace E6502 {
 	// Zero Page
 	TEST_F(TestShiftInstruction, TestLSRZPNoCarry) { Byte tVal = (rand() & 0xFE);	testZPOp(INS_LSR_ZP0, tVal, (tVal >> 1) & 0x7F, 1, 0, 5); }
 	TEST_F(TestShiftInstruction, TestLSRZPWiCarry) { Byte tVal = (rand() | 0x01);	testZPOp(INS_LSR_ZP0, tVal, (tVal >> 1) & 0x7F, 0, 1, 5); }
+
+	// X-Indexed Zero Page
+	TEST_F(TestShiftInstruction, TestLSRZPXNoCarry) { Byte tVal = (rand() & 0xFE);	testZPXOp(INS_LSR_ZPX, tVal, (tVal >> 1) & 0x7F, 1, 0, 6); }
+	TEST_F(TestShiftInstruction, TestLSRZPXWiCarry) { Byte tVal = (rand() | 0x01);	testZPXOp(INS_LSR_ZPX, tVal, (tVal >> 1) & 0x7F, 0, 1, 6); }
 
 	/* Test ROR Execution */
 	// ACC
@@ -191,4 +225,10 @@ namespace E6502 {
 	TEST_F(TestShiftInstruction, TestRORZPC01) { Byte tVal = rand() | 0x01; testZPOp(INS_ROR_ZP0, tVal, (tVal >> 1) & 0x7F, 0, 1, 5); }
 	TEST_F(TestShiftInstruction, TestRORZPC10) { Byte tVal = rand() & 0xFE; testZPOp(INS_ROR_ZP0, tVal, (tVal >> 1) | 0x80, 1, 0, 5); }
 	TEST_F(TestShiftInstruction, TestRORZPC11) { Byte tVal = rand() | 0x01; testZPOp(INS_ROR_ZP0, tVal, (tVal >> 1) | 0x80, 1, 1, 5); }
+
+	// X-Indexed Zero Page
+	TEST_F(TestShiftInstruction, TestRORZPXC00) { Byte tVal = rand() & 0xFE; testZPXOp(INS_ROR_ZPX, tVal, (tVal >> 1) & 0x7F, 0, 0, 6); }
+	TEST_F(TestShiftInstruction, TestRORZPXC01) { Byte tVal = rand() | 0x01; testZPXOp(INS_ROR_ZPX, tVal, (tVal >> 1) & 0x7F, 0, 1, 6); }
+	TEST_F(TestShiftInstruction, TestRORZPXC10) { Byte tVal = rand() & 0xFE; testZPXOp(INS_ROR_ZPX, tVal, (tVal >> 1) | 0x80, 1, 0, 6); }
+	TEST_F(TestShiftInstruction, TestRORZPXC11) { Byte tVal = rand() | 0x01; testZPXOp(INS_ROR_ZPX, tVal, (tVal >> 1) | 0x80, 1, 1, 6); }
 }
