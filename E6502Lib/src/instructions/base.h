@@ -41,12 +41,15 @@ namespace E6502 {
 
 	public:
 
-		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and returns a reference to the correct location */
+		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and returns a reference to the correct location 
+		 * DO NOT use for immediate mode instructions!
+		 */
 		static Reference getReferenceForMode(CPU* cpu, u8& cycles, Byte mode);
 
 		/** Global Adressing Modes - Commented modes need to be rechecked */
 		const static Byte ADDRESS_MODE_ZERO_PAGE	= 0b001;
-		const static Byte ADDRESS_MODE_ACCUMULATOR	= 0b010;	//TODO - I suspect ACC and IMM have the same code!
+		const static Byte ADDRESS_MODE_ACCUMULATOR	= 0b010;
+		const static Byte ADDRESS_MODE_IMMEDIATE	= 0b010;
 		const static Byte ADDRESS_MODE_ABSOLUTE		= 0b011;
 		const static Byte ADDRESS_MODE_ZERO_PAGE_X	= 0b101;
 		const static Byte ADDRESS_MODE_ABSOLUTE_X	= 0b111;		
