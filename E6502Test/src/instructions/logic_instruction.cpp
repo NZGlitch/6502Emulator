@@ -1,23 +1,36 @@
 #include <gmock/gmock.h>
 #include "instruction_test.h"
-#include "shift_instruction.h"
+#include "logic_instruction.h"
 
 namespace E6502 {
 	class TestLogicInstruction : public TestInstruction {
-	private:
+	private:	
 
 		/* Reused code for finishing tests from helpers below */
-		void finishTest(Byte expectValue, bool carryOut) {
+		void finishTest(Byte expectedResult, u8 expectedCycles, u8 actualCycles) {
 			// Then
-			//EXPECT_EQ(state->A, expectValue);
-			//EXPECT_EQ(state->FLAGS.bit.C, carryOut);
-			//testAndResetStatusFlags(expectValue);
+			EXPECT_EQ(expectedResult, state->A);
+			EXPECT_EQ(expectedCycles, actualCycles);
+			testAndResetStatusFlags(expectedResult);
 		}
 
 	public:
-
 		/* Helper method for testing operations using immediate addressing mode */
-		void testImmOp(InstructionHandler instruction) {}
+		void testImmOp(InstructionHandler instruction, Byte(*op)(Byte a, Byte b), Byte expectedCycles) {
+			// Given
+			Byte a = rand();
+			Byte b = rand();
+			Byte expectedResult = op(a, b);
+			state->A = a;
+			(*memory)[programSpace] = instruction.opcode;
+			(*memory)[programSpace + 1] = b;
+
+			// When:
+			u8 cycles = cpu->execute(1);
+
+			// Then:
+			finishTest(expectedResult, expectedCycles, cycles);
+		}
 
 		/* Helper method for testing operations using absolute addressing mode */
 		void testAbsOp(InstructionHandler instruction) {}
@@ -35,12 +48,30 @@ namespace E6502 {
 		void testZPXOp(InstructionHandler instruction) {}
 	};
 
+	TEST_F(TestLogicInstruction, TestFuncAND) {
+		for (int a = 0; a < 0x100; a++)
+			for (int b = 0; b < 0x100; b++)
+				ASSERT_EQ(LogicInstruction::AND(a, b), a & b);
+	}
+
+	TEST_F(TestLogicInstruction, TestFuncEOR) {
+		for (int a = 0; a < 0x100; a++)
+			for (int b = 0; b < 0x100; b++)
+				ASSERT_EQ(LogicInstruction::EOR(a, b), a ^ b);
+	}
+
+	TEST_F(TestLogicInstruction, TestFuncORA) {
+		for (int a = 0; a < 0x100; a++)
+			for (int b = 0; b < 0x100; b++)
+				ASSERT_EQ(LogicInstruction::ORA(a, b), a | b);
+	}
+
 	/* Test defs & addHandlers func */
 	TEST_F(TestLogicInstruction, TestLogicHandlers) {
 
 		std::vector<InstructionMap> instructions = {
 			// AND Instructions
-			//{INS_AND_IMM, 0x29},
+			{INS_AND_IMM, 0x29},
 
 			// BIT Instructions
 			//{INS_BIT_IMM, 0x2A},
@@ -51,10 +82,10 @@ namespace E6502 {
 			// ORA Instructions
 			//{INS_ORA_IMM, 0x6A},
 		};
-		testInstructionDef(instructions, ShiftInstruction::addHandlers);
+		testInstructionDef(instructions, LogicInstruction::addHandlers);
 	}
 
 	/* Test AND execution */
 	// IMM
-	//TEST_F(TestLogicInstruction, TestANDImmediate) { Byte tVal = (rand() & 0x7F);	testImmOp(INS_AND_IMM); }
+	TEST_F(TestLogicInstruction, TestANDImmediate) { testImmOp(INS_AND_IMM, LogicInstruction::AND, 2);  }
 }

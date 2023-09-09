@@ -6,26 +6,26 @@ namespace E6502 {
 	/** Handles execution of all logical instructions */
 	void LogicInstruction::logicHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Split opcode into more useful fields
-		//Byte op = ((opCode >> 3) & 0x1C) | (opCode & 0x03);		// Op Mode (bits 7,6,5,1,0)
-		//Byte md = (opCode >> 2) & 0x7;							// Memory Mode (bits 4,3,2)
+		Byte op = ((opCode >> 3) & 0x1C) | (opCode & 0x03);		// Op Mode (bits 7,6,5,1,0)
+		Byte md = (opCode >> 2) & 0x7;							// Memory Mode (bits 4,3,2)
 
-		// Carry needs to be set by the op
-		//Byte carry = 0;
-
-		// Get a refrence to the data location based on the memory mode
-		//Reference ref = getReferenceForMode(cpu, cycles, md);
-		//Byte data = cpu->readReferenceByte(cycles, ref);
+		// Get the operands
+		Byte operandA = 0x00;
+		if (md == ADDRESS_MODE_IMMEDIATE)
+			operandA = cpu->readPCByte(cycles);
+		else 
+			operandA = cpu->readReferenceByte(cycles, getReferenceForMode(cpu, cycles, md));
+		Byte operandB = cpu->regValue(cycles, CPU::REGISTER_A);
 
 		// Perform the operation (method based on the Op Mode), set the carry argument as required
-		//performOp(cpu, cycles, op, data, carry);
+		Byte result = AND(operandA, operandB);
 
 		// Set the N, Z, C flags based on the result
 		//cpu->setNegativeFlag(cycles, data >> 7);
 		//cpu->setZeroFlag(cycles, data == 0);
-		//cpu->setCarryFlag(cycles, (carry != 0));
 
 		// Save the data to accumulator
-		//cpu->saveToReg(cycles, CPU::REGISTER_A, data);
+		cpu->saveToReg(cycles, CPU::REGISTER_A, result);
 	}
 
 	/* Helper method actually performs the required operation 
@@ -62,7 +62,7 @@ namespace E6502 {
 
 	/** Called to add logic instruction handlers to the emulator */
 	void LogicInstruction::addHandlers(InstructionHandler* handlers[]) {
-		for (InstructionHandler handler : SHIFT_INSTRUCTIONS) {
+		for (InstructionHandler handler : LOGIC_INSTRUCTIONS) {
 			handlers[handler.opcode] = new InstructionHandler{
 				handler.opcode, handler.isLegal, handler.name, handler.execute
 			};
