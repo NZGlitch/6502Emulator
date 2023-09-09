@@ -16,8 +16,10 @@ namespace E6502 {
 		// Get the operands
 		if (md == ADDRESS_MODE_IMMEDIATE)
 			operandA = cpu->readPCByte(cycles);
-		else
-			operandA = cpu->readReferenceByte(cycles, getReferenceForMode(cpu, cycles, md));
+		else {
+			Reference ref = getReferenceForMode(cpu, cycles, md);
+			operandA = cpu->readReferenceByte(cycles, ref);
+		}
 		Byte operandB = cpu->regValue(cycles, CPU::REGISTER_A);
 
 		// Perform the operation (method based on the Op Mode), set the carry argument as required

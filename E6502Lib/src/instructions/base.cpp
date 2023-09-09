@@ -12,6 +12,12 @@ namespace E6502 {
 		Word addr = 0x0;
 		switch (mode) {
 			//Accumulator mode
+			case ADDRESS_MODE_INDIRECT_X:
+				preAddr = cpu->readPCByte(cycles);
+				preAddr += cpu->regValue(cycles, CPU::REGISTER_X);
+				preAddr &= 0x00FF; cycles++;
+				addr = cpu->readWord(cycles, preAddr);
+				return Reference{ CPU::REFERENCE_MEM, addr };
 			case ADDRESS_MODE_ZERO_PAGE:
 				addr = cpu->readPCByte(cycles);
 				return Reference{ CPU::REFERENCE_MEM, (Word)(0x00FF & addr) };

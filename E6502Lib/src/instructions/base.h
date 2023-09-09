@@ -47,6 +47,7 @@ namespace E6502 {
 		static Reference getReferenceForMode(CPU* cpu, u8& cycles, Byte mode);
 
 		/** Global Adressing Modes - Commented modes need to be rechecked */
+		const static Byte ADDRESS_MODE_INDIRECT_X	= 0b000;
 		const static Byte ADDRESS_MODE_ZERO_PAGE	= 0b001;
 		const static Byte ADDRESS_MODE_ACCUMULATOR	= 0b010;
 		const static Byte ADDRESS_MODE_IMMEDIATE	= 0b010;
@@ -54,8 +55,6 @@ namespace E6502 {
 		const static Byte ADDRESS_MODE_ZERO_PAGE_X	= 0b101;
 		const static Byte ADDRESS_MODE_ABSOLUTE_Y	= 0b110;
 		const static Byte ADDRESS_MODE_ABSOLUTE_X	= 0b111;		
-
-		//const static Byte INDIRECT_X = 0b000;	// ??? 000 ??
 		//const static Byte INDIRECT_Y = 0b100;	// ??? 100 ??
 	};
 }
