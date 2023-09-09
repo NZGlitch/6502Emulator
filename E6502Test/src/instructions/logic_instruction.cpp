@@ -158,12 +158,15 @@ namespace E6502 {
 		std::vector<InstructionMap> instructions = {
 			// EOR Instructions
 			{INS_EOR_IMM, 0x49}, {INS_EOR_ABS, 0x4D}, {INS_EOR_ABX, 0x5D}, {INS_EOR_ABY, 0x59}, {INS_EOR_ZP0, 0x45},
+			{INS_EOR_ZPX, 0x55},
 
 			// AND Instructions
 			{INS_AND_IMM, 0x29}, {INS_AND_ABS, 0x2D}, {INS_AND_ABX, 0x3D}, {INS_AND_ABY, 0x39}, {INS_AND_ZP0, 0x25},
+			{INS_AND_ZPX, 0x35},
 
 			// ORA Instructions
 			{INS_ORA_IMM, 0x09}, {INS_ORA_ABS, 0x0D}, {INS_ORA_ABX, 0x1D}, {INS_ORA_ABY, 0x19}, {INS_ORA_ZP0, 0x05},
+			{INS_ORA_ZPX, 0x15},
 
 			// BIT Instructions
 			{INS_BIT_ABS, 0x2C}, {INS_BIT_ZP0, 0x24},
@@ -179,6 +182,7 @@ namespace E6502 {
 	TEST_F(TestLogicInstruction, TestEORbAsoluteYNoPage) { testAbsIdxOp(INS_EOR_ABY, LogicInstruction::EOR, &state->Y, 4, false); }
 	TEST_F(TestLogicInstruction, TestEORbAsoluteYPage) { testAbsIdxOp(INS_EOR_ABY, LogicInstruction::EOR, &state->Y, 5, true); }
 	TEST_F(TestLogicInstruction, TestEORZeroPage) { testZPOp(INS_EOR_ZP0, LogicInstruction::EOR, 3, false); }
+	TEST_F(TestLogicInstruction, TestEORZeroPageX) { testZPOp(INS_EOR_ZPX, LogicInstruction::EOR, 4, true); }
 
 	/* Test AND execution */
 	TEST_F(TestLogicInstruction, TestANDImmediate) { testImmOp(INS_AND_IMM, LogicInstruction::AND, 2);  }
@@ -188,6 +192,7 @@ namespace E6502 {
 	TEST_F(TestLogicInstruction, TestANDAbsoluteYNoPage) { testAbsIdxOp(INS_AND_ABY, LogicInstruction::AND, &state->Y, 4, false); }
 	TEST_F(TestLogicInstruction, TestANDAbsoluteYPage) { testAbsIdxOp(INS_AND_ABY, LogicInstruction::AND, &state->Y, 5, true); }
 	TEST_F(TestLogicInstruction, TestANDZeroPage) { testZPOp(INS_AND_ZP0, LogicInstruction::AND, 3, false); }
+	TEST_F(TestLogicInstruction, TestANDZeroPageX) { testZPOp(INS_AND_ZPX, LogicInstruction::AND, 4, true); }
 	
 	/* Test ORA execution */
 	TEST_F(TestLogicInstruction, TestORAImmediate) { testImmOp(INS_ORA_IMM, LogicInstruction::ORA, 2); }
@@ -197,6 +202,7 @@ namespace E6502 {
 	TEST_F(TestLogicInstruction, TestORAAbsoluteYNoPage) { testAbsIdxOp(INS_ORA_ABY, LogicInstruction::ORA, &state->Y, 4, false); }
 	TEST_F(TestLogicInstruction, TestORAAbsoluteYPage) { testAbsIdxOp(INS_ORA_ABY, LogicInstruction::ORA, &state->Y, 5, true); }
 	TEST_F(TestLogicInstruction, TestORAZeroPage) { testZPOp(INS_ORA_ZP0, LogicInstruction::ORA, 3, false); }
+	TEST_F(TestLogicInstruction, TestORAZeroPageX) { testZPOp(INS_ORA_ZPX, LogicInstruction::ORA, 4, true); }
 
 	/* Test BIT execution */
 	TEST_F(TestLogicInstruction, TestBITAbsolute) { testAbsOp(INS_BIT_ABS, LogicInstruction::AND, 4); }
