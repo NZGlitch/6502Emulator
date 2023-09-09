@@ -27,7 +27,8 @@ namespace E6502 {
 		// Save the data to accumulator
 		cpu->saveToReg(cycles, CPU::REGISTER_A, data);
 
-		// Cycle correction - TODO would be nice to handle this better
+		// Cycle correction - Shift instructions seem to have unusual fixed costs? TODO confirm
+		if (md == ADDRESS_MODE_ABSOLUTE) cycles = 6;
 		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles = 7;
 	}
 

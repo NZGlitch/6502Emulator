@@ -39,12 +39,6 @@ namespace E6502 {
 		// Save the data to accumulator (Unless BIT)
 		if (op != OP_BIT)
 			cpu->saveToReg(cycles, CPU::REGISTER_A, result);
-
-		// Cycles corrections - TODO see if we cant clear this up with a better design
-		if (md == ADDRESS_MODE_ABSOLUTE) cycles--;
-		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles--;
-		if (md == ADDRESS_MODE_ABSOLUTE_Y) cycles--;
-
 	}
 
 	/** Called to add logic instruction handlers to the emulator */

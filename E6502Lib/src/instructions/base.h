@@ -54,7 +54,7 @@ namespace E6502 {
 		const static Byte ADDRESS_MODE_ZERO_PAGE_X	= 0b101;
 		const static Byte ADDRESS_MODE_ABSOLUTE_Y	= 0b110;
 		const static Byte ADDRESS_MODE_ABSOLUTE_X	= 0b111;		
-		
+
 		//const static Byte INDIRECT_X = 0b000;	// ??? 000 ??
 		//const static Byte INDIRECT_Y = 0b100;	// ??? 100 ??
 	};
