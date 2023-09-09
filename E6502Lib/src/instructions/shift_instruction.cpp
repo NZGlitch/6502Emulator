@@ -28,8 +28,8 @@ namespace E6502 {
 		cpu->saveToReg(cycles, CPU::REGISTER_A, data);
 
 		// Cycle correction - Shift instructions seem to have unusual fixed costs? TODO confirm
-		if (md == ADDRESS_MODE_ABSOLUTE) cycles = 6;
-		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles = 7;
+		if (md == ADDRESS_MODE_ACCUMULATOR) cycles = 2;
+		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles = 7;	
 	}
 
 	/* Helper method actually performs the required operation */
@@ -37,23 +37,23 @@ namespace E6502 {
 		switch (op) {
 			/* Arithmetic Shift Left */
 			case OP_ASL:
-				carry = value >> 7;
+				carry = value >> 7; cycles++;
 				value = value << 1; cycles++;
 				break;
 			/* Rotate Left */
 			case OP_ROL:
-				carry = value >> 7;
+				carry = value >> 7; cycles++;
 				value = value << 1; cycles++;
 				if (cpu->getCarryFlag(cycles)) value |= 0x01;
 				break;
 			/* Logical shift Right */
 			case OP_LSR:
-				carry = value & 0x01;
+				carry = value & 0x01; cycles++;
 				value = value >> 1; cycles++;
 				break;
 			/* Rotate Right */
 			case OP_ROR:
-				carry = value & 0x01;
+				carry = value & 0x01; cycles++;
 				value = value >> 1; cycles++;
 				if (cpu->getCarryFlag(cycles)) value |= 0x80;
 				break;

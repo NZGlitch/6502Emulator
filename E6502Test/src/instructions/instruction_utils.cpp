@@ -96,6 +96,7 @@ namespace E6502 {
 		}
 
 		// Print instruction set
+		Byte insCount = 0;
 		char sname[4];
 		printf("\nInstruction set loaded:\n");
 		printf("\n-------------------------------------------------------------------------------------\n");
@@ -113,6 +114,7 @@ namespace E6502 {
 					sname[3] = '\0';
 				}
 				else {
+					insCount++;
 					const char* name = (*handlers[(row * 0x10) | col]).name;
 					strncpy(sname, name, 3);
 				}
@@ -120,6 +122,7 @@ namespace E6502 {
 			}
 			printf("\n");
 		}
+		printf("Found %d instructions\n", insCount);
 		printf("-------------------------------------------------------------------------------------\n\n");
 	}
 

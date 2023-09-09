@@ -18,6 +18,7 @@ namespace E6502 {
 #else
 
 	GTEST_API_ int main(int argc, char** argv) {
+		// If you need to set the seed for the test use --gtest_random_seed=SEED
 		printf("Running main() from %s\n", __FILE__);
 		testing::InitGoogleTest(&argc, argv);
 		testing::InitGoogleMock(&argc, argv);

@@ -82,7 +82,7 @@ namespace E6502 {
 		// Then:
 		Byte expectedFlags = (initalFlags & 0x30) | testValue & 0xCF;	//Copy bits 4 and 5 from initial, rest from test
 		EXPECT_EQ(expectedFlags, state->FLAGS.byte);
-		EXPECT_EQ(state->SP, initialSP + 1);
+		EXPECT_EQ(state->SP, (initialSP + 1) & 0xFF);
 
 		state->FLAGS.byte = initPS.byte;	// Prevents parent class thorwing an error due to flag changes
 	}
