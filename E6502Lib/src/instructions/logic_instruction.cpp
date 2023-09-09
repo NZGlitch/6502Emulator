@@ -9,8 +9,11 @@ namespace E6502 {
 		Byte op = ((opCode >> 3) & 0x1C) | (opCode & 0x03);		// Op Mode (bits 7,6,5,1,0)
 		Byte md = (opCode >> 2) & 0x7;							// Memory Mode (bits 4,3,2)
 
-		// Get the operands
+		// Declare vars
 		Byte operandA = 0x00;
+		Byte result = 0x00;
+
+		// Get the operands
 		if (md == ADDRESS_MODE_IMMEDIATE)
 			operandA = cpu->readPCByte(cycles);
 		else 
@@ -18,46 +21,23 @@ namespace E6502 {
 		Byte operandB = cpu->regValue(cycles, CPU::REGISTER_A);
 
 		// Perform the operation (method based on the Op Mode), set the carry argument as required
-		Byte result = AND(operandA, operandB);
+		switch (op) {
+			case OP_AND: result = AND(operandA, operandB); break;
+			//case OP_BIT: ; break; TODO!
+			case OP_EOR: result = EOR(operandA, operandB); break;
+			case OP_ORA: result = ORA(operandA, operandB); break;
+			default: {
+				fprintf(stderr, "Unknown operation %d for logical instruction\n", op);
+				break;
+			}
+		}
 
-		// Set the N, Z, C flags based on the result
-		//cpu->setNegativeFlag(cycles, data >> 7);
-		//cpu->setZeroFlag(cycles, data == 0);
+		// Set the N, Z flags based on the result
+		cpu->setNegativeFlag(cycles, result >> 7);
+		cpu->setZeroFlag(cycles, result == 0);
 
 		// Save the data to accumulator
 		cpu->saveToReg(cycles, CPU::REGISTER_A, result);
-	}
-
-	/* Helper method actually performs the required operation 
-	void LogicInstruction::performOp(CPU* cpu, u8& cycles, Byte op, Byte& value, Byte& carry) {
-		switch (op) {
-			/* Arithmetic Shift Left 
-		case OP_ASL:
-			carry = value >> 7;
-			value = value << 1; cycles++;
-			break;
-			/* Rotate Left 
-		case OP_ROL:
-			carry = value >> 7;
-			value = value << 1; cycles++;
-			if (cpu->getCarryFlag(cycles)) value |= 0x01;
-			break;
-			/* Logical shift Right 
-		case OP_LSR:
-			carry = value & 0x01;
-			value = value >> 1; cycles++;
-			break;
-			/* Rotate Right 
-		case OP_ROR:
-			carry = value & 0x01;
-			value = value >> 1; cycles++;
-			if (cpu->getCarryFlag(cycles)) value |= 0x80;
-			break;
-			/* Unknown operation 
-		default:
-			fprintf(stderr, "Unknown operation %d for logical instruction\n", op);
-			break;
-		}
 	}
 
 	/** Called to add logic instruction handlers to the emulator */

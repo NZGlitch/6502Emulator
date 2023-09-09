@@ -74,13 +74,13 @@ namespace E6502 {
 			{INS_AND_IMM, 0x29},
 
 			// BIT Instructions
-			//{INS_BIT_IMM, 0x2A},
+			
 
 			// EOR Instructions
-			//{INS_EOR_ACC, 0x4A},
+			{INS_EOR_IMM, 0x49},
 
 			// ORA Instructions
-			//{INS_ORA_IMM, 0x6A},
+			{INS_ORA_IMM, 0x09},
 		};
 		testInstructionDef(instructions, LogicInstruction::addHandlers);
 	}
@@ -88,4 +88,12 @@ namespace E6502 {
 	/* Test AND execution */
 	// IMM
 	TEST_F(TestLogicInstruction, TestANDImmediate) { testImmOp(INS_AND_IMM, LogicInstruction::AND, 2);  }
+
+	/* Test EOR execution */
+	// IMM
+	TEST_F(TestLogicInstruction, TestEORImmediate) { testImmOp(INS_EOR_IMM, LogicInstruction::EOR, 2); }
+
+	/* Test ORA execution */
+	// IMM
+	TEST_F(TestLogicInstruction, TestORAImmediate) { testImmOp(INS_ORA_IMM, LogicInstruction::ORA, 2); }
 }
