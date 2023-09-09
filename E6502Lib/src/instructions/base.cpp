@@ -27,6 +27,13 @@ namespace E6502 {
 				addr = cpu->readPCByte(cycles);
 				addr |= (cpu->readPCByte(cycles) << 8);
 				return Reference{ CPU::REFERENCE_MEM, addr };
+			case ADDRESS_MODE_INDIRECT_Y:
+				preAddr = cpu->readPCByte(cycles);
+				preAddr = cpu->readWord(cycles, preAddr);
+				addr = preAddr + cpu->regValue(cycles, CPU::REGISTER_Y);
+				// Add cycle if page crossed
+				if ((addr & 0xFF) < (preAddr & 0xFF)) cycles++;
+				return Reference{ CPU::REFERENCE_MEM, addr };
 			case ADDRESS_MODE_ZERO_PAGE_X:
 				addr = cpu->readPCByte(cycles); cycles++;
 				addr += cpu->regValue(cycles, CPU::REGISTER_X);

@@ -33,6 +33,7 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_EOR_ZP0 = { 0x45, true, "EOR - 'Exclusive Or' Memory with Accumulator [Zero Page]", LogicInstruction::logicHandler };
 	constexpr static InstructionHandler INS_EOR_ZPX = { 0x55, true, "EOR - 'Exclusive Or' Memory with Accumulator [X-Indexed Zero Page]", LogicInstruction::logicHandler };
 	constexpr static InstructionHandler INS_EOR_INX = { 0x41, true, "EOR - 'Exclusive Or' Memory with Accumulator [X-Indexed Zero Page Indirect]", LogicInstruction::logicHandler };
+	constexpr static InstructionHandler INS_EOR_INY = { 0x51, true, "EOR - 'Exclusive Or' Memory with Accumulator [Zero Page Y-Indexed Indirect]", LogicInstruction::logicHandler };
 
 	/** AND Instruction Definitions Field A: 001, Field C: 01 */
 	constexpr static InstructionHandler INS_AND_IMM = { 0x29, true, "AND - 'AND' Memory with Accumulator [Immediate]", LogicInstruction::logicHandler };
@@ -42,6 +43,7 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_AND_ZP0 = { 0x25, true, "AND - 'AND' Memory with Accumulator [Zero Page]", LogicInstruction::logicHandler };
 	constexpr static InstructionHandler INS_AND_ZPX = { 0x35, true, "AND - 'AND' Memory with Accumulator [X-Indexed Zero Page]", LogicInstruction::logicHandler };
 	constexpr static InstructionHandler INS_AND_INX = { 0x21, true, "AND - 'AND' Memory with Accumulator [X-Indexed Zero Page Indirect]", LogicInstruction::logicHandler };
+	constexpr static InstructionHandler INS_AND_INY = { 0x31, true, "AND - 'AND' Memory with Accumulator [Zero Page Y-Indexed Indirect]", LogicInstruction::logicHandler };
 
 	/** ORA Instruction Definitions Field A: 000, Field C: 01  */
 	constexpr static InstructionHandler INS_ORA_IMM = { 0x09, true, "ORA - 'OR' Memory with Accumulator [Immediate]", LogicInstruction::logicHandler };
@@ -51,6 +53,7 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_ORA_ZP0 = { 0x05, true, "ORA - 'OR' Memory with Accumulator [Zero Page]", LogicInstruction::logicHandler };
 	constexpr static InstructionHandler INS_ORA_ZPX = { 0x15, true, "ORA - 'OR' Memory with Accumulator [X-Indexed Zero Page]", LogicInstruction::logicHandler };
 	constexpr static InstructionHandler INS_ORA_INX = { 0x01, true, "ORA - 'OR' Memory with Accumulator [X-Indexed Zero Page Indirect]", LogicInstruction::logicHandler };
+	constexpr static InstructionHandler INS_ORA_INY = { 0x11, true, "ORA - 'OR' Memory with Accumulator [Zero Page Y-Indexed Indirect]", LogicInstruction::logicHandler };
 
 	/** BIT Instruction Definitions Field A: 001, Field C: 00 */
 	constexpr static InstructionHandler INS_BIT_ABS = { 0x2C, true, "BIT - Test Bits in Memory with Accumulator [Absolute]", LogicInstruction::logicHandler };
@@ -59,13 +62,13 @@ namespace E6502 {
 	// Array of all logic instructions
 	static constexpr InstructionHandler LOGIC_INSTRUCTIONS[] = {
 		/** EOR Instruction Definitions */
-		INS_EOR_IMM, INS_EOR_ABS, INS_EOR_ABX, INS_EOR_ABY, INS_EOR_ZP0, INS_EOR_ZPX, INS_EOR_INX,
+		INS_EOR_IMM, INS_EOR_ABS, INS_EOR_ABX, INS_EOR_ABY, INS_EOR_ZP0, INS_EOR_ZPX, INS_EOR_INX, INS_EOR_INY,
 
 		/** AND Instruction Definitions */
-		INS_AND_IMM, INS_AND_ABS, INS_AND_ABX, INS_AND_ABY, INS_AND_ZP0, INS_AND_ZPX, INS_AND_INX,
+		INS_AND_IMM, INS_AND_ABS, INS_AND_ABX, INS_AND_ABY, INS_AND_ZP0, INS_AND_ZPX, INS_AND_INX, INS_AND_INY,
 
 		/** ORA Instruction Definitions */
-		INS_ORA_IMM, INS_ORA_ABS, INS_ORA_ABX, INS_ORA_ABY, INS_ORA_ZP0, INS_ORA_ZPX, INS_ORA_INX,
+		INS_ORA_IMM, INS_ORA_ABS, INS_ORA_ABX, INS_ORA_ABY, INS_ORA_ZP0, INS_ORA_ZPX, INS_ORA_INX, INS_ORA_INY,
 
 		/** BIT Instruction Definitions */
 		INS_BIT_ABS, INS_BIT_ZP0,

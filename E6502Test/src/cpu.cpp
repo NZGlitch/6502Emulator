@@ -314,7 +314,7 @@ namespace E6502 {
 		Byte result = cpu->pullStackByte(cycles);
 
 		// Then:
-		EXPECT_EQ(state->SP, initialSP + 1);
+		EXPECT_EQ(state->SP, (initialSP + 1) & 0x00FF);
 		EXPECT_EQ(result, testValue);
 		EXPECT_EQ(cycles, 1);
 	}
