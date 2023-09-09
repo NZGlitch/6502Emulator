@@ -16,14 +16,14 @@ namespace E6502 {
 		// Get the operands
 		if (md == ADDRESS_MODE_IMMEDIATE)
 			operandA = cpu->readPCByte(cycles);
-		else 
+		else
 			operandA = cpu->readReferenceByte(cycles, getReferenceForMode(cpu, cycles, md));
 		Byte operandB = cpu->regValue(cycles, CPU::REGISTER_A);
 
 		// Perform the operation (method based on the Op Mode), set the carry argument as required
 		switch (op) {
-			case OP_AND: result = AND(operandA, operandB); break;
-			//case OP_BIT: ; break; TODO!
+			case OP_BIT:
+			case OP_AND: result = AND(operandA, operandB); break; 
 			case OP_EOR: result = EOR(operandA, operandB); break;
 			case OP_ORA: result = ORA(operandA, operandB); break;
 			default: {
@@ -36,8 +36,9 @@ namespace E6502 {
 		cpu->setNegativeFlag(cycles, result >> 7);
 		cpu->setZeroFlag(cycles, result == 0);
 
-		// Save the data to accumulator
-		cpu->saveToReg(cycles, CPU::REGISTER_A, result);
+		// Save the data to accumulator (Unless BIT)
+		if (op != OP_BIT)
+			cpu->saveToReg(cycles, CPU::REGISTER_A, result);
 	}
 
 	/** Called to add logic instruction handlers to the emulator */

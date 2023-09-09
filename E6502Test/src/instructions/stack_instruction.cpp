@@ -64,7 +64,7 @@ namespace E6502 {
 		// Then:
 		testAndResetStatusFlags(testValue);
 		EXPECT_EQ(state->A, testValue);
-		EXPECT_EQ(state->SP, initialSP + 1);
+		EXPECT_EQ(state->SP, (initialSP + 1) & 0xFF);
 		EXPECT_EQ(cycles, 4);
 	}
 
