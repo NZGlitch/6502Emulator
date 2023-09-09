@@ -12,14 +12,18 @@ namespace E6502 {
 		switch (mode) {
 			//Accumulator mode
 			case ADDRESS_MODE_ZERO_PAGE:
-				index = cpu->readPCByte(cycles); cycles++;
-				return Reference{ CPU::REFERENCE_MEM, (Word)(0x00FF & index) };
+				addr = cpu->readPCByte(cycles); cycles++;
+				return Reference{ CPU::REFERENCE_MEM, (Word)(0x00FF & addr) };
 			case ADDRESS_MODE_ACCUMULATOR:
 				return Reference{ CPU::REFERENCE_REG, CPU::REGISTER_A };
 			case ADDRESS_MODE_ABSOLUTE:
 				addr = cpu->readPCByte(cycles);
 				addr |= (cpu->readPCByte(cycles) << 8); cycles++;
 				return Reference{ CPU::REFERENCE_MEM, addr };
+			case ADDRESS_MODE_ZERO_PAGE_X:
+				addr = cpu->readPCByte(cycles); cycles++;
+				addr += cpu->regValue(cycles, CPU::REGISTER_X); cycles++;
+				return Reference{ CPU::REFERENCE_MEM, (Word)(0x00FF & addr) };
 			case ADDRESS_MODE_ABSOLUTE_X:
 				addr = cpu->readPCByte(cycles);
 				addr |= (cpu->readPCByte(cycles) << 8); cycles++;
