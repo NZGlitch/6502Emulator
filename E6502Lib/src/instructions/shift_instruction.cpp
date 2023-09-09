@@ -26,6 +26,9 @@ namespace E6502 {
 
 		// Save the data to accumulator
 		cpu->saveToReg(cycles, CPU::REGISTER_A, data);
+
+		// Cycle correction - TODO would be nice to handle this better
+		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles = 7;
 	}
 
 	/* Helper method actually performs the required operation */
