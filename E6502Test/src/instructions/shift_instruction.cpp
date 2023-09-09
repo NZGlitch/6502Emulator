@@ -110,7 +110,7 @@ namespace E6502 {
 	};
 
 	/* Test defs & addHandlers func */
-	TEST_F(TestShiftInstruction, TestLogicHandlers) {
+	TEST_F(TestShiftInstruction, TestShiftHandlers) {
 
 		std::vector<InstructionMap> instructions = {
 			// ASL Instructions
