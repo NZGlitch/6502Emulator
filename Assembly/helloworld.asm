@@ -6,7 +6,7 @@ start
 loop
 	jsr pushchar	; Copy the first char
 ;	beq end			; NULL value reached, exit
-;	inx				; increment index
+	inx				; increment index
 	JMP loop
 
 ; Job done, loop forever (no way to exit yet)
@@ -22,4 +22,4 @@ pushchar			; Expects to find the char index in register X
 * = $1100
 ; Data scetion
 data
-.null "Hello World"
+.byte 72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100

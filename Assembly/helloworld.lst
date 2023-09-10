@@ -1,0 +1,28 @@
+   1                   ; Where to load the program
+   2                   * = $1000
+   3                   
+   4                   start
+   5 1000 a6 00        	ldx $00			; set x to 0
+   6                   loop
+   7 1002 20 0c 10     	jsr pushchar	; Copy the first char
+   8                   ;	beq end			; NULL value reached, exit
+   9 1005 e8           	inx				; increment index
+  10 1006 4c 02 10     	JMP loop
+  11                   
+  12                   ; Job done, loop forever (no way to exit yet)
+  13                   end
+  14 1009 4c 09 10     	JMP end
+  15                   
+  16                   ;currently copies text in data to zeropage
+  17                   pushchar			; Expects to find the char index in register X
+  18 100c bd 00 11     	lda	data,x		;load character into Reg A
+  19 100f 95 00        	sta $00,x		; put the character into the zp
+  20 1011 60           	rts;			; return from subroutine
+  21                   
+  22                   * = $1100
+  23                   ; Data scetion
+  24                   data
+  25 1100 48 65 6c 6c  .byte 72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100
+     1104 6f 20 77 6f 
+     1108 72 6c 64 
+  26                   
