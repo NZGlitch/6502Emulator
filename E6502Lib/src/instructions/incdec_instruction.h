@@ -24,18 +24,20 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_DEC_ABS = { 0xCE, true, "DEC - Decrement Memory By One [Absolute]", IncDecInstruction::incdecHandler };
 	constexpr static InstructionHandler INS_DEC_ABX = { 0xDE, true, "DEC - Decrement Memory By One [X-Indexed Absolute]", IncDecInstruction::incdecHandler };
 	constexpr static InstructionHandler INS_DEC_ZP0 = { 0xC6, true, "DEC - Decrement Memory By One [Zero Page]", IncDecInstruction::incdecHandler };
+	constexpr static InstructionHandler INS_DEC_ZPX = { 0xD6, true, "DEC - Decrement Memory By One [X-Indexed Zero Page]", IncDecInstruction::incdecHandler };
 
 	/** Example: INC Mem By One Field A: 111, Field C: 10 */
 	constexpr static InstructionHandler INS_INC_ABS = { 0xEE, true, "INC - Increment Memory By One [Absolute]", IncDecInstruction::incdecHandler };
 	constexpr static InstructionHandler INS_INC_ABX = { 0xFE, true, "INC - Increment Memory By One [X-Indexed Absolute]", IncDecInstruction::incdecHandler };
 	constexpr static InstructionHandler INS_INC_ZP0 = { 0xE6, true, "INC - Increment Memory By One [Zero Page]", IncDecInstruction::incdecHandler };
+	constexpr static InstructionHandler INS_INC_ZPX = { 0xF6, true, "INC - Increment Memory By One [X-Indexed Zero Page]", IncDecInstruction::incdecHandler };
 	
 	// Array of all logic instructions
 	static constexpr InstructionHandler INCDEC_INSTRUCTIONS[] = {
 		/** DEC Instruction Definitions */
-		INS_DEC_ABS, INS_DEC_ABX, INS_DEC_ZP0,
+		INS_DEC_ABS, INS_DEC_ABX, INS_DEC_ZP0, INS_DEC_ZPX,
 
 		/** INC Instruction Definitions */
-		INS_INC_ABS, INS_INC_ABX, INS_INC_ZP0,
+		INS_INC_ABS, INS_INC_ABX, INS_INC_ZP0, INS_INC_ZPX,
 	};
 }

@@ -13,9 +13,10 @@ namespace E6502 {
 		/* Helper method for testing operations using implied addressing mode */
 		void testImplied(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles) { }
 
-		/* Helper method for testing operations using absolute addressing mode */
-		void testMem(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles, bool indexed) {
+		/* Helper method for testing memory operations */
+		void testMem(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles) {
 			Byte mode = (instruction.opcode >> 2) & 0x7;
+			bool indexed = (mode == BaseInstruction::ADDRESS_MODE_ABSOLUTE_X || mode == BaseInstruction::ADDRESS_MODE_ZERO_PAGE_X);
 			// Given:
 			Word targetAddress = dataSpace;
 			if (indexed) {
@@ -61,14 +62,14 @@ namespace E6502 {
 
 		std::vector<InstructionMap> instructions = {
 			// DEC Instructions
-			{INS_DEC_ABS, 0xCE}, {INS_DEC_ABX, 0xDE}, {INS_DEC_ZP0, 0xC6},
+			{INS_DEC_ABS, 0xCE}, {INS_DEC_ABX, 0xDE}, {INS_DEC_ZP0, 0xC6}, {INS_DEC_ZPX, 0xD6},
 			
 			// DEX Instructions
 			
 			// DEY Instructions
 			
 			// INC Instructions
-			{INS_INC_ABS, 0xEE}, {INS_INC_ABX, 0xFE}, {INS_INC_ZP0, 0xE6},
+			{INS_INC_ABS, 0xEE}, {INS_INC_ABX, 0xFE}, {INS_INC_ZP0, 0xE6}, {INS_INC_ZPX, 0xF6},
 
 			// INX Instructions
 
@@ -79,12 +80,14 @@ namespace E6502 {
 	}
 
 	/* Test DEC execution */
-	TEST_F(TestIncDecInstruction, TestDecAbsolute) { testMem(INS_DEC_ABS, IncDecInstruction::DEC, 6, false); }
-	TEST_F(TestIncDecInstruction, TestDecAbsoluteX) { testMem(INS_DEC_ABX, IncDecInstruction::DEC, 7, true); }
-	TEST_F(TestIncDecInstruction, TestDecZeroPage) { testMem(INS_DEC_ZP0, IncDecInstruction::DEC, 5, false); }
+	TEST_F(TestIncDecInstruction, TestDecAbsolute) { testMem(INS_DEC_ABS, IncDecInstruction::DEC, 6); }
+	TEST_F(TestIncDecInstruction, TestDecAbsoluteX) { testMem(INS_DEC_ABX, IncDecInstruction::DEC, 7); }
+	TEST_F(TestIncDecInstruction, TestDecZeroPage) { testMem(INS_DEC_ZP0, IncDecInstruction::DEC, 5); }
+	TEST_F(TestIncDecInstruction, TestDecZeroPageX) { testMem(INS_DEC_ZPX, IncDecInstruction::DEC, 6); }
 
 	/* Test INC execution */
-	TEST_F(TestIncDecInstruction, TestIncAbsolute) { testMem(INS_INC_ABS, IncDecInstruction::INC, 6, false); }
-	TEST_F(TestIncDecInstruction, TestIncAbsoluteX) { testMem(INS_INC_ABX, IncDecInstruction::INC, 7, true); }
-	TEST_F(TestIncDecInstruction, TestIncZeroPage) { testMem(INS_INC_ZP0, IncDecInstruction::INC, 5, false); }
+	TEST_F(TestIncDecInstruction, TestIncAbsolute) { testMem(INS_INC_ABS, IncDecInstruction::INC, 6); }
+	TEST_F(TestIncDecInstruction, TestIncAbsoluteX) { testMem(INS_INC_ABX, IncDecInstruction::INC, 7); }
+	TEST_F(TestIncDecInstruction, TestIncZeroPage) { testMem(INS_INC_ZP0, IncDecInstruction::INC, 5); }
+	TEST_F(TestIncDecInstruction, TestIncZeroPageX) { testMem(INS_INC_ZPX, IncDecInstruction::INC, 6); }
 }
