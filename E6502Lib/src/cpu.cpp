@@ -14,6 +14,12 @@ namespace E6502 {
 	/* Execute <numInstructions> instructions. Return the number of cycles used. */
 	//TODO consider reading all the bytes for an instruction at the fetch stage and passing them as an array to handles?
 	u8 CPUInternal::execute(u8 numInstructions) {
+		return testExecute(numInstructions, nullptr);
+	}
+	
+	// inject to handler is used by testframework to test for specific cpu calls during execution and should not be used
+	// under normal operation. Note if used, instructions will not be able to affect the state of this CPU!
+	u8 CPUInternal::testExecute(u8 numInstructions, CPU* injectToHandler) {
 		u8 cyclesUsed = 0;
 		while (numInstructions > 0) {
 			//Get the next instruction and increment PC
@@ -26,7 +32,10 @@ namespace E6502 {
 			if (!handler->isLegal) {
 				fprintf(stderr, "Executing illegal opcode 0x%02X\n", code);
 			}
-			handler->execute(this, cyclesUsed, code);
+			if (injectToHandler == nullptr)
+				handler->execute(this, cyclesUsed, code);
+			else
+				handler->execute(injectToHandler, cyclesUsed, code);
 			numInstructions--;
 		}
 		return cyclesUsed;
@@ -160,6 +169,13 @@ namespace E6502 {
 	/* Set the program counter to the specified value, uses 0 cycles */
 	void CPUInternal::setPC(u8& cycles, Word address) {
 		currentState->PC = address; cycles++;
+	}
+
+	/* Add the signed offset to the current PC, uses 1 cycle within a page, 2 if crossing a page boundary */
+	void CPUInternal::branch(u8& cycles, s8 offset) {
+		Word initPC = currentState->PC;
+		currentState->PC += offset; cycles++;
+		if ((initPC & 0xFF00) != (currentState->PC & 0xFF00)) cycles++;	//Page changed
 	}
 	
 	/* Get the current value of the stack pointer */
