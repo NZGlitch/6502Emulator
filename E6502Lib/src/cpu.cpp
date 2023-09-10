@@ -193,8 +193,10 @@ namespace E6502 {
 		switch (ref.referenceType) {
 		case CPU::REFERENCE_REG:
 			saveToReg(cycles, ref.reg, data);
+			break;
 		case CPU::REFERENCE_MEM:
 			writeByte(cycles, ref.memoryAddress, data);
+			break;
 		}
 	}
 }
