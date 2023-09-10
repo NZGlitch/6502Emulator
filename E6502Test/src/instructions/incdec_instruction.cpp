@@ -8,8 +8,6 @@ namespace E6502 {
 	
 	public:
 
-		//absolute, absx, zp, zpx, implied
-
 		/* Helper method for testing operations using implied addressing mode */
 		void testImplied(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles, Byte* targetReg) { 
 			// Given:
@@ -37,7 +35,7 @@ namespace E6502 {
 				targetAddress += state->X;
 			}
 
-			// Set targetto Zero page for zero page instructions
+			// Set target to Zero page for zero page instructions
 			if (mode == BaseInstruction::ADDRESS_MODE_ZERO_PAGE || mode == BaseInstruction::ADDRESS_MODE_ZERO_PAGE_X) targetAddress &= 0x00FF;
 
 			Byte testValue = genTestValAndSetMem(targetAddress);

@@ -13,7 +13,7 @@ namespace E6502 {
 		static Byte INC(Byte v) { return v+1; }
 		static Byte DEC(Byte v) { return v-1; }
 
-		/** Handles execution of all logical instructions */
+		/** Handles execution of all increment/decrement instructions */
 		static void incdecHandler(CPU* cpu, u8& cycles, Byte opCode);
 
 		/** Called to add Logic Instruction handlers to the emulator */
@@ -42,7 +42,7 @@ namespace E6502 {
 
 
 	
-	// Array of all logic instructions
+	// Array of all Increment/Decrement instructions
 	static constexpr InstructionHandler INCDEC_INSTRUCTIONS[] = {
 		/** DEC Mem Instruction Definitions */
 		INS_DEC_ABS, INS_DEC_ABX, INS_DEC_ZP0, INS_DEC_ZPX,

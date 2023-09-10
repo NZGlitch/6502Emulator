@@ -3,18 +3,17 @@
 
 namespace E6502 {
 
-	/** Handles execution of all logical instructions */
+	/** Handles execution of all Increment and Decrement instructions */
 	void IncDecInstruction::incdecHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Split opcode into more useful fields
 		Byte op = ((opCode >> 3) & 0x1C) | (opCode & 0x03);		// Op Mode (bits 7,6,5,1,0)
 		Byte md = (opCode >> 2) & 0x7;							// Memory Mode (bits 4,3,2)
 		
-		// Refernce for reading and writing
-		Reference ref;
+		// Reference for reading and writing
+		Reference ref{ CPU::REFERENCE_REG, CPU::REGISTER_A };
 
-		if (md == ADDRESS_MODE_IMPLIED) {
-			ref.referenceType = CPU::REFERENCE_REG;
-			switch (opCode) {			// Could not see any nice way to do this than handling individual opcodes :(
+		if (md == ADDRESS_MODE_IMPLIED) {	// Implied mode opcodes can not be handled by parent class
+			switch (opCode) {
 				case INS_DEX_IMP.opcode: ref.reg = CPU::REGISTER_X; op = OP_DEC; break;
 				case INS_DEY_IMP.opcode: ref.reg = CPU::REGISTER_Y; op = OP_DEC; break;
 				case INS_INX_IMP.opcode: ref.reg = CPU::REGISTER_X; op = OP_INC; break;
@@ -50,7 +49,7 @@ namespace E6502 {
 		if (md == ADDRESS_MODE_IMPLIED) cycles = 2;
 	}
 
-	/** Called to add logic instruction handlers to the emulator */
+	/** Called to add Increment/Decrement instruction handlers to the emulator */
 	void IncDecInstruction::addHandlers(InstructionHandler* handlers[]) {
 		for (InstructionHandler handler : INCDEC_INSTRUCTIONS) {
 			handlers[handler.opcode] = new InstructionHandler{
