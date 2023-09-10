@@ -14,9 +14,14 @@ namespace E6502 {
 		void testImplied(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles) { }
 
 		/* Helper method for testing operations using absolute addressing mode */
-		void testAbsOp(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles) {
+		void testAbsOp(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles, bool indexed) {
 			// Given:
-			Byte testValue = genTestValAndSetMem(dataSpace);
+			Word targetAddress = dataSpace;
+			if (indexed) {
+				state->X = rand();
+				targetAddress += state->X;
+			}
+			Byte testValue = genTestValAndSetMem(targetAddress);
 			Byte expectValue = op(testValue);
 			(*memory)[programSpace] = instruction.opcode;
 			(*memory)[programSpace + 1] = dataSpace & 0xFF;
@@ -26,13 +31,10 @@ namespace E6502 {
 			Byte cycles = cpu->execute(1);
 
 			// Then:
-			EXPECT_EQ((*memory)[dataSpace], expectValue);
+			EXPECT_EQ((*memory)[targetAddress], expectValue);
 			EXPECT_EQ(expectedCycles, cycles);
 			testAndResetStatusFlags(expectValue);
 		}
-
-		/* Helper method for testing operations using absolute addressing-x mode */
-		void testAbsXOp(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles) {}
 
 		/* Helper method for testing operations using zero page mode */
 		void testZPOp(InstructionHandler instruction, Byte(*op)(Byte v), u8 expectedCycles, bool useXIndex) { }
@@ -54,14 +56,14 @@ namespace E6502 {
 
 		std::vector<InstructionMap> instructions = {
 			// DEC Instructions
-			{INS_DEC_ABS, 0xCE},
+			{INS_DEC_ABS, 0xCE}, {INS_DEC_ABX, 0xDE},
 			
 			// DEX Instructions
 			
 			// DEY Instructions
 			
 			// INC Instructions
-			{INS_INC_ABS, 0xEE},
+			{INS_INC_ABS, 0xEE}, {INS_INC_ABX, 0xFE},
 
 			// INX Instructions
 
@@ -71,7 +73,11 @@ namespace E6502 {
 		testInstructionDef(instructions, IncDecInstruction::addHandlers);
 	}
 
-	/* Test execution */
-	TEST_F(TestIncDecInstruction, TestDecAbsolute) { testAbsOp(INS_DEC_ABS, IncDecInstruction::DEC, 6); }
-	TEST_F(TestIncDecInstruction, TestIncAbsolute) { testAbsOp(INS_INC_ABS, IncDecInstruction::INC, 6); }
+	/* Test DEC execution */
+	TEST_F(TestIncDecInstruction, TestDecAbsolute) { testAbsOp(INS_DEC_ABS, IncDecInstruction::DEC, 6, false); }
+	TEST_F(TestIncDecInstruction, TestDecAbsoluteX) { testAbsOp(INS_DEC_ABX, IncDecInstruction::DEC, 7, true); }
+
+	/* Test INC execution */
+	TEST_F(TestIncDecInstruction, TestIncAbsolute) { testAbsOp(INS_INC_ABS, IncDecInstruction::INC, 6, false); }
+	TEST_F(TestIncDecInstruction, TestIncAbsoluteX) { testAbsOp(INS_INC_ABX, IncDecInstruction::INC, 7, true); }
 }

@@ -29,6 +29,9 @@ namespace E6502 {
 
 		// Save
 		cpu->writeReferenceByte(cycles, ref, result);		
+
+		// Indexed instructions have fixed cycle count (regardless of page crossig)
+		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles = 7;
 	}
 
 	/** Called to add logic instruction handlers to the emulator */
