@@ -125,5 +125,12 @@ namespace E6502 {
 			(*memory)[address] = ~testValue;
 			return testValue;
 		}
+
+		/* Generates a test value and places it in the given memory location */
+		Byte genTestValAndSetMem(Word address) {
+			Byte testValue = rand();
+			(*memory)[address] = testValue;
+			return testValue;
+		}
 	};
 }
