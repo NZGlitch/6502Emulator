@@ -11,7 +11,20 @@ namespace E6502 {
 		//absolute, absx, zp, zpx, implied
 
 		/* Helper method for testing operations using implied addressing mode */
-		void testImplied(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles) { }
+		void testImplied(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles, Byte* targetReg) { 
+			// Given:
+			Byte testValue = genTestValAndSetTargetReg(targetReg);
+			Byte expectedValue = op(testValue);
+			(*memory)[programSpace] = instruction.opcode;
+
+			// When
+			Byte cycles = cpu->execute(1);
+
+			// Then:
+			EXPECT_EQ(expectedValue, *targetReg);
+			EXPECT_EQ(expectedCycles, cycles);
+			testAndResetStatusFlags(expectedValue);
+		}
 
 		/* Helper method for testing memory operations */
 		void testMem(InstructionHandler instruction, Byte(*op)(Byte v), Byte expectedCycles) {
@@ -58,22 +71,18 @@ namespace E6502 {
 	}
 
 	/* Test defs & addHandlers func */
-	TEST_F(TestIncDecInstruction, TestLogicHandlers) {
+	TEST_F(TestIncDecInstruction, TestIncDecHandlers) {
 
 		std::vector<InstructionMap> instructions = {
-			// DEC Instructions
+			// DEC Mem Instructions
 			{INS_DEC_ABS, 0xCE}, {INS_DEC_ABX, 0xDE}, {INS_DEC_ZP0, 0xC6}, {INS_DEC_ZPX, 0xD6},
 			
-			// DEX Instructions
-			
-			// DEY Instructions
-			
-			// INC Instructions
+			// INC Mem Instructions
 			{INS_INC_ABS, 0xEE}, {INS_INC_ABX, 0xFE}, {INS_INC_ZP0, 0xE6}, {INS_INC_ZPX, 0xF6},
 
-			// INX Instructions
-
-			// INY Instructions
+			// Register Instructions
+			{INS_DEX_IMP, 0xCA}, {INS_DEY_IMP, 0x88}, {INS_INX_IMP, 0xE8}, {INS_INY_IMP, 0xC8},
+			
 			
 		};
 		testInstructionDef(instructions, IncDecInstruction::addHandlers);
@@ -90,4 +99,10 @@ namespace E6502 {
 	TEST_F(TestIncDecInstruction, TestIncAbsoluteX) { testMem(INS_INC_ABX, IncDecInstruction::INC, 7); }
 	TEST_F(TestIncDecInstruction, TestIncZeroPage) { testMem(INS_INC_ZP0, IncDecInstruction::INC, 5); }
 	TEST_F(TestIncDecInstruction, TestIncZeroPageX) { testMem(INS_INC_ZPX, IncDecInstruction::INC, 6); }
+
+	/* Test Implied execution */
+	TEST_F(TestIncDecInstruction, TestDEX) { testImplied(INS_DEX_IMP, IncDecInstruction::DEC, 2, &state->X); }
+	TEST_F(TestIncDecInstruction, TestDEY) { testImplied(INS_DEY_IMP, IncDecInstruction::DEC, 2, &state->Y); }
+	TEST_F(TestIncDecInstruction, TestINX) { testImplied(INS_INX_IMP, IncDecInstruction::INC, 2, &state->X); }
+	TEST_F(TestIncDecInstruction, TestINY) { testImplied(INS_INY_IMP, IncDecInstruction::INC, 2, &state->Y); }
 }

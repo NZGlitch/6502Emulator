@@ -8,8 +8,23 @@ namespace E6502 {
 		// Split opcode into more useful fields
 		Byte op = ((opCode >> 3) & 0x1C) | (opCode & 0x03);		// Op Mode (bits 7,6,5,1,0)
 		Byte md = (opCode >> 2) & 0x7;							// Memory Mode (bits 4,3,2)
+		
+		// Refernce for reading and writing
+		Reference ref;
 
-		Reference ref = getReferenceForMode(cpu, cycles, md);
+		if (md == ADDRESS_MODE_IMPLIED) {
+			ref.referenceType = CPU::REFERENCE_REG;
+			switch (opCode) {			// Could not see any nice way to do this than handling individual opcodes :(
+				case INS_DEX_IMP.opcode: ref.reg = CPU::REGISTER_X; op = OP_DEC; break;
+				case INS_DEY_IMP.opcode: ref.reg = CPU::REGISTER_Y; op = OP_DEC; break;
+				case INS_INX_IMP.opcode: ref.reg = CPU::REGISTER_X; op = OP_INC; break;
+				case INS_INY_IMP.opcode: ref.reg = CPU::REGISTER_Y; op = OP_INC; break;
+			}
+		}
+		else {
+			ref = getReferenceForMode(cpu, cycles, md);
+		}
+
 		Byte operand = cpu->readReferenceByte(cycles, ref);
 		Byte result = 0;
 
@@ -30,8 +45,9 @@ namespace E6502 {
 		// Save
 		cpu->writeReferenceByte(cycles, ref, result);		
 
-		// Indexed instructions have fixed cycle count (regardless of page crossig)
+		// Some instructions have fixed cycle values that need to be corrected
 		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles = 7;
+		if (md == ADDRESS_MODE_IMPLIED) cycles = 2;
 	}
 
 	/** Called to add logic instruction handlers to the emulator */

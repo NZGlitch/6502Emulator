@@ -112,10 +112,17 @@ namespace E6502 {
 			state->FLAGS.byte = initPS.byte;
 		}
 
-		/* Creates a test value (if not provided), ensures the target reg does not already contain it and returns the testvalue */
+		/* Creates a test value, ensures the target reg does not already contain it and returns the testvalue */
 		Byte genTestValAndClearTargetReg(Byte* targetReg) {
 			Byte testValue = rand();
 			(*targetReg) = ~testValue;
+			return testValue;
+		}
+
+		/* Creates a test value, ensures the target reg contains it and returns the testvalue */
+		Byte genTestValAndSetTargetReg(Byte* targetReg) {
+			Byte testValue = rand();
+			(*targetReg) = testValue;
 			return testValue;
 		}
 
