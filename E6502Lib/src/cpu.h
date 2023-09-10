@@ -50,16 +50,19 @@ namespace E6502 {
 
 
 		/* Sets the N flag */
-		virtual void setNegativeFlag(u8& cycles, bool carry) = 0;
+		virtual void setNegativeFlag(u8& cycles, bool flag) = 0;
+
+		/* Sets the V flag */
+		virtual void setOverflowFlag(u8& cycles, bool flag) = 0;
 
 		/* Sets the Z flag */
-		virtual void setZeroFlag(u8& cycles, bool carry) = 0;
+		virtual void setZeroFlag(u8& cycles, bool flag) = 0;
 
 		/* Gets the C flag */
 		virtual bool getCarryFlag(u8& cycles) = 0;
 
 		/* Sets the C flag */
-		virtual void setCarryFlag(u8& cycles, bool carry) = 0;
+		virtual void setCarryFlag(u8& cycles, bool flag) = 0;
 
 
 		/* Push a byte onto the stack */
@@ -134,10 +137,11 @@ namespace E6502 {
 		virtual Byte regValue(u8& cycles, u8 reg);
 		virtual void saveToReg(u8& cycles, u8 reg, Byte value);
 
-		virtual void setNegativeFlag(u8& cycles, bool carry);
-		virtual void setZeroFlag(u8& cycles, bool carry);
+		virtual void setNegativeFlag(u8& cycles, bool flag);
+		virtual void setOverflowFlag(u8& cycles, bool flag);
+		virtual void setZeroFlag(u8& cycles, bool flag);
 		virtual bool getCarryFlag(u8& cycles);
-		virtual void setCarryFlag(u8& cycles, bool carry);
+		virtual void setCarryFlag(u8& cycles, bool flag);
 
 		virtual void pushStackByte(u8& cycles, Byte value);
 		virtual void pushStackWord(u8& cycles, Word value);

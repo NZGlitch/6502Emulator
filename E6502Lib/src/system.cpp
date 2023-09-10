@@ -1,6 +1,7 @@
 #include "system.h"
 
-// #define LOAD_MODE uncomment to use TMPx style loading, otherwise assumes functests which loads at $400
+// uncomment to use TMPx style loading, otherwise assumes functests which loads at $400
+//#define LOAD_MODE
 
 // Represents a computer system (e.g. C64), currently minimal needed to test instructions
 namespace E6502 {
@@ -13,10 +14,12 @@ namespace E6502 {
 
 		// Read and load program
 		program = new Program;
-		Byte buffer = -1;
-		FILE* fp;
-		fp = fopen(executableFile, "rb");  // r for read, b for binary
-		fseek(fp, 0, SEEK_SET);
+		char buffer = -1;
+		FILE* fp = NULL;
+		if (fopen_s(&fp, executableFile, "rb")) {
+			fprintf(stderr, "Unable to read file, abort!");
+			return;
+		}
 
 #ifdef LOAD_MODE
 		// The first 2 Bytes give us the load address
@@ -43,10 +46,11 @@ namespace E6502 {
 		program->size = 0;
 
 		Word currentAddress = 0x0000;
-		while (fread(&buffer, 1, 1, fp) && currentAddress < CPUState::DEFAULT_RESET_VECTOR) {
+		while (fread(&buffer, 1, 1, fp)) {
 			(*memory)[currentAddress++] = buffer;
 			program->size++;
 		}
+		
 		fclose(fp);
 
 		// Copy the loaded bytes into program.Bytes

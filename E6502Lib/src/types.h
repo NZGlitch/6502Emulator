@@ -23,7 +23,7 @@ namespace E6502 {
 		Byte D : 1;			// Decimal Mode Flag		(3)
 		Byte B : 1;			// Break Flag				(4)
 		Byte Unused : 1;	// Unused					(5)
-		Byte O : 1;			// Overflow Flag			(6)
+		Byte V : 1;			// Overflow Flag			(6)
 		Byte N : 1;			// Negative Flag			(7)	
 	};
 

@@ -58,10 +58,14 @@ namespace E6502 {
 			u8 cycles = cpu->execute(1);
 
 			// Then:
-			if (instruction == INS_BIT_ABS) {	// BIT instructions dont save result
+			if (instruction == INS_BIT_ABS) {	// BIT instructions dont save result,
 				EXPECT_EQ(state->A, fixtures.operandA);
 				EXPECT_EQ((*memory)[dataSpace], fixtures.operandB);
-				testAndResetStatusFlags(fixtures.result);
+				// BIT Flag setting: N,V are just set by bit 6 and 7 of operand B, flag Z = result ==0
+				EXPECT_EQ(state->FLAGS.bit.N, (fixtures.operandB >> 7) & 0x1);
+				EXPECT_EQ(state->FLAGS.bit.V, (fixtures.operandB >> 6) & 0x1);
+				EXPECT_EQ(state->FLAGS.bit.Z, fixtures.result == 0);
+				initPS.byte = state->FLAGS.byte;
 			}
 			else {
 				finishTest(fixtures.result, expectedCycles, cycles);
@@ -120,7 +124,11 @@ namespace E6502 {
 			if (instruction == INS_BIT_ZP0) {	// BIT instructions dont save result
 				EXPECT_EQ(state->A, fixtures.operandA);
 				EXPECT_EQ((*memory)[zpTarget], fixtures.operandB);
-				testAndResetStatusFlags(fixtures.result);
+				// BIT Flag setting: N,V are just set by bit 6 and 7 of operand B, flag Z = result ==0
+				EXPECT_EQ(state->FLAGS.bit.N, (fixtures.operandB >> 7) & 0x1);
+				EXPECT_EQ(state->FLAGS.bit.V, (fixtures.operandB >> 6) & 0x1);
+				EXPECT_EQ(state->FLAGS.bit.Z, fixtures.result == 0);
+				initPS.byte = state->FLAGS.byte;
 			}
 			else {
 				finishTest(fixtures.result, expectedCycles, cycles);

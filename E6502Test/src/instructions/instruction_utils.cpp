@@ -116,7 +116,7 @@ namespace E6502 {
 				else {
 					insCount++;
 					const char* name = (*handlers[(row * 0x10) | col]).name;
-					strncpy(sname, name, 3);
+					strncpy_s(sname, name, 3);
 				}
 				printf(" %3s ", sname);
 			}

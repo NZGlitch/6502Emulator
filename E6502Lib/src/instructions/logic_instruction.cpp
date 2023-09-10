@@ -10,17 +10,17 @@ namespace E6502 {
 		Byte md = (opCode >> 2) & 0x7;							// Memory Mode (bits 4,3,2)
 
 		// Declare vars
-		Byte operandA = 0x00;
+		Byte operandA = cpu->regValue(cycles, CPU::REGISTER_A);
+		Byte operandB = 0x00;
 		Byte result = 0x00;
 
 		// Get the operands
 		if (md == ADDRESS_MODE_IMMEDIATE)
-			operandA = cpu->readPCByte(cycles);
+			operandB = cpu->readPCByte(cycles);
 		else {
 			Reference ref = getReferenceForMode(cpu, cycles, md);
-			operandA = cpu->readReferenceByte(cycles, ref);
+			operandB = cpu->readReferenceByte(cycles, ref);
 		}
-		Byte operandB = cpu->regValue(cycles, CPU::REGISTER_A);
 
 		// Perform the operation (method based on the Op Mode), set the carry argument as required
 		switch (op) {
@@ -34,13 +34,20 @@ namespace E6502 {
 			}
 		}
 
-		// Set the N, Z flags based on the result
-		cpu->setNegativeFlag(cycles, result >> 7);
-		cpu->setZeroFlag(cycles, result == 0);
-
-		// Save the data to accumulator (Unless BIT)
-		if (op != OP_BIT)
+		// Set Flags & Save result
+		if (op == OP_BIT) {
+			// Set N= operandB bit 7, V = opeerandB bit 6, Z = result == 0
+			// Does not save result
+			cpu->setNegativeFlag(cycles, operandB >> 7);
+			cpu->setOverflowFlag(cycles, (operandB >> 6) & 0x01);
+			cpu->setZeroFlag(cycles, result == 0);
+		}
+		else {
+			// Set the N, Z flags based on the result
+			cpu->setNegativeFlag(cycles, result >> 7);
+			cpu->setZeroFlag(cycles, result == 0);
 			cpu->saveToReg(cycles, CPU::REGISTER_A, result);
+		}
 	}
 
 	/** Called to add logic instruction handlers to the emulator */
