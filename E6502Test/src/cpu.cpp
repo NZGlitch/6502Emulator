@@ -532,6 +532,7 @@ namespace E6502 {
 			cpu->writeReferenceByte(cycles, ref, testValue);
 
 			// Then:
+			EXPECT_TRUE(false) << "Next line fails with seed 98687\n";
 			EXPECT_EQ(cycles, 1);
 			EXPECT_EQ(*registerRef[i], testValue);
 		}
