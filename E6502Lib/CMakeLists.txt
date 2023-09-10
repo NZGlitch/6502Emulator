@@ -24,6 +24,8 @@ set (E6502LIB_SOURCES
 set (E6502LIB_INSTRUCTIONS
 	"src/instructions/base.h"	
 	"src/instructions/base.cpp"	
+	"src/instructions/incdec_instruction.h"
+	"src/instructions/incdec_instruction.cpp"
 	"src/instructions/instruction_utils.h"	
 	"src/instructions/load_instruction.h"
 	"src/instructions/load_instruction.cpp"

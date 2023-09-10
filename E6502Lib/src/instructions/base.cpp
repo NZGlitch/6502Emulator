@@ -21,7 +21,7 @@ namespace E6502 {
 			case ADDRESS_MODE_ZERO_PAGE:
 				addr = cpu->readPCByte(cycles);
 				return Reference{ CPU::REFERENCE_MEM, (Word)(0x00FF & addr) };
-			case ADDRESS_MODE_ACCUMULATOR:
+			case ADDRESS_MODE_IMPLIED:
 				return Reference{ CPU::REFERENCE_REG, CPU::REGISTER_A };
 			case ADDRESS_MODE_ABSOLUTE:
 				addr = cpu->readPCByte(cycles);

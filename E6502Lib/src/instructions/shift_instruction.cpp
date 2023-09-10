@@ -28,7 +28,7 @@ namespace E6502 {
 		cpu->saveToReg(cycles, CPU::REGISTER_A, data);
 
 		// Cycle correction - Shift instructions seem to have unusual fixed costs? TODO confirm
-		if (md == ADDRESS_MODE_ACCUMULATOR) cycles = 2;
+		if (md == ADDRESS_MODE_IMPLIED) cycles = 2;
 		if (md == ADDRESS_MODE_ABSOLUTE_X) cycles = 7;	
 	}
 

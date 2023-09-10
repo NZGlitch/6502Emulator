@@ -46,6 +46,13 @@ namespace E6502 {
 		// When:
 		InstructionUtils::loader.load(handlers);
 
+		// Then (IncDecInstruction):
+		for (const InstructionHandler& handler : INCDEC_INSTRUCTIONS) {
+			Byte opcode = handler.opcode;
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		}
+
 		// Then (JumpInstruction):
 		for (const InstructionHandler& handler : JUMP_INSTRUCTIONS) {
 			Byte opcode = handler.opcode;
