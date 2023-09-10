@@ -33,7 +33,7 @@ namespace E6502 {
 
 			Word zpAddr = rand() & 0x00FF;
 			(*memory)[programSpace] = instruction.opcode;
-			(*memory)[programSpace + 1] = zpAddr;
+			(*memory)[programSpace + 1] = (Byte)zpAddr;
 			(*memory)[zpAddr] = testValue;
 
 			// When:
@@ -163,8 +163,8 @@ namespace E6502 {
 			Byte testValue = genTestValAndClearTargetReg(targetReg);
 			Byte zpAddr = rand();
 			Byte index = rand();
-			Byte unIndexedAddr = dataSpace;
-			Byte indexedAddr = dataSpace + index;
+			Word unIndexedAddr = dataSpace;
+			Word indexedAddr = dataSpace + index;
 
 			// Given:
 			(*memory)[zpAddr] = unIndexedAddr & 0xFF;

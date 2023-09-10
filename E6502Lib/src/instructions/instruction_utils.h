@@ -39,7 +39,7 @@ namespace E6502 {
 				default: {
 					// TODO error handling
 					fprintf(stderr, "Invalid instruction provided to getRegFromInstruction: %x", instruction);
-					return 0x255;
+					return (Byte)0x255;
 				}
 			}
 		}

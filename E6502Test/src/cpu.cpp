@@ -288,7 +288,7 @@ namespace E6502 {
 		for (u16 i = 0x00; i <= 0x100; i++) {
 			// When:
 			Byte cycles = 0;
-			testValue.byte = i;
+			testValue.byte = (Byte)i;
 			cpu->setFlags(cycles, testValue);
 
 			// Then:
@@ -411,6 +411,7 @@ namespace E6502 {
 		EXPECT_EQ(state->FLAGS.bit.C, 0);
 		EXPECT_EQ(cycles, 0);
 	}
+
 	/* Test setNegative */
 	TEST_F(TestCPU, setNegativeTrue) {
 		// Given:
@@ -436,6 +437,34 @@ namespace E6502 {
 
 		// Then:
 		EXPECT_EQ(state->FLAGS.bit.N, 0);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setOverflow */
+	TEST_F(TestCPU, setOverflowTrue) {
+		// Given:
+		state->FLAGS.bit.V = 0;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setOverflowFlag(cycles, true);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.V, 1);
+		EXPECT_EQ(cycles, 0);
+	}
+
+	/* Test setNegative */
+	TEST_F(TestCPU, setOverflowFalse) {
+		// Given:
+		state->FLAGS.bit.V = 1;
+		u8 cycles = 0;
+
+		// When:
+		cpu->setOverflowFlag(cycles, false);
+
+		// Then:
+		EXPECT_EQ(state->FLAGS.bit.V, 0);
 		EXPECT_EQ(cycles, 0);
 	}
 

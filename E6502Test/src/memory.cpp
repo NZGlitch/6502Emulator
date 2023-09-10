@@ -60,7 +60,7 @@ namespace E6502 {
 		// Then
 		for (u16 i = 0; i < programSize; i++) {
 			Word nextAddr = loadAddress + i;
-			Byte expect = i;
+			Byte expect = (Byte)i;
 			EXPECT_EQ(memory[nextAddr], expect);
 		}
 	}

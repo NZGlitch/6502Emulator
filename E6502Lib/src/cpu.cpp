@@ -99,6 +99,9 @@ namespace E6502 {
 	/* Sets the N flag */
 	void CPUInternal::setNegativeFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.N = flag; }
 
+	/* Sets the V flag */
+	void CPUInternal::setOverflowFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.V = flag;  }
+
 	/* Sets the Z flag */
 	void CPUInternal::setZeroFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.Z = flag; }
 
@@ -178,6 +181,10 @@ namespace E6502 {
 				return regValue(cycles, ref.reg);
 			case CPU::REFERENCE_MEM:
 				return readByte(cycles, ref.memoryAddress);
+			default: {
+				fprintf(stderr, "INVALID Reference type in cpu->readReferenceByte!");
+				return 0x00;
+			}
 		}
 	}
 

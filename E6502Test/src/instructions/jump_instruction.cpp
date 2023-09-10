@@ -78,7 +78,7 @@ namespace E6502 {
 		// Set target address on stack (todo use cpu->push)
 		(*memory)[0x1FF] = 0xAB;  
 		(*memory)[0x1FE] = 0xCD;
-		state->SP = 0x1FD;
+		state->SP = 0xFD;
 		Byte expectedCycles = 6;
 
 		// When:

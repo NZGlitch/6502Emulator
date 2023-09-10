@@ -33,12 +33,12 @@ namespace E6502 {
 	public:
 		
 		// Access to CPU and internals
-		CPUState* state;
-		Memory* memory;
-		CPUInternal* cpu;
+		CPUState* state = nullptr;
+		Memory* memory = nullptr;
+		CPUInternal* cpu = nullptr;
 
 		// Used to enforce flag checking on all tests
-		FlagUnion initPS;
+		FlagUnion initPS = FlagUnion{};
 
 		// Memory spaces that can be used for testing - these are randomised every test
 		Word programSpace = 0x0000;

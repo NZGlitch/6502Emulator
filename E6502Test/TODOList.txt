@@ -1,3 +1,4 @@
+CLEANUP WARNINGS!!!
 Write unit tests for base.cpp
 Refactor the following instruction suites to use the new reference objects from base:
 	* JUMP
