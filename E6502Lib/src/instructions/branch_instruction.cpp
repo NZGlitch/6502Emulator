@@ -12,6 +12,7 @@ namespace E6502 {
 		// Test flags based on opcode
 		switch (op) {
 		case OP_BCC: branch = !cpu->getFlag(cycles, CPU::FLAG_CARRY); break;
+		case OP_BNE: branch = !cpu->getFlag(cycles, CPU::FLAG_ZERO); break;
 		case OP_BCS: branch = cpu->getFlag(cycles, CPU::FLAG_CARRY); break;
 		case OP_BEQ: branch = cpu->getFlag(cycles, CPU::FLAG_ZERO); break;
 		case OP_BMI: branch = cpu->getFlag(cycles, CPU::FLAG_NEGATIVE); break;
