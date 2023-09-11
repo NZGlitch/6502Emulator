@@ -1,5 +1,6 @@
 ﻿#include <gmock/gmock.h>
 #include "types.h"
+#include "instructions/base.h"
 #include "instructions/jump_instruction.h"
 #include "instructions/load_instruction.h"
 #include "instructions/store_instruction.h"
@@ -32,14 +33,14 @@ namespace E6502 {
 			INS_LDY_IMM.opcode,		0x02,				// Set the y-Index register to 02
 			INS_LDA_ZP.opcode,		0x02,				// load zp[02] = 0xDD into A
 			INS_JMP_ABIN.opcode,	0x84,	0x42,		// Jump to the address stored in the first word in data section 0x1248
-			INS_NOP.opcode,
-			INS_NOP.opcode,
+			INS_NOP_IMP.opcode,
+			INS_NOP_IMP.opcode,
 			INS_LDA_IMM.opcode,		0x42,				// Set A to 0x42
 			INS_LDX_IMM.opcode,		0x42,				// Set X to 0x42
 			INS_LDY_IMM.opcode,		0x42,				// Set Y to 0x42
 			INS_RTS.opcode,								// Return from subroutine
-			INS_NOP.opcode,
-			INS_NOP.opcode,
+			INS_NOP_IMP.opcode,
+			INS_NOP_IMP.opcode,
 			INS_JSR.opcode,			0x3F,	pamsb,		// GOTO subroutine (puts 0x42 into all 3 registers
 			INS_LDX_ZP.opcode,		0x00,				// Read zp[0] = 0xFF into X
 			INS_JMP_ABS.opcode,		palsb,	pamsb,		// GOTO start of program

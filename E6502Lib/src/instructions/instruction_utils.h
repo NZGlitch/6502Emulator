@@ -1,4 +1,5 @@
 #pragma once
+#include "base.h"
 #include "branch_instruction.h"
 #include "incdec_instruction.h"
 #include "jump_instruction.h"
@@ -19,6 +20,7 @@ namespace E6502 {
 			
 			/** Adds all known insturctions to the given handler array */
 			void load(InstructionHandler* handlers[]) override {
+				handlers[INS_NOP_IMP.opcode] = new InstructionHandler{ INS_NOP_IMP.opcode, INS_NOP_IMP.isLegal, INS_NOP_IMP.name, INS_NOP_IMP.execute};
 				BranchInstruction::addHandlers(handlers);
 				IncDecInstruction::addHandlers(handlers);
 				JumpInstruction::addHandlers(handlers);

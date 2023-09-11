@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <gmock/gmock.h>
 #include "cpu.h"
+#include "instructions/base.h"
 
 namespace E6502 {
 
@@ -88,7 +89,7 @@ namespace E6502 {
 		Byte initFlags = (rand() & 0xFF & flagMask);
 		state->FLAGS.byte = initFlags;
 		ASSERT_EQ(state->PC, 0xFFFC);
-		(*memory)[0xFFFC] = INS_NOP.opcode;		//insert a NOP instruction for the test
+		(*memory)[0xFFFC] = INS_NOP_IMP.opcode;		//insert a NOP instruction for the test
 		Byte cycles = 0;
 
 		// When:
@@ -458,8 +459,8 @@ namespace E6502 {
 
 	/* Test inerupt disable getter & setter */
 	TEST_F(TestCPU, interuptDisableGetSet) {
-		EXPECT_EQ(CPU::FLAG_INTERUPT_DISABLE, 2);
-		testFlagGetterSetter(CPU::FLAG_INTERUPT_DISABLE);
+		EXPECT_EQ(CPU::FLAG_INTERRUPT_DISABLE, 2);
+		testFlagGetterSetter(CPU::FLAG_INTERRUPT_DISABLE);
 	}
 
 	/* Test decimal getter & setter */

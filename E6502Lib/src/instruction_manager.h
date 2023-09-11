@@ -8,9 +8,6 @@
 
 namespace E6502 {
 
-	// Default executor for unimplemented instructions
-	static InstructionHandler INS_NOP = { 0xEA, true, "NOP - Unimplemented", [](CPU* cpu, u8& cycles, Byte instruction) { cycles++; } };
-
 	/* Manages instruction definitions and executors	*/
 	class InstructionManager {
 	private:

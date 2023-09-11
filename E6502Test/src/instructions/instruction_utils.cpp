@@ -1,4 +1,5 @@
 #include <gmock/gmock.h>
+#include "instructions/base.h"
 #include "instructions/instruction_utils.h"
 
 namespace E6502 {
@@ -45,7 +46,12 @@ namespace E6502 {
 
 		// When:
 		InstructionUtils::loader.load(handlers);
-
+		
+		// Then: (NOP Instruction)
+		ASSERT_FALSE(handlers[0xEA] == nullptr);
+		EXPECT_EQ(*handlers[0xEA], INS_NOP_IMP);
+		EXPECT_EQ(INS_NOP_IMP.opcode, 0xEA);
+		
 		// Then (BranchInstruction):
 		for (const InstructionHandler& handler : BRANCH_INSTRUCTIONS) {
 			Byte opcode = handler.opcode;

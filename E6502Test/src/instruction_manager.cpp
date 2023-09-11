@@ -67,8 +67,4 @@ namespace E6502 {
 		EXPECT_EQ(&(inMan->defaultHandler), (*inMan)[0]);
 	}
 
-	/* Test OpCodes are defined correctly */
-	TEST_F(TestInstructionManager, TestOpCodes) {
-		EXPECT_EQ(INS_NOP.opcode, 0xEA);
-	}
 }
