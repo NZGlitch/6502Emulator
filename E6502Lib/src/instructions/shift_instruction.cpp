@@ -20,9 +20,9 @@ namespace E6502 {
 		performOp(cpu, cycles, op, data, carry);
 
 		// Set the N, Z, C flags based on the result
-		cpu->setNegativeFlag(cycles, data >> 7);
-		cpu->setZeroFlag(cycles, data == 0);
-		cpu->setCarryFlag(cycles, (carry != 0));
+		cpu->setFlag(cycles, CPU::FLAG_NEGATIVE, data >> 7);
+		cpu->setFlag(cycles, CPU::FLAG_ZERO, data == 0);
+		cpu->setFlag(cycles, CPU::FLAG_CARRY, (carry != 0));
 
 		// Save the data to accumulator
 		cpu->saveToReg(cycles, CPU::REGISTER_A, data);
@@ -44,7 +44,7 @@ namespace E6502 {
 			case OP_ROL:
 				carry = value >> 7; cycles++;
 				value = value << 1; cycles++;
-				if (cpu->getCarryFlag(cycles)) value |= 0x01;
+				if (cpu->getFlag(cycles, CPU::FLAG_CARRY)) value |= 0x01;
 				break;
 			/* Logical shift Right */
 			case OP_LSR:
@@ -55,7 +55,7 @@ namespace E6502 {
 			case OP_ROR:
 				carry = value & 0x01; cycles++;
 				value = value >> 1; cycles++;
-				if (cpu->getCarryFlag(cycles)) value |= 0x80;
+				if (cpu->getFlag(cycles, CPU::FLAG_CARRY)) value |= 0x80;
 				break;
 			/* Unknown operation */
 			default:

@@ -17,8 +17,8 @@ namespace E6502 {
 		Byte value = cpu->pullStackByte(cycles);
 		if (opCode == INS_PLA) {
 			cpu->saveToReg(cycles, CPU::REGISTER_A, value); 
-			cpu->setNegativeFlag(cycles, value >> 7);
-			cpu->setZeroFlag(cycles, value == 0);
+			cpu->setFlag(cycles, CPU::FLAG_NEGATIVE, value >> 7);
+			cpu->setFlag(cycles, CPU::FLAG_ZERO, value == 0);
 			
 		} else if (opCode == INS_PLP.opcode) {
 			FlagUnion flags = cpu->getFlags(cycles);

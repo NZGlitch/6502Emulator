@@ -36,6 +36,21 @@ namespace E6502 {
 			delete memory;
 		}
 
+		// Helper for testing all flag getter and setters. getting a bit ugly, should find a nicer way to do this.
+		void testFlagGetterSetter(u8 flag) {
+			// if it is set to false...
+			Byte cycles = 0;
+			cpu->setFlag(cycles, flag, false);
+			EXPECT_FALSE(cpu->getFlag(cycles, flag));
+			EXPECT_EQ(cycles, 0);
+
+			// if it is set to true
+			cycles = 0;
+			cpu->setFlag(cycles, flag, true);
+			EXPECT_TRUE(cpu->getFlag(cycles, flag));
+			EXPECT_EQ(cycles, 0);
+		}
+
 		virtual void SetUp() {
 			cpu = new CPUInternal(state, memory, &loader);
 		}
@@ -429,131 +444,52 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 1);
 	}
 
-	/* Test getCarry */
-	TEST_F(TestCPU, getCarry) {
-		// if it is set to false...
-		Byte cycles = 0;
-		state->FLAGS.bit.C = false;
-		EXPECT_FALSE(cpu->getCarryFlag(cycles));
-		EXPECT_EQ(cycles, 0);
-
-		// if it is set to true
-		cycles = 0;
-		state->FLAGS.bit.C = true;
-		EXPECT_TRUE(cpu->getCarryFlag(cycles));
-		EXPECT_EQ(cycles, 0);
+	/* Test carry getter & setter */
+	TEST_F(TestCPU, carryGetSet) {
+		EXPECT_EQ(CPU::FLAG_CARRY, 0);
+		testFlagGetterSetter(CPU::FLAG_CARRY);
 	}
 
-	/* Test setCarry */
-	TEST_F(TestCPU, setCarryTrue) {
-		// Given:
-		state->FLAGS.bit.C = 0;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setCarryFlag(cycles, true);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.C, 1);
-		EXPECT_EQ(cycles, 0);
+	/* Test zero getter & setter */
+	TEST_F(TestCPU, zeroGetSet) {
+		EXPECT_EQ(CPU::FLAG_ZERO, 1);
+		testFlagGetterSetter(CPU::FLAG_ZERO);
 	}
 
-	/* Test setCarry */
-	TEST_F(TestCPU, setCarryFalse) {
-		// Given:
-		state->FLAGS.bit.C = 1;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setCarryFlag(cycles, false);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.C, 0);
-		EXPECT_EQ(cycles, 0);
+	/* Test inerupt disable getter & setter */
+	TEST_F(TestCPU, interuptDisableGetSet) {
+		EXPECT_EQ(CPU::FLAG_INTERUPT_DISABLE, 2);
+		testFlagGetterSetter(CPU::FLAG_INTERUPT_DISABLE);
 	}
 
-	/* Test setNegative */
-	TEST_F(TestCPU, setNegativeTrue) {
-		// Given:
-		state->FLAGS.bit.N = 0;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setNegativeFlag(cycles, true);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.N, 1);
-		EXPECT_EQ(cycles, 0);
+	/* Test decimal getter & setter */
+	TEST_F(TestCPU, decimalGetSet) {
+		EXPECT_EQ(CPU::FLAG_DECIMAL, 3);
+		testFlagGetterSetter(CPU::FLAG_DECIMAL);
 	}
 
-	/* Test setNegative */
-	TEST_F(TestCPU, setNegativeFalse) {
-		// Given:
-		state->FLAGS.bit.N = 1;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setNegativeFlag(cycles, false);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.N, 0);
-		EXPECT_EQ(cycles, 0);
+	/* Test break getter & setter */
+	TEST_F(TestCPU, breakGetSet) {
+		EXPECT_EQ(CPU::FLAG_BREAK, 4);
+		testFlagGetterSetter(CPU::FLAG_BREAK);
 	}
 
-	/* Test setOverflow */
-	TEST_F(TestCPU, setOverflowTrue) {
-		// Given:
-		state->FLAGS.bit.V = 0;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setOverflowFlag(cycles, true);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.V, 1);
-		EXPECT_EQ(cycles, 0);
+	/* Test unused getter & setter */
+	TEST_F(TestCPU, unusedGetSet) {
+		EXPECT_EQ(CPU::FLAG_UNUSED, 5);
+		testFlagGetterSetter(CPU::FLAG_UNUSED);
+	}
+	
+	/* Test overflow getter & setter */
+	TEST_F(TestCPU, overflowGetSet) {
+		EXPECT_EQ(CPU::FLAG_OVERFLOW, 6);
+		testFlagGetterSetter(CPU::FLAG_OVERFLOW);
 	}
 
-	/* Test setNegative */
-	TEST_F(TestCPU, setOverflowFalse) {
-		// Given:
-		state->FLAGS.bit.V = 1;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setOverflowFlag(cycles, false);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.V, 0);
-		EXPECT_EQ(cycles, 0);
-	}
-
-	/* Test setZero */
-	TEST_F(TestCPU, setZeroTrue) {
-		// Given:
-		state->FLAGS.bit.Z = 0;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setZeroFlag(cycles, true);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.Z, 1);
-		EXPECT_EQ(cycles, 0);
-	}
-
-	/* Test setZero */
-	TEST_F(TestCPU, setZeroFalse) {
-		// Given:
-		state->FLAGS.bit.Z = 1;
-		u8 cycles = 0;
-
-		// When:
-		cpu->setZeroFlag(cycles, false);
-
-		// Then:
-		EXPECT_EQ(state->FLAGS.bit.Z, 0);
-		EXPECT_EQ(cycles, 0);
+	/* Test negative getter & setter */
+	TEST_F(TestCPU, negativeGetSet) {
+		EXPECT_EQ(CPU::FLAG_NEGATIVE, 7);
+		testFlagGetterSetter(CPU::FLAG_BREAK);
 	}
 
 	/* Test readReference Byte can read from register */
