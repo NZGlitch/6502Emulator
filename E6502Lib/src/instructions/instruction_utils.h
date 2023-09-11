@@ -6,6 +6,7 @@
 #include "logic_instruction.h"
 #include "shift_instruction.h"
 #include "stack_instruction.h"
+#include "status_instruction.h"
 #include "store_instruction.h"
 #include "transfer_instruction.h"
 
@@ -25,6 +26,7 @@ namespace E6502 {
 				LogicInstruction::addHandlers(handlers);
 				ShiftInstruction::addHandlers(handlers);
 				StackInstruction::addHandlers(handlers);
+				StatusInstruction::addHandlers(handlers);
 				StoreInstruction::addHandlers(handlers);
 				TransferInstruction::addHandlers(handlers);
 			}

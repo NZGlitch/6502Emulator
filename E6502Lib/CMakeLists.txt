@@ -39,6 +39,8 @@ set (E6502LIB_INSTRUCTIONS
 	"src/instructions/shift_instruction.cpp"
 	"src/instructions/stack_instruction.h"
 	"src/instructions/stack_instruction.cpp"
+	"src/instructions/status_instruction.h"
+	"src/instructions/status_instruction.cpp"
 	"src/instructions/store_instruction.h"
 	"src/instructions/store_instruction.cpp"
 	"src/instructions/transfer_instruction.h"

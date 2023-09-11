@@ -95,6 +95,13 @@ namespace E6502 {
 			EXPECT_EQ((handlers[opcode]->opcode), opcode);
 		}
 
+		// Then (StatusInstruction):
+		for (const InstructionHandler& handler : STATUS_INSTRUCTIONS) {
+			Byte opcode = handler.opcode;
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		}
+
 		// Then (StoreInstruction):
 		for (const InstructionHandler& handler : STORE_INSTRUCTIONS) {
 			Byte opcode = handler.opcode;
