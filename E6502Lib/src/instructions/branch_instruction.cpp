@@ -14,9 +14,11 @@ namespace E6502 {
 		case OP_BCC: branch = !cpu->getFlag(cycles, CPU::FLAG_CARRY); break;
 		case OP_BNE: branch = !cpu->getFlag(cycles, CPU::FLAG_ZERO); break;
 		case OP_BPL: branch = !cpu->getFlag(cycles, CPU::FLAG_NEGATIVE); break;
+		case OP_BVC: branch = !cpu->getFlag(cycles, CPU::FLAG_OVERFLOW); break;
 		case OP_BCS: branch = cpu->getFlag(cycles, CPU::FLAG_CARRY); break;
 		case OP_BEQ: branch = cpu->getFlag(cycles, CPU::FLAG_ZERO); break;
 		case OP_BMI: branch = cpu->getFlag(cycles, CPU::FLAG_NEGATIVE); break;
+		case OP_BVS: branch = cpu->getFlag(cycles, CPU::FLAG_OVERFLOW); break;
 			default: {
 				fprintf(stderr, "Unknown operation %d for Branch instruction\n", op);
 				break;

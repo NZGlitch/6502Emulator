@@ -125,8 +125,8 @@ namespace E6502 {
 	TEST_F(TestBranchInstruction, TestBranchHandlers) {
 
 		std::vector<InstructionMap> instructions = {
-			{INS_BCC_REL, 0x90}, {INS_BNE_REL, 0xD0}, {INS_BPL_REL, 0x10},
-			{INS_BCS_REL, 0xB0}, {INS_BEQ_REL, 0xF0}, {INS_BMI_REL, 0x30},
+			{INS_BCC_REL, 0x90}, {INS_BNE_REL, 0xD0}, {INS_BPL_REL, 0x10}, {INS_BVC_REL, 0x50},
+			{INS_BCS_REL, 0xB0}, {INS_BEQ_REL, 0xF0}, {INS_BMI_REL, 0x30}, {INS_BVS_REL, 0x70},
 		};
 		testInstructionDef(instructions, BranchInstruction::addHandlers);
 	}
@@ -149,6 +149,12 @@ namespace E6502 {
 	TEST_F(TestBranchInstruction, TestBPLBranchCyclesNoPage) { testCyclesNoPage(INS_BPL_REL, false); }
 	TEST_F(TestBranchInstruction, TestBPLBranchCyclesPage) { testCyclesPage(INS_BPL_REL, false); }
 
+	// Test BVC
+	TEST_WILL_BRANCH(TestBVCWillBranch, INS_BVC_REL, CPU::FLAG_OVERFLOW, false)
+	TEST_NO_BRANCH(TestBVCNoBranch, INS_BVC_REL, CPU::FLAG_OVERFLOW, true)
+	TEST_F(TestBranchInstruction, TestBVCBranchCyclesNoPage) { testCyclesNoPage(INS_BVC_REL, false); }
+	TEST_F(TestBranchInstruction, TestBVCBranchCyclesPage) { testCyclesPage(INS_BVC_REL, false); }
+
 	// Test BCS
 	TEST_WILL_BRANCH(TestBCSWillBranch, INS_BCS_REL, CPU::FLAG_CARRY, true)
 	TEST_NO_BRANCH(TestBCSNoBranch, INS_BCS_REL, CPU::FLAG_CARRY, false)
@@ -166,4 +172,10 @@ namespace E6502 {
 	TEST_NO_BRANCH(TestBMINoBranch, INS_BMI_REL, CPU::FLAG_NEGATIVE, false)
 	TEST_F(TestBranchInstruction, TestBMIBranchCyclesNoPage) { testCyclesNoPage(INS_BMI_REL, true); }
 	TEST_F(TestBranchInstruction, TestBMIBranchCyclesPage) { testCyclesPage(INS_BMI_REL, true); }
+
+	// Test BVS
+	TEST_WILL_BRANCH(TestBVSWillBranch, INS_BVS_REL, CPU::FLAG_OVERFLOW, true)
+	TEST_NO_BRANCH(TestBVSNoBranch, INS_BVS_REL, CPU::FLAG_OVERFLOW, false)
+	TEST_F(TestBranchInstruction, TestBVSBranchCyclesNoPage) { testCyclesNoPage(INS_BVS_REL, true); }
+	TEST_F(TestBranchInstruction, TestBVSBranchCyclesPage) { testCyclesPage(INS_BVS_REL, true); }
 }
