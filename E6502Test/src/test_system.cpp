@@ -15,10 +15,10 @@ namespace E6502 {
 
 	};
 
-	/* Test WIP Need at least Branch and inc sections before we can run the functional tests
+	/* Test WIP Need at least Branch and inc sections before we can run the functional tests 
 	TEST_F(TestSystem, TestSystem) {
-		//char* filename = "C:\\Users\\Chris\\source\\repos\\6502Emulator\\6502Emulator\\Assembly\\func_test.bin";
-		char* filename = "C:\\Users\\Chris\\source\\repos\\6502Emulator\\6502Emulator\\Assembly\\helloworld.bin";
+		char* filename = "C:\\Users\\Chris\\source\\repos\\6502Emulator\\6502Emulator\\Assembly\\func_test.bin";
+		//char* filename = "C:\\Users\\Chris\\source\\repos\\6502Emulator\\6502Emulator\\Assembly\\helloworld.bin";
 		System test = System(filename);
 		//printf("Breakpoint!");
 		while (true)
