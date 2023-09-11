@@ -13,6 +13,7 @@ namespace E6502 {
 		switch (op) {
 		case OP_BCC: branch = !cpu->getFlag(cycles, CPU::FLAG_CARRY); break;
 		case OP_BNE: branch = !cpu->getFlag(cycles, CPU::FLAG_ZERO); break;
+		case OP_BPL: branch = !cpu->getFlag(cycles, CPU::FLAG_NEGATIVE); break;
 		case OP_BCS: branch = cpu->getFlag(cycles, CPU::FLAG_CARRY); break;
 		case OP_BEQ: branch = cpu->getFlag(cycles, CPU::FLAG_ZERO); break;
 		case OP_BMI: branch = cpu->getFlag(cycles, CPU::FLAG_NEGATIVE); break;
