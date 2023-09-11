@@ -91,6 +91,9 @@ namespace E6502 {
 		/* Write the PC register */
 		virtual void setPC(u8& cycles, Word address) = 0;
 
+		/* Add the signed offset to the current PC, uses 1 cycle within a page, 2 if crossing a page boundary */
+		virtual void branch(u8& cycles, s8 offset) = 0;
+
 
 		/* Read the stack pointer register */
 		virtual Byte getSP(u8& cycles) = 0;
@@ -121,6 +124,9 @@ namespace E6502 {
 
 		/* Execute <numInstructions> instructions. Return the number of cycles used. */
 		u8 execute(u8 numInstructions);
+
+		/* Same as execute from CPU but allows injecting mock CPU to handler for testing */
+		u8 testExecute(u8 numInstructions, CPU* injectToHandler);
 
 		/* Resets the CPU to the standard Initial state, clears registers & memory and sets PC to reset vector */
 		void reset();
@@ -153,6 +159,7 @@ namespace E6502 {
 
 		virtual Word getPC(u8& cycles);
 		virtual void setPC(u8& cycles, Word address);
+		virtual void branch(u8& cycles, s8 offset);
 
 		virtual Byte getSP(u8& cycles);
 		virtual void setSP(u8& cycles, Byte value);

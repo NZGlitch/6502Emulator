@@ -234,6 +234,66 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 1);
 	}
 
+	/* Test Branch */
+	TEST_F(TestCPU, TestBranchUpNoPage) {
+		// Given:
+		state->PC = rand() & 0xFF7F;	// Bottom half of page
+		s8 offset = (rand() & 0x7F);	// Disable sign bit
+		Word expectPC = (state->PC + offset);
+		u8 cycles = 0;
+
+		// When:
+		cpu->branch(cycles, offset);
+
+		// Then:
+		EXPECT_EQ(state->PC, expectPC);
+		EXPECT_EQ(cycles, 1);
+	}
+	TEST_F(TestCPU, TestBranchDownNoPage) {
+		// Given:
+		state->PC = rand() | 0x0080;	// Top half of page
+		s8 offset = (rand() | 0x80);	// enable sign bit
+		Word expectPC = (state->PC + offset);
+		u8 cycles = 0;
+
+		// When:
+		cpu->branch(cycles, offset);
+
+		// Then:
+		EXPECT_EQ(state->PC, expectPC);
+		EXPECT_EQ(cycles, 1);
+	}
+	TEST_F(TestCPU, TestBranchUpPage) {
+		// Given:
+		state->PC = rand() | 0x00F0;	// Near top of page
+		s8 offset = (rand() & 0x7F);	// Disable sign bit
+		offset |= 0x10;					// Must be at least this big to cross boundary
+		Word expectPC = (state->PC + offset);
+		u8 cycles = 0;
+
+		// When:
+		cpu->branch(cycles, offset);
+
+		// Then:
+		EXPECT_EQ(state->PC, expectPC);
+		EXPECT_EQ(cycles, 2);
+	}
+	TEST_F(TestCPU, TestBranchDownPage) {
+		// Given:
+		state->PC = rand() & 0xFF0F;	// Near bottom of page
+		s8 offset = (rand() | 0x80);	// enable sign bit, 
+		offset &= 0x8F;					// Ensures it is negtive enough to cross tha page
+		Word expectPC = (state->PC + offset);
+		u8 cycles = 0;
+
+		// When:
+		cpu->branch(cycles, offset);
+
+		// Then:
+		EXPECT_EQ(state->PC, expectPC);
+		EXPECT_EQ(cycles, 2);
+	}
+
 	/* Test pullStackWord and pushStackWord */
 	TEST_F(TestCPU, TestPushPullStackWord) {
 		u8 cycles = 0;
@@ -532,7 +592,7 @@ namespace E6502 {
 			cpu->writeReferenceByte(cycles, ref, testValue);
 
 			// Then:
-			EXPECT_EQ(cycles, 1);
+			EXPECT_EQ(cycles, 0);
 			EXPECT_EQ(*registerRef[i], testValue);
 		}
 	}
