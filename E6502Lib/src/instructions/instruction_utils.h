@@ -1,4 +1,5 @@
 #pragma once
+#include "base.h"
 #include "branch_instruction.h"
 #include "incdec_instruction.h"
 #include "jump_instruction.h"
@@ -6,6 +7,7 @@
 #include "logic_instruction.h"
 #include "shift_instruction.h"
 #include "stack_instruction.h"
+#include "status_instruction.h"
 #include "store_instruction.h"
 #include "transfer_instruction.h"
 
@@ -18,6 +20,7 @@ namespace E6502 {
 			
 			/** Adds all known insturctions to the given handler array */
 			void load(InstructionHandler* handlers[]) override {
+				handlers[INS_NOP_IMP.opcode] = new InstructionHandler{ INS_NOP_IMP.opcode, INS_NOP_IMP.isLegal, INS_NOP_IMP.name, INS_NOP_IMP.execute};
 				BranchInstruction::addHandlers(handlers);
 				IncDecInstruction::addHandlers(handlers);
 				JumpInstruction::addHandlers(handlers);
@@ -25,6 +28,7 @@ namespace E6502 {
 				LogicInstruction::addHandlers(handlers);
 				ShiftInstruction::addHandlers(handlers);
 				StackInstruction::addHandlers(handlers);
+				StatusInstruction::addHandlers(handlers);
 				StoreInstruction::addHandlers(handlers);
 				TransferInstruction::addHandlers(handlers);
 			}

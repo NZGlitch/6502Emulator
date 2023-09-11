@@ -40,6 +40,9 @@ namespace E6502 {
 		BaseInstruction();		// Subclasses should only be used statically
 
 	public:
+		
+		// NOP handler
+		static void nopHandler(CPU* cpu, u8& cycles, Byte opCode) { cycles++; }
 
 		/* Uses Field B (Bits 4,3,2) to determine the addressing mode and returns a reference to the correct location 
 		 * DO NOT use for immediate mode instructions!
@@ -59,4 +62,7 @@ namespace E6502 {
 		/** Same as IMMEDIATE, added in for readability where needed */
 		const static Byte ADDRESS_MODE_IMPLIED = 0b010;
 	};
+
+	// NOP instruction
+	constexpr static InstructionHandler INS_NOP_IMP = { 0xEA, true, "NOP - No Operation [Implied]", BaseInstruction::nopHandler };
 }

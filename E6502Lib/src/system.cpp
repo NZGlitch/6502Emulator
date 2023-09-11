@@ -62,7 +62,7 @@ namespace E6502 {
 		(*memory)[CPUState::DEFAULT_RESET_VECTOR] = INS_JSR.opcode;
 		(*memory)[CPUState::DEFAULT_RESET_VECTOR + 1] = program->loadAddress & 0xFF;
 		(*memory)[CPUState::DEFAULT_RESET_VECTOR + 2] = program->loadAddress >> 8;
-		(*memory)[CPUState::DEFAULT_RESET_VECTOR + 3] = INS_NOP.opcode;
+		(*memory)[CPUState::DEFAULT_RESET_VECTOR + 3] = INS_NOP_IMP.opcode;
 	}
 
 	System:: ~System() {

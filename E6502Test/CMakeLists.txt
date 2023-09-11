@@ -29,6 +29,7 @@ set (E6502_SOURCES
 	"src/instruction_handler.cpp"
 	"src/cpu.cpp"
 
+	"src/instructions/base.cpp"
 	"src/instructions/branch_instruction.cpp"
 	"src/instructions/incdec_instruction.cpp"
 	"src/instructions/instruction_test.h"
@@ -38,6 +39,7 @@ set (E6502_SOURCES
 	"src/instructions/logic_instruction.cpp"
 	"src/instructions/shift_instruction.cpp"
 	"src/instructions/stack_instruction.cpp"
+	"src/instructions/status_instruction.cpp"
 	"src/instructions/store_instruction.cpp"
 	"src/instructions/transfer_instruction.cpp"
 

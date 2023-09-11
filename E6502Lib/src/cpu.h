@@ -26,7 +26,7 @@ namespace E6502 {
 
 		constexpr static u8 FLAG_CARRY = 0;
 		constexpr static u8 FLAG_ZERO = 1;
-		constexpr static u8 FLAG_INTERUPT_DISABLE = 2;
+		constexpr static u8 FLAG_INTERRUPT_DISABLE = 2;
 		constexpr static u8 FLAG_DECIMAL = 3;
 		constexpr static u8 FLAG_BREAK = 4;
 		constexpr static u8 FLAG_UNUSED = 5;
