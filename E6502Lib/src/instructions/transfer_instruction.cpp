@@ -20,8 +20,8 @@ namespace E6502 {
 
 		// Save reg and set flags
 		cpu->saveToReg(cycles, target, value);
-		cpu->setNegativeFlag(cycles, value >> 7);
-		cpu->setZeroFlag(cycles, value == 0);
+		cpu->setFlag(cycles, CPU::FLAG_NEGATIVE, value >> 7);
+		cpu->setFlag(cycles, CPU::FLAG_ZERO, value == 0);
 	}
 
 	void TransferInstruction::transferStackHandler(CPU* cpu, u8& cycles, Byte opCode) {
@@ -30,8 +30,8 @@ namespace E6502 {
 			case INS_TSX.opcode:
 				value = cpu->getSP(cycles);
 				cpu->saveToReg(cycles, CPU::REGISTER_X, value);
-				cpu->setNegativeFlag(cycles, value >> 7);
-				cpu->setZeroFlag(cycles, value == 0);
+				cpu->setFlag(cycles, CPU::FLAG_NEGATIVE, value >> 7);
+				cpu->setFlag(cycles, CPU::FLAG_ZERO, value == 0);
 				break;
 			case INS_TXS.opcode: cpu->setSP(cycles, cpu->regValue(cycles, CPU::REGISTER_X)); break;
 		}

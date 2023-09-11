@@ -38,14 +38,14 @@ namespace E6502 {
 		if (op == OP_BIT) {
 			// Set N= operandB bit 7, V = opeerandB bit 6, Z = result == 0
 			// Does not save result
-			cpu->setNegativeFlag(cycles, operandB >> 7);
-			cpu->setOverflowFlag(cycles, (operandB >> 6) & 0x01);
-			cpu->setZeroFlag(cycles, result == 0);
+			cpu->setFlag(cycles, CPU::FLAG_NEGATIVE, operandB >> 7);
+			cpu->setFlag(cycles, CPU::FLAG_OVERFLOW, (operandB >> 6) & 0x01);
+			cpu->setFlag(cycles, CPU::FLAG_ZERO, result == 0);
 		}
 		else {
 			// Set the N, Z flags based on the result
-			cpu->setNegativeFlag(cycles, result >> 7);
-			cpu->setZeroFlag(cycles, result == 0);
+			cpu->setFlag(cycles, CPU::FLAG_NEGATIVE, result >> 7);
+			cpu->setFlag(cycles, CPU::FLAG_ZERO, result == 0);
 			cpu->saveToReg(cycles, CPU::REGISTER_A, result);
 		}
 	}

@@ -105,22 +105,22 @@ namespace E6502 {
 		}
 	}
 
-	/* Sets the N flag */
-	void CPUInternal::setNegativeFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.N = flag; }
 
-	/* Sets the V flag */
-	void CPUInternal::setOverflowFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.V = flag;  }
-
-	/* Sets the Z flag */
-	void CPUInternal::setZeroFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.Z = flag; }
-
-	/* gets the C flag */
-	bool CPUInternal::getCarryFlag(u8& cycles) {
-		return currentState->FLAGS.bit.C;
+	/* Sets a specific flag in the status register */
+	void CPUInternal::setFlag(u8& cycles, u8 flag, bool value) {
+		Byte mask = (0x01 << flag);
+		if (value) 	currentState->FLAGS.byte |= mask;
+		else {
+			mask = ~mask;
+			currentState->FLAGS.byte &= mask;
+		}
 	}
 
-	/** Ses the C Flag */
-	void CPUInternal::setCarryFlag(u8& cycles, bool flag) { currentState->FLAGS.bit.C = flag; }
+	/* Gets a specific flag in the status register */
+	bool CPUInternal::getFlag(u8& cycles, u8 flag) {
+		return (currentState->FLAGS.byte >> flag) & 0x01;
+	}
+
 
 	/* Push 1 byte of data onto the stack */
 	void CPUInternal::pushStackByte(u8& cycles, Byte value) {

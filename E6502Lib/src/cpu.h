@@ -24,6 +24,15 @@ namespace E6502 {
 		const static u8 REFERENCE_REG = 0;
 		const static u8 REFERENCE_MEM = 1;
 
+		constexpr static u8 FLAG_CARRY = 0;
+		constexpr static u8 FLAG_ZERO = 1;
+		constexpr static u8 FLAG_INTERUPT_DISABLE = 2;
+		constexpr static u8 FLAG_DECIMAL = 3;
+		constexpr static u8 FLAG_BREAK = 4;
+		constexpr static u8 FLAG_UNUSED = 5;
+		constexpr static u8 FLAG_OVERFLOW = 6;
+		constexpr static u8 FLAG_NEGATIVE = 7;
+
 		/** Read a Byte from memory */
 		virtual Byte readByte(u8& cycles, Word address) = 0;
 
@@ -49,20 +58,11 @@ namespace E6502 {
 		virtual void saveToReg(u8& cycles, u8 reg, Byte value) = 0;
 
 
-		/* Sets the N flag */
-		virtual void setNegativeFlag(u8& cycles, bool flag) = 0;
+		/* Sets a specific flag in the status register */
+		virtual void setFlag(u8& cycles, u8 flag, bool value) = 0;
 
-		/* Sets the V flag */
-		virtual void setOverflowFlag(u8& cycles, bool flag) = 0;
-
-		/* Sets the Z flag */
-		virtual void setZeroFlag(u8& cycles, bool flag) = 0;
-
-		/* Gets the C flag */
-		virtual bool getCarryFlag(u8& cycles) = 0;
-
-		/* Sets the C flag */
-		virtual void setCarryFlag(u8& cycles, bool flag) = 0;
+		/* Gets a specific flag in the status register */
+		virtual bool getFlag(u8& cycles, u8 flag) = 0;
 
 
 		/* Push a byte onto the stack */
@@ -143,11 +143,8 @@ namespace E6502 {
 		virtual Byte regValue(u8& cycles, u8 reg);
 		virtual void saveToReg(u8& cycles, u8 reg, Byte value);
 
-		virtual void setNegativeFlag(u8& cycles, bool flag);
-		virtual void setOverflowFlag(u8& cycles, bool flag);
-		virtual void setZeroFlag(u8& cycles, bool flag);
-		virtual bool getCarryFlag(u8& cycles);
-		virtual void setCarryFlag(u8& cycles, bool flag);
+		virtual void setFlag(u8& cycles, u8 flag, bool value);
+		virtual bool getFlag(u8& cycles, u8 flag);
 
 		virtual void pushStackByte(u8& cycles, Byte value);
 		virtual void pushStackWord(u8& cycles, Word value);

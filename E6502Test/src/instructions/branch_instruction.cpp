@@ -9,7 +9,7 @@ namespace E6502 {
 	/* Branch logic is covered in CPU tests, so easier to mock this call than work it all out here */
 	struct MockCPU : public CPUInternal {
 		MockCPU() : CPUInternal(nullptr, nullptr, &InstructionUtils::loader) {}
-		MOCK_METHOD(bool, getCarryFlag, (u8& cycles));
+		MOCK_METHOD(bool, getFlag, (u8& cycles, u8 flag));
 		MOCK_METHOD(void, branch, (u8& cycles, s8 offset));
 		MOCK_METHOD(Byte, readPCByte, (u8& cycles));
 	};
@@ -17,7 +17,7 @@ namespace E6502 {
 	// Macros for making code more concise - nearly all tests are identical
 
 	/** Mocks methods that test for flag. flagFunc is the cpu getter that must be called, flagFuncReturn is the mock result */
-	#define EXPECT_FLAG_CALL(mockCPU, flagFunc, flagFuncReturn) EXPECT_CALL(mockCPU, flagFunc).Times(1).WillOnce(Return(flagFuncReturn));
+	#define EXPECT_FLAG_CALL(mockCPU, flag, flagFuncReturn) EXPECT_CALL(mockCPU, getFlag(_, flag)).Times(1).WillOnce(Return(flagFuncReturn));
 
 	/** Tests cases where an instruction should branch
 	* @param name	-	Name of the test
@@ -25,10 +25,10 @@ namespace E6502 {
 	* @param flagFunc - matcher for method on cpu used to get relevant flag
 	* @param flagFuncReturn - the result the cpu should return from flagFunc to cause instruction to branch
 	*/
-	#define TEST_WILL_BRANCH(name, instruction, flagFunc, flagFuncReturn)		\
-		TEST_F(TestBranchInstruction, name) {									\
-			EXPECT_FLAG_CALL(*mockCPU, flagFunc, flagFuncReturn);				\
-			testBranch(instruction);											\
+	#define TEST_WILL_BRANCH(name, instruction, flag, flagFuncReturn)		\
+		TEST_F(TestBranchInstruction, name) {								\
+			EXPECT_FLAG_CALL(*mockCPU, flag, flagFuncReturn);				\
+			testBranch(instruction);										\
 		}
 
 	/** Tests cases where an instruction should NOT branch
@@ -37,9 +37,9 @@ namespace E6502 {
 	* @param flagFunc - matcher for method on cpu used to get relevant flag
 	* @param flagFuncReturn - the result the cpu should return from flagFunc to prevent instruction branching
 	*/
-	#define TEST_NO_BRANCH(name, instruction, flagFunc, flagFuncReturn)		\
+	#define TEST_NO_BRANCH(name, instruction, flag, flagFuncReturn)		\
 		TEST_F(TestBranchInstruction, name) {								\
-			EXPECT_FLAG_CALL(*mockCPU, flagFunc, flagFuncReturn);			\
+			EXPECT_FLAG_CALL(*mockCPU, flag, flagFuncReturn);			\
 			testNoBranch(instruction);										\
 		}
 
@@ -125,20 +125,26 @@ namespace E6502 {
 	TEST_F(TestBranchInstruction, TestBranchHandlers) {
 
 		std::vector<InstructionMap> instructions = {
-			{INS_BCC_REL, 0x90}, {INS_BCS_REL, 0xB0}
+			{INS_BCC_REL, 0x90}, {INS_BCS_REL, 0xB0}, {INS_BEQ_REL, 0xF0},
 		};
 		testInstructionDef(instructions, BranchInstruction::addHandlers);
 	}
 
 	// Test BCC
-	TEST_WILL_BRANCH(TestBCCWillBranch, INS_BCC_REL, getCarryFlag(_), false)
-	TEST_NO_BRANCH(TestBCCNoBranch, INS_BCC_REL, getCarryFlag(_), true)
+	TEST_WILL_BRANCH(TestBCCWillBranch, INS_BCC_REL, CPU::FLAG_CARRY, false)
+	TEST_NO_BRANCH(TestBCCNoBranch, INS_BCC_REL, CPU::FLAG_CARRY, true)
 	TEST_F(TestBranchInstruction, TestBCCBranchCyclesNoPage) { testCyclesNoPage(INS_BCC_REL, false); }
 	TEST_F(TestBranchInstruction, TestBCCBranchCyclesPage) { testCyclesPage(INS_BCC_REL, false); }
 
 	// Test BCS
-	TEST_WILL_BRANCH(TestBCSWillBranch, INS_BCS_REL, getCarryFlag(_), true)
-	TEST_NO_BRANCH(TestBCSNoBranch, INS_BCS_REL, getCarryFlag(_), false)
+	TEST_WILL_BRANCH(TestBCSWillBranch, INS_BCS_REL, CPU::FLAG_CARRY, true)
+	TEST_NO_BRANCH(TestBCSNoBranch, INS_BCS_REL, CPU::FLAG_CARRY, false)
 	TEST_F(TestBranchInstruction, TestBCSBranchCyclesNoPage) { testCyclesNoPage(INS_BCS_REL, true); }
 	TEST_F(TestBranchInstruction, TestBCSBranchCyclesPage) { testCyclesPage(INS_BCS_REL, true); }
+
+	// Test BEQ
+	TEST_WILL_BRANCH(TestBEQWillBranch, INS_BEQ_REL, CPU::FLAG_ZERO, true)
+	TEST_NO_BRANCH(TestBEQNoBranch, INS_BEQ_REL, CPU::FLAG_ZERO, false)
+	TEST_F(TestBranchInstruction, TestBEQBranchCyclesNoPage) { testCyclesNoPage(INS_BEQ_REL, true); }
+	TEST_F(TestBranchInstruction, TestBEQBranchCyclesPage) { testCyclesPage(INS_BEQ_REL, true); }
 }

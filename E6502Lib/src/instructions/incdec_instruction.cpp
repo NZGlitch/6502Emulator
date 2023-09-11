@@ -38,8 +38,8 @@ namespace E6502 {
 		}
 		
 		// Set the N, Z flags based on the result
-		cpu->setNegativeFlag(cycles, result >> 7);
-		cpu->setZeroFlag(cycles, result == 0);
+		cpu->setFlag(cycles, CPU::FLAG_NEGATIVE, result >> 7);
+		cpu->setFlag(cycles, CPU::FLAG_ZERO, result == 0);
 
 		// Save
 		cpu->writeReferenceByte(cycles, ref, result);		
