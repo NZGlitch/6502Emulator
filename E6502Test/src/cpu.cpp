@@ -36,7 +36,7 @@ namespace E6502 {
 			delete memory;
 		}
 
-		// Helper for testing all flag getter and setters. getting a bit ugly, should find a nicer way to do this.
+		// Helper for testing all flag getter and setters.
 		void testFlagGetterSetter(u8 flag) {
 			// if it is set to false...
 			Byte cycles = 0;

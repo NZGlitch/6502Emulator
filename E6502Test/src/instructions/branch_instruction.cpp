@@ -125,7 +125,8 @@ namespace E6502 {
 	TEST_F(TestBranchInstruction, TestBranchHandlers) {
 
 		std::vector<InstructionMap> instructions = {
-			{INS_BCC_REL, 0x90}, {INS_BCS_REL, 0xB0}, {INS_BEQ_REL, 0xF0},
+			{INS_BCC_REL, 0x90}, {INS_BNE_REL, 0xD0}, {INS_BPL_REL, 0x10}, {INS_BVC_REL, 0x50},
+			{INS_BCS_REL, 0xB0}, {INS_BEQ_REL, 0xF0}, {INS_BMI_REL, 0x30}, {INS_BVS_REL, 0x70},
 		};
 		testInstructionDef(instructions, BranchInstruction::addHandlers);
 	}
@@ -135,6 +136,24 @@ namespace E6502 {
 	TEST_NO_BRANCH(TestBCCNoBranch, INS_BCC_REL, CPU::FLAG_CARRY, true)
 	TEST_F(TestBranchInstruction, TestBCCBranchCyclesNoPage) { testCyclesNoPage(INS_BCC_REL, false); }
 	TEST_F(TestBranchInstruction, TestBCCBranchCyclesPage) { testCyclesPage(INS_BCC_REL, false); }
+
+	// Test BNE
+	TEST_WILL_BRANCH(TestBNEWillBranch, INS_BNE_REL, CPU::FLAG_ZERO, false)
+	TEST_NO_BRANCH(TestBNENoBranch, INS_BNE_REL, CPU::FLAG_ZERO, true)
+	TEST_F(TestBranchInstruction, TestBNEBranchCyclesNoPage) { testCyclesNoPage(INS_BNE_REL, false); }
+	TEST_F(TestBranchInstruction, TestBNEBranchCyclesPage) { testCyclesPage(INS_BNE_REL, false); }
+
+	// Test BPL
+	TEST_WILL_BRANCH(TestBPLWillBranch, INS_BPL_REL, CPU::FLAG_NEGATIVE, false)
+	TEST_NO_BRANCH(TestBPLNoBranch, INS_BPL_REL, CPU::FLAG_NEGATIVE, true)
+	TEST_F(TestBranchInstruction, TestBPLBranchCyclesNoPage) { testCyclesNoPage(INS_BPL_REL, false); }
+	TEST_F(TestBranchInstruction, TestBPLBranchCyclesPage) { testCyclesPage(INS_BPL_REL, false); }
+
+	// Test BVC
+	TEST_WILL_BRANCH(TestBVCWillBranch, INS_BVC_REL, CPU::FLAG_OVERFLOW, false)
+	TEST_NO_BRANCH(TestBVCNoBranch, INS_BVC_REL, CPU::FLAG_OVERFLOW, true)
+	TEST_F(TestBranchInstruction, TestBVCBranchCyclesNoPage) { testCyclesNoPage(INS_BVC_REL, false); }
+	TEST_F(TestBranchInstruction, TestBVCBranchCyclesPage) { testCyclesPage(INS_BVC_REL, false); }
 
 	// Test BCS
 	TEST_WILL_BRANCH(TestBCSWillBranch, INS_BCS_REL, CPU::FLAG_CARRY, true)
@@ -147,4 +166,16 @@ namespace E6502 {
 	TEST_NO_BRANCH(TestBEQNoBranch, INS_BEQ_REL, CPU::FLAG_ZERO, false)
 	TEST_F(TestBranchInstruction, TestBEQBranchCyclesNoPage) { testCyclesNoPage(INS_BEQ_REL, true); }
 	TEST_F(TestBranchInstruction, TestBEQBranchCyclesPage) { testCyclesPage(INS_BEQ_REL, true); }
+
+	// Test BMI
+	TEST_WILL_BRANCH(TestBMIWillBranch, INS_BMI_REL, CPU::FLAG_NEGATIVE, true)
+	TEST_NO_BRANCH(TestBMINoBranch, INS_BMI_REL, CPU::FLAG_NEGATIVE, false)
+	TEST_F(TestBranchInstruction, TestBMIBranchCyclesNoPage) { testCyclesNoPage(INS_BMI_REL, true); }
+	TEST_F(TestBranchInstruction, TestBMIBranchCyclesPage) { testCyclesPage(INS_BMI_REL, true); }
+
+	// Test BVS
+	TEST_WILL_BRANCH(TestBVSWillBranch, INS_BVS_REL, CPU::FLAG_OVERFLOW, true)
+	TEST_NO_BRANCH(TestBVSNoBranch, INS_BVS_REL, CPU::FLAG_OVERFLOW, false)
+	TEST_F(TestBranchInstruction, TestBVSBranchCyclesNoPage) { testCyclesNoPage(INS_BVS_REL, true); }
+	TEST_F(TestBranchInstruction, TestBVSBranchCyclesPage) { testCyclesPage(INS_BVS_REL, true); }
 }
