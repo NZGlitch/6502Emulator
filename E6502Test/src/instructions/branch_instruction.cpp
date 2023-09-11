@@ -125,7 +125,7 @@ namespace E6502 {
 	TEST_F(TestBranchInstruction, TestBranchHandlers) {
 
 		std::vector<InstructionMap> instructions = {
-			{INS_BCC_REL, 0x90}, //{INS_BCS_REL, 0xB0}
+			{INS_BCC_REL, 0x90}, {INS_BCS_REL, 0xB0}
 		};
 		testInstructionDef(instructions, BranchInstruction::addHandlers);
 	}
@@ -135,4 +135,10 @@ namespace E6502 {
 	TEST_NO_BRANCH(TestBCCNoBranch, INS_BCC_REL, getCarryFlag(_), true)
 	TEST_F(TestBranchInstruction, TestBCCBranchCyclesNoPage) { testCyclesNoPage(INS_BCC_REL, false); }
 	TEST_F(TestBranchInstruction, TestBCCBranchCyclesPage) { testCyclesPage(INS_BCC_REL, false); }
+
+	// Test BCS
+	TEST_WILL_BRANCH(TestBCSWillBranch, INS_BCS_REL, getCarryFlag(_), true)
+	TEST_NO_BRANCH(TestBCSNoBranch, INS_BCS_REL, getCarryFlag(_), false)
+	TEST_F(TestBranchInstruction, TestBCSBranchCyclesNoPage) { testCyclesNoPage(INS_BCS_REL, true); }
+	TEST_F(TestBranchInstruction, TestBCSBranchCyclesPage) { testCyclesPage(INS_BCS_REL, true); }
 }
