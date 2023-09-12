@@ -30,6 +30,7 @@ set (E6502_SOURCES
 	"src/cpu.cpp"
 
 	"src/instructions/base.cpp"
+	"src/instructions/arithmetic_instruction.cpp"
 	"src/instructions/branch_instruction.cpp"
 	"src/instructions/incdec_instruction.cpp"
 	"src/instructions/instruction_test.h"

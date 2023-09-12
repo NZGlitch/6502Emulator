@@ -107,6 +107,10 @@ namespace E6502 {
 		/* Write the given byte to the location specified by the given reference */
 		virtual void writeReferenceByte(u8& cycles, Reference& ref, Byte data) = 0;
 
+
+		/* Adds the given value to the accumulator (respecting D flag as needed), sets flags (N,V,Z,C) uses 1 cycle */
+		virtual void addAccumulator(u8& cycles, Byte operandB) = 0;
+
 	};
 
 	
@@ -163,5 +167,7 @@ namespace E6502 {
 
 		virtual Byte readReferenceByte(u8& cycles, Reference& ref) ;
 		virtual void writeReferenceByte(u8& cycles, Reference& ref, Byte data);
+
+		virtual void addAccumulator(u8& cycles, Byte operandB);
 	};
 }

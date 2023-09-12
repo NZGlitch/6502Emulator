@@ -52,6 +52,13 @@ namespace E6502 {
 		EXPECT_EQ(*handlers[0xEA], INS_NOP_IMP);
 		EXPECT_EQ(INS_NOP_IMP.opcode, 0xEA);
 		
+		// Then (ArithmeticInstruction):
+		for (const InstructionHandler& handler : ARITHMETIC_INSTRUCTIONS) {
+			Byte opcode = handler.opcode;
+			ASSERT_FALSE(handlers[opcode] == nullptr);
+			EXPECT_EQ((handlers[opcode]->opcode), opcode);
+		}
+
 		// Then (BranchInstruction):
 		for (const InstructionHandler& handler : BRANCH_INSTRUCTIONS) {
 			Byte opcode = handler.opcode;

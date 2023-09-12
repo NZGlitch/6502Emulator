@@ -1,7 +1,7 @@
 #include "system.h"
 
 // uncomment to use TMPx style loading, otherwise assumes functests which loads at $400
-#define LOAD_MODE
+// #define LOAD_MODE
 
 // Represents a computer system (e.g. C64), currently minimal needed to test instructions
 namespace E6502 {
