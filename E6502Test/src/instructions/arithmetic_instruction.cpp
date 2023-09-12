@@ -3,41 +3,33 @@
 #include "arithmetic_instruction.h"
 
 namespace E6502 {
-	//using ::testing::_;
-	//using ::testing::Return;
+	using ::testing::_;
+	using ::testing::Return;
 
-	/* Example CPU mock 
-	struct MockCPU : public CPUInternal {
-		MockCPU() : CPUInternal(nullptr, nullptr, &InstructionUtils::loader) {}
-		MOCK_METHOD(bool, getFlag, (u8& cycles, u8 flag));
-		MOCK_METHOD(void, branch, (u8& cycles, s8 offset));
-		MOCK_METHOD(Byte, readPCByte, (u8& cycles));
-	};
-
-	*/
-
-	class TestArithmeticInstruction : public TestInstruction {
-	public:
-
-		/* Helper method with common code for tests.*/
-		void testHelper(InstructionHandler instruction) {
-		}
-
-		void SetUp() { TestInstruction::SetUp(); }
-
-		void TearDown() { TestInstruction::TearDown(); }
-	};
+	class TestArithmeticInstruction : public TestInstruction {};
 
 	/* Test defs & addHandlers func */
 	TEST_F(TestArithmeticInstruction, TestArithmeticHandlers) {
 
 		std::vector<InstructionMap> instructions = {
-			{INS_ARITHMETIC, 0xFF}
+			{INS_ADC_IMM, 0x69}
 		};
-		testInstructionDef(instructions, BranchInstruction::addHandlers);
-	}
+		testInstructionDef(instructions, ArithmeticInstruction::addHandlers);
+	}	
+	
+	TEST_F(TestArithmeticInstruction, TestADCImmediate) { 
+		// Given:
+		Byte immediateValue = rand();
+		(*memory)[programSpace] = INS_ADC_IMM.opcode;
+		(*memory)[programSpace + 1] = immediateValue;
 
-	TEST_F(TestArithmeticInstruction, TestExample) { 
-		EXPECT_TRUE(false) << "How about implementing some tests?";
+		EXPECT_CALL(*mockCPU, readPCByte(_)).Times(1).WillOnce(Return(immediateValue));
+		EXPECT_CALL(*mockCPU, addAccumulator(_, immediateValue)).Times(1);
+
+		// When:
+		cpu->testExecute(1, mockCPU);
+
+		// Cleanup
+		initPS = state->FLAGS;
 	}
 }

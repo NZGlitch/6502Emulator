@@ -6,14 +6,6 @@ namespace E6502 {
 	using ::testing::_;
 	using ::testing::Return;
 
-	/* Branch logic is covered in CPU tests, so easier to mock this call than work it all out here */
-	struct MockCPU : public CPUInternal {
-		MockCPU() : CPUInternal(nullptr, nullptr, &InstructionUtils::loader) {}
-		MOCK_METHOD(bool, getFlag, (u8& cycles, u8 flag));
-		MOCK_METHOD(void, branch, (u8& cycles, s8 offset));
-		MOCK_METHOD(Byte, readPCByte, (u8& cycles));
-	};
-
 	// Macros for making code more concise - nearly all tests are identical
 
 	/** Mocks methods that test for flag. flagFunc is the cpu getter that must be called, flagFuncReturn is the mock result */
@@ -45,8 +37,6 @@ namespace E6502 {
 
 	class TestBranchInstruction : public TestInstruction {
 	public:
-
-		MockCPU* mockCPU = nullptr;
 
 		/* Helper method with common code for all branch tests. Provided mock should be configured to ensure branch is taken  */
 		void testBranch(InstructionHandler instruction) {
@@ -108,16 +98,6 @@ namespace E6502 {
 			Byte cycles = cpu->execute(1);
 
 			EXPECT_EQ(cycles, 4);
-		}
-
-		void SetUp() {
-			TestInstruction::SetUp();
-			mockCPU = new MockCPU();
-		}
-
-		void TearDown() {
-			TestInstruction::TearDown();
-			delete mockCPU;
 		}
 	};
 

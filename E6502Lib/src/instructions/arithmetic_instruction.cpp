@@ -4,7 +4,10 @@
 namespace E6502 {
 
 	/** Handles execution of all arithmetic instructions */
-	void ArithmeticInstruction::arithmeticHandler(CPU* cpu, u8& cycles, Byte opCode) {}
+	void ArithmeticInstruction::arithmeticHandler(CPU* cpu, u8& cycles, Byte opCode) {
+		Byte operandB = cpu->readPCByte(cycles);
+		cpu->addAccumulator(cycles, operandB);
+	}
 
 	/** Called to add arithmetic instruction handlers to the emulator */
 	void ArithmeticInstruction::addHandlers(InstructionHandler* handlers[]) {

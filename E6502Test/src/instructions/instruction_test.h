@@ -29,6 +29,16 @@ namespace E6502 {
 	* 0xFF00 -> 0xFFFF		Reserved (0xFFFC is typically the reset vector)
 	* 
 	*/
+
+	/* Mock CPU is sometime useful */
+	struct MockCPU : public CPUInternal {
+		MockCPU() : CPUInternal(nullptr, nullptr, &InstructionUtils::loader) {}
+		MOCK_METHOD(void, addAccumulator, (u8& cycles, Byte value));
+		MOCK_METHOD(bool, getFlag, (u8& cycles, u8 flag));
+		MOCK_METHOD(void, branch, (u8& cycles, s8 offset));
+		MOCK_METHOD(Byte, readPCByte, (u8& cycles));
+	};
+
 	class TestInstruction : public testing::Test {
 	public:
 		
@@ -36,6 +46,9 @@ namespace E6502 {
 		CPUState* state = nullptr;
 		Memory* memory = nullptr;
 		CPUInternal* cpu = nullptr;
+		
+		// Mock CPU needed for various tests
+		MockCPU* mockCPU = nullptr;
 
 		// Used to enforce flag checking on all tests
 		FlagUnion initPS = FlagUnion{};
@@ -51,6 +64,9 @@ namespace E6502 {
 			state = new CPUState;
 			cpu = new CPUInternal(state, memory, &InstructionUtils::loader);
 			cpu->reset();
+
+			// Mock CPU if needed
+			mockCPU = new MockCPU();
 
 			// Initialise flags
 			state->FLAGS.byte = rand(); 
@@ -73,6 +89,7 @@ namespace E6502 {
 			delete memory;
 			delete state;
 			delete cpu;
+			delete mockCPU;
 
 			// Reset memory spaces
 			programSpace = 0x0000;
