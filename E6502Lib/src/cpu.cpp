@@ -216,7 +216,7 @@ namespace E6502 {
 		}
 	}
 
-	/* Adds the given value to the accumulator (respecting D flag as needed), sets flags, uses 1 cycle */
+	/* Adds the given value to the accumulator (respecting D flag as needed), sets flags, uses 0 cycles */
 	void CPUInternal::addAccumulator(u8& cycles, Byte operandB) {
 		Byte operandA = currentState->A;
 		Byte result = operandA + operandB + (currentState->FLAGS.bit.C ? 1 : 0);
@@ -225,6 +225,5 @@ namespace E6502 {
 		currentState->FLAGS.bit.V = (result >> 7) != (operandA >> 7);
 		currentState->FLAGS.bit.N = (result >> 7);
 		currentState->A = result;
-		cycles++;
 	}
 }

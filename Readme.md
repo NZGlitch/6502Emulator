@@ -8,7 +8,7 @@ retro computing so this seemed like a good idea.
 ## *** WORK IN PROGRESS ***
 
 **TODO's** (In no particular order)
- - Implement addAccumulator testson CPU for Decimal mode
+ - Implement addAccumulator tests on CPU for Decimal mode
  - Implement instructions: 
    - ADC, CMP, CPX, CPY, SBC, BRK, RTI
  - Write tests for BaseInstruction class
@@ -35,7 +35,7 @@ Also a super shout out to [Klaus2m5](https://www.github.com/klaus2m5) for his am
 functional test suites.
 
 Other resources used include:
-* [Ulitmate C64 regerence @ Pagetable](https://www.pagetable.com/c64ref/6502)
+* [Ulitmate C64 reference @ Pagetable](https://www.pagetable.com/c64ref/6502)
 * [obelisk.me 6502 reference site via Wayback Machine](https://web.archive.org/web/20210909190432/http://www.obelisk.me.uk/6502/)
 * [The C64 wiki](https://www.c64-wiki.com/wiki/Main_Page)
 * [Turbo Macro Pro](http://turbo.style64.org)

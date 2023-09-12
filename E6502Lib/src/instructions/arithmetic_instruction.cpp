@@ -5,7 +5,16 @@ namespace E6502 {
 
 	/** Handles execution of all arithmetic instructions */
 	void ArithmeticInstruction::arithmeticHandler(CPU* cpu, u8& cycles, Byte opCode) {
-		Byte operandB = cpu->readPCByte(cycles);
+		// Memory mode
+		Byte md = (opCode >> 2) & 0x7;					// Memory Mode (bits 4,3,2)
+		Byte operandB = 0x00;
+
+		if (md == ADDRESS_MODE_IMMEDIATE) {				// Base class can't handle immediate instructions
+			operandB = cpu->readPCByte(cycles);
+		} else {
+			Reference ref = BaseInstruction::getReferenceForMode(cpu, cycles, md);
+			operandB = cpu->readReferenceByte(cycles, ref);
+		}
 		cpu->addAccumulator(cycles, operandB);
 	}
 

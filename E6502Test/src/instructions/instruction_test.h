@@ -37,6 +37,8 @@ namespace E6502 {
 		MOCK_METHOD(bool, getFlag, (u8& cycles, u8 flag));
 		MOCK_METHOD(void, branch, (u8& cycles, s8 offset));
 		MOCK_METHOD(Byte, readPCByte, (u8& cycles));
+		MOCK_METHOD(Word, readPCWord, (u8& cycles));
+		MOCK_METHOD(Byte, readReferenceByte, (u8& cycles, Reference& ref));
 	};
 
 	class TestInstruction : public testing::Test {

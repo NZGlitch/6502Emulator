@@ -622,7 +622,7 @@ namespace E6502 {
 				}
 
 				// Check cycles
-				if (cycles != 1) {
+				if (cycles != 0) {
 					fprintf(stderr, "Incorrect cycles used in Binary addAccumulator %X + %X + 0 = %X (no Carry In). Expected 1 got %d\n", a, b, state->A,cycles);
 					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
 				}
@@ -672,7 +672,7 @@ namespace E6502 {
 				}
 
 				// Check cycles
-				if (cycles != 1) {
+				if (cycles != 0) {
 					fprintf(stderr, "Incorrect cycles used in Binary addAccumulator %X + %X + 1 = %X - Expected 1 got %d\n", a, b, state->A, cycles);
 					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
 				}
