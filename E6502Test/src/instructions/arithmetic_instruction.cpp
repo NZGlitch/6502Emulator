@@ -12,7 +12,9 @@ namespace E6502 {
 
 	class TestArithmeticInstruction : public TestInstruction {
 	public:
-		void testAbsolute(InstructionHandler instruction, Byte* indexReg = nullptr) {
+		void testAbsZP(InstructionHandler instruction, bool isZeroPage = false, Byte* indexReg = nullptr) {
+			if (isZeroPage) dataSpace &= 0x00FF;
+
 			// Given:
 			Byte testValue = rand();
 			Word targetAddress = dataSpace;
@@ -22,11 +24,18 @@ namespace E6502 {
 				targetAddress += index;
 			}
 
+			if (isZeroPage) targetAddress &= 0x00FF;
+
 			(*memory)[programSpace] = instruction.opcode;
 
 			// Then:
 			if (indexReg != nullptr) EXPECT_CALL(*mockCPU, regValue(_, _)).Times(1).WillOnce(Return(index));
-			EXPECT_CALL(*mockCPU, readPCWord(_)).Times(1).WillOnce(Return(dataSpace));
+
+			if (isZeroPage)
+				EXPECT_CALL(*mockCPU, readPCByte(_)).Times(1).WillOnce(Return(dataSpace & 0x00FF));
+			else
+				EXPECT_CALL(*mockCPU, readPCWord(_)).Times(1).WillOnce(Return(dataSpace));
+
 			EXPECT_CALL(*mockCPU, readReferenceByte(_, referencesAreEqual(CPU::REFERENCE_MEM, targetAddress))).Times(1).WillOnce(Return(testValue));
 			EXPECT_CALL(*mockCPU, addAccumulator(_, testValue)).Times(1);
 
@@ -34,12 +43,31 @@ namespace E6502 {
 			u8 cycles = cpu->testExecute(1, mockCPU);
 		}
 
-		void testAbsoluteReal(InstructionHandler instruction, Byte* targetReg = nullptr) {
-			Byte index = 0;
+		void testAbsZPReal(InstructionHandler instruction, bool isZeroPage = false, bool crossBoundry = false, Byte* targetReg = nullptr) {
+			Byte expectedCycles = 4;
+			Byte index = rand();
+
+			if (isZeroPage) dataSpace &= 0x00FF;
+
+			if (crossBoundry) {
+				expectedCycles = 5;
+				dataSpace |= 0x0080;
+				index |= 0x80;
+			}
+			else {
+				dataSpace &= 0xFF7F;
+			}
+			
 			Word targetAddress = dataSpace;
+
 			if (targetReg != nullptr) {
 				*targetReg = index;
 				targetAddress = dataSpace + index;
+			}
+
+			if (isZeroPage) {
+				targetAddress &= 0x00FF;
+				expectedCycles = (targetReg == nullptr ? 3 : 4);
 			}
 
 			// Given:
@@ -58,7 +86,7 @@ namespace E6502 {
 
 			// Then:
 			EXPECT_EQ(state->A, (Byte)(opA + opB + flag));
-			EXPECT_EQ(cycles, 4);
+			EXPECT_EQ(cycles, expectedCycles);
 			state->FLAGS = initPS;		// Not interested in testing flags here as this is covered in CPU tests
 		}
 	};
@@ -68,6 +96,7 @@ namespace E6502 {
 
 		std::vector<InstructionMap> instructions = {
 			{INS_ADC_IMM, 0x69}, {INS_ADC_ABS, 0x6D}, {INS_ADC_ABX, 0x7D}, {INS_ADC_ABY, 0x79},
+			{INS_ADC_ZP0, 0x65}, {INS_ADC_ZPX, 0x75},
 		};
 		testInstructionDef(instructions, ArithmeticInstruction::addHandlers);
 	}	
@@ -105,16 +134,22 @@ namespace E6502 {
 	}
 
 	// Absolute flow tests
-	TEST_F(TestArithmeticInstruction, TestADCAbsolute) { testAbsolute(INS_ADC_ABS); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteX) { testAbsolute(INS_ADC_ABX, &state->X); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteY) { testAbsolute(INS_ADC_ABY, &state->Y); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsolute) { testAbsZP(INS_ADC_ABS); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteX) { testAbsZP(INS_ADC_ABX, false, &state->X); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteY) { testAbsZP(INS_ADC_ABY, false, &state->Y); }
 
 	// Absolute 'real' tests
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteReal) { testAbsoluteReal(INS_ADC_ABS); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteXReal) { testAbsoluteReal(INS_ADC_ABX, &state->X); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteYReal) { testAbsoluteReal(INS_ADC_ABY, &state->Y); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteReal) { testAbsZPReal(INS_ADC_ABS); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteXReal) { testAbsZPReal(INS_ADC_ABX, false, false, &state->X); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteYReal) { testAbsZPReal(INS_ADC_ABY, false, false, &state->Y); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteXRealCross) { testAbsZPReal(INS_ADC_ABX, false, true, &state->X); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteYRealCross) { testAbsZPReal(INS_ADC_ABY, false, true, &state->Y); }
 
+	// Zero Page flow tests
+	TEST_F(TestArithmeticInstruction, TestADCZeroPage) { testAbsZP(INS_ADC_ZP0, true); }
+	TEST_F(TestArithmeticInstruction, TestADCZeroPageX) { testAbsZP(INS_ADC_ZPX, true, &state->X); }
 
-
-	
+	// ZeroPAge 'real' tests
+	TEST_F(TestArithmeticInstruction, TestADCZeroPageReal) { testAbsZPReal(INS_ADC_ZP0, true); }
+	TEST_F(TestArithmeticInstruction, TestADCZeroPageXReal) { testAbsZPReal(INS_ADC_ZPX, true, false, &state->X); }
 }

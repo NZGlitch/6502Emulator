@@ -18,9 +18,11 @@ namespace E6502 {
 	constexpr static InstructionHandler INS_ADC_ABS = { 0x6D, true, "ADC - Add Memory to Accumulator with Carry [Absolute]", ArithmeticInstruction::arithmeticHandler };
 	constexpr static InstructionHandler INS_ADC_ABX = { 0x7D, true, "ADC - Add Memory to Accumulator with Carry [X-Indexed Absolute]", ArithmeticInstruction::arithmeticHandler };
 	constexpr static InstructionHandler INS_ADC_ABY = { 0x79, true, "ADC - Add Memory to Accumulator with Carry [Y-Indexed Absolute]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_ZP0 = { 0x65, true, "ADC - Add Memory to Accumulator with Carry [ZeroPage]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_ZPX = { 0x75, true, "ADC - Add Memory to Accumulator with Carry [X-Indexed ZeroPage]", ArithmeticInstruction::arithmeticHandler };
 
 	// Array of all Arithmetic instructions
 	static constexpr InstructionHandler ARITHMETIC_INSTRUCTIONS[] = {
-		INS_ADC_IMM, INS_ADC_ABS, INS_ADC_ABX, INS_ADC_ABY
+		INS_ADC_IMM, INS_ADC_ABS, INS_ADC_ABX, INS_ADC_ABY, INS_ADC_ZP0, INS_ADC_ZPX,
 	};
 }
