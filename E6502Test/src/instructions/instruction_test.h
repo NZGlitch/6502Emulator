@@ -40,6 +40,8 @@ namespace E6502 {
 		MOCK_METHOD(Word, readPCWord, (u8& cycles));
 		MOCK_METHOD(Byte, readReferenceByte, (u8& cycles, Reference& ref));
 		MOCK_METHOD(Byte, regValue, (u8& cycles, u8 register));
+		MOCK_METHOD(Byte, readByte, (u8& cycles, Word address));
+		MOCK_METHOD(Word, readWord, (u8& cycles, Word address));
 	};
 
 	class TestInstruction : public testing::Test {
