@@ -8,9 +8,8 @@ retro computing so this seemed like a good idea.
 ## *** WORK IN PROGRESS ***
 
 **TODO's** (In no particular order)
- - Implement addAccumulator tests on CPU for Decimal mode
  - Implement instructions: 
-   - ADC, CMP, CPX, CPY, SBC, BRK, RTI
+   - CMP, CPX, CPY, SBC, BRK, RTI
  - Write tests for BaseInstruction class
  - Refactor older instructions to match new architecture
     - JUMP, LOAD, SHIFT, STACK, STORE, TRANSFER
