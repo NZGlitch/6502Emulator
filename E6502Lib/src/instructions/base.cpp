@@ -24,8 +24,7 @@ namespace E6502 {
 			case ADDRESS_MODE_IMPLIED:
 				return Reference{ CPU::REFERENCE_REG, CPU::REGISTER_A };
 			case ADDRESS_MODE_ABSOLUTE:
-				addr = cpu->readPCByte(cycles);
-				addr |= (cpu->readPCByte(cycles) << 8);
+				addr = cpu->readPCWord(cycles);
 				return Reference{ CPU::REFERENCE_MEM, addr };
 			case ADDRESS_MODE_INDIRECT_Y:
 				preAddr = cpu->readPCByte(cycles);
@@ -39,15 +38,13 @@ namespace E6502 {
 				addr += cpu->regValue(cycles, CPU::REGISTER_X);
 				return Reference{ CPU::REFERENCE_MEM, (Word)(0x00FF & addr) };
 			case ADDRESS_MODE_ABSOLUTE_Y:
-				preAddr = cpu->readPCByte(cycles);
-				preAddr |= (cpu->readPCByte(cycles) << 8);
+				preAddr = cpu->readPCWord(cycles);
 				addr = preAddr + cpu->regValue(cycles, CPU::REGISTER_Y);
 				// Increment cycles if page crossed
 				if ((preAddr & 0xFF) > (addr & 0xFF)) cycles++;
 				return Reference{ CPU::REFERENCE_MEM, addr };
 			case ADDRESS_MODE_ABSOLUTE_X:
-				preAddr = cpu->readPCByte(cycles);
-				preAddr |= (cpu->readPCByte(cycles) << 8);
+				preAddr = cpu->readPCWord(cycles);
 				addr = preAddr + cpu->regValue(cycles, CPU::REGISTER_X);
 				// Increment cycles if page crossed
 				if ((preAddr & 0xFF) > (addr & 0xFF)) cycles++;

@@ -15,9 +15,17 @@ namespace E6502 {
 
 	// Arithmetic instruction defs
 	constexpr static InstructionHandler INS_ADC_IMM = { 0x69, true, "ADC - Add Memory to Accumulator with Carry [Immedate]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_ABS = { 0x6D, true, "ADC - Add Memory to Accumulator with Carry [Absolute]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_ABX = { 0x7D, true, "ADC - Add Memory to Accumulator with Carry [X-Indexed Absolute]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_ABY = { 0x79, true, "ADC - Add Memory to Accumulator with Carry [Y-Indexed Absolute]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_ZP0 = { 0x65, true, "ADC - Add Memory to Accumulator with Carry [Zero Page]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_ZPX = { 0x75, true, "ADC - Add Memory to Accumulator with Carry [X-Indexed Zero Page]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_INX = { 0x61, true, "ADC - Add Memory to Accumulator with Carry [X-Indexed Zero Page Indirect]", ArithmeticInstruction::arithmeticHandler };
+	constexpr static InstructionHandler INS_ADC_INY = { 0x71, true, "ADC - Add Memory to Accumulator with Carry [Zero Page Y-Indexed Indirect]", ArithmeticInstruction::arithmeticHandler };
 
 	// Array of all Arithmetic instructions
 	static constexpr InstructionHandler ARITHMETIC_INSTRUCTIONS[] = {
-		INS_ADC_IMM
+		INS_ADC_IMM, INS_ADC_ABS, INS_ADC_ABX, INS_ADC_ABY, 
+		INS_ADC_ZP0, INS_ADC_ZPX, INS_ADC_INX, INS_ADC_INY
 	};
 }
