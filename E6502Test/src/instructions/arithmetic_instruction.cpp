@@ -43,7 +43,8 @@ namespace E6502 {
 			u8 cycles = cpu->testExecute(1, mockCPU);
 		}
 
-		void testAbsZPReal(InstructionHandler instruction, bool isZeroPage = false, bool crossBoundry = false, Byte* targetReg = nullptr) {
+		void testAbsZPRealBinary(InstructionHandler instruction, bool isZeroPage = false, bool crossBoundry = false, Byte* targetReg = nullptr) {
+			state->FLAGS.bit.D = false;	// ensure binary mode
 			Byte expectedCycles = 4;
 			Byte index = rand();
 
@@ -115,11 +116,12 @@ namespace E6502 {
 		cpu->testExecute(1, mockCPU);
 	}
 	/* Tests that cant work with mocks (e.g. cycles over functional) */
-	TEST_F(TestArithmeticInstruction, TestADCImmediateReal) {
+	TEST_F(TestArithmeticInstruction, TestADCImmediateRealBinary) {
 		// Given:
 		Byte opA = rand(), opB = rand();
 		Byte flag = (state->FLAGS.bit.C ? 1 : 0);
 		state->A = opA;
+		state->FLAGS.bit.D = false;	//Binary mode
 
 		(*memory)[programSpace] = INS_ADC_IMM.opcode;
 		(*memory)[programSpace + 1] = opB;
@@ -139,17 +141,17 @@ namespace E6502 {
 	TEST_F(TestArithmeticInstruction, TestADCAbsoluteY) { testAbsZP(INS_ADC_ABY, false, &state->Y); }
 
 	// Absolute 'real' tests
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteReal) { testAbsZPReal(INS_ADC_ABS); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteXReal) { testAbsZPReal(INS_ADC_ABX, false, false, &state->X); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteYReal) { testAbsZPReal(INS_ADC_ABY, false, false, &state->Y); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteXRealCross) { testAbsZPReal(INS_ADC_ABX, false, true, &state->X); }
-	TEST_F(TestArithmeticInstruction, TestADCAbsoluteYRealCross) { testAbsZPReal(INS_ADC_ABY, false, true, &state->Y); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteRealBinary) { testAbsZPRealBinary(INS_ADC_ABS); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteXRealBinary) { testAbsZPRealBinary(INS_ADC_ABX, false, false, &state->X); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteYReaBinaryl) { testAbsZPRealBinary(INS_ADC_ABY, false, false, &state->Y); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteXRealCrossBinary) { testAbsZPRealBinary(INS_ADC_ABX, false, true, &state->X); }
+	TEST_F(TestArithmeticInstruction, TestADCAbsoluteYRealCrossBinary) { testAbsZPRealBinary(INS_ADC_ABY, false, true, &state->Y); }
 
 	// Zero Page flow tests
 	TEST_F(TestArithmeticInstruction, TestADCZeroPage) { testAbsZP(INS_ADC_ZP0, true); }
 	TEST_F(TestArithmeticInstruction, TestADCZeroPageX) { testAbsZP(INS_ADC_ZPX, true, &state->X); }
 
 	// ZeroPAge 'real' tests
-	TEST_F(TestArithmeticInstruction, TestADCZeroPageReal) { testAbsZPReal(INS_ADC_ZP0, true); }
-	TEST_F(TestArithmeticInstruction, TestADCZeroPageXReal) { testAbsZPReal(INS_ADC_ZPX, true, false, &state->X); }
+	TEST_F(TestArithmeticInstruction, TestADCZeroPageRealBinary) { testAbsZPRealBinary(INS_ADC_ZP0, true); }
+	TEST_F(TestArithmeticInstruction, TestADCZeroPageXRealBinary) { testAbsZPRealBinary(INS_ADC_ZPX, true, false, &state->X); }
 }

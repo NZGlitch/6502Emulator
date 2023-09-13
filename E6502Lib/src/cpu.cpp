@@ -218,12 +218,27 @@ namespace E6502 {
 
 	/* Adds the given value to the accumulator (respecting D flag as needed), sets flags, uses 0 cycles */
 	void CPUInternal::addAccumulator(u8& cycles, Byte operandB) {
+		Byte result = 0;
 		Byte operandA = currentState->A;
-		Byte result = operandA + operandB + (currentState->FLAGS.bit.C ? 1 : 0);
+		if (currentState->FLAGS.bit.D) {
+			// Decimal mode	- consider an interrupt to prompt user to seek medical help
+			Word al = (operandA & 0x0F) + (operandB & 0x0F) + (currentState->FLAGS.bit.C ? 1 : 0);	// Add LSD
+			if (al > 0x09) al = ((al + 0x06) & 0x0F) + 0x10;		// if lsd between A and F, add 6 to LSD to get back in range (+6&$F), add carry to next digit (+0x10)
+			al = (operandA & 0xF0) + (operandB & 0xF0) + al;		// Add MSD
+			if (al > 0x99) al = al + 0x60;							// if msd between A and F, add 6 to MSD to get back in range (+$60)
+			currentState->FLAGS.bit.C = al > 0x99;
+			result = (al & 0x00FF);			// Answer is lowets byte of AL
+		}
+		else {
+			// Sensible mode
+			result =  operandA + operandB + (currentState->FLAGS.bit.C ? 1 : 0);
+			currentState->FLAGS.bit.C = (result < operandB);
+		}
+
+		// Set common flags and save result
 		currentState->FLAGS.bit.Z = (result == 0x00);
-		currentState->FLAGS.bit.C = (result < operandB);
-		currentState->FLAGS.bit.V = (result >> 7) != (operandA >> 7);
 		currentState->FLAGS.bit.N = (result >> 7);
+		currentState->FLAGS.bit.V = (result >> 7) != (operandA >> 7);
 		currentState->A = result;
 	}
 }
