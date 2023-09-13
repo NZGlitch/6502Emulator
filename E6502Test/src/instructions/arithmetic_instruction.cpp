@@ -148,7 +148,7 @@ namespace E6502 {
 
 		std::vector<InstructionMap> instructions = {
 			{INS_ADC_IMM, 0x69}, {INS_ADC_ABS, 0x6D}, {INS_ADC_ABX, 0x7D}, {INS_ADC_ABY, 0x79},
-			{INS_ADC_ZP0, 0x65}, {INS_ADC_ZPX, 0x75}, {INS_ADC_INX, 0x61},
+			{INS_ADC_ZP0, 0x65}, {INS_ADC_ZPX, 0x75}, {INS_ADC_INX, 0x61}, {INS_ADC_INY, 0x71},
 		};
 		testInstructionDef(instructions, ArithmeticInstruction::addHandlers);
 	}	
@@ -305,4 +305,133 @@ namespace E6502 {
 		EXPECT_EQ(cycles, 6);
 		state->FLAGS = initPS;		// Not interested in testing flags here as this is covered in CPU tests
 	}
+
+	// Zero Page Indirect Y-Indexed tests
+	TEST_F(TestArithmeticInstruction, TestADCIndirectY) {
+		// Given:
+		Byte testValue = rand();
+		Byte zpTarget = rand();
+		Byte index = rand();
+		Word opTarget = dataSpace + index;
+
+		(*memory)[programSpace] = INS_ADC_INY.opcode;
+
+		// Then:
+		EXPECT_CALL(*mockCPU, readPCByte(_)).Times(1).WillOnce(Return(zpTarget));
+		EXPECT_CALL(*mockCPU, readWord(_, zpTarget)).Times(1).WillOnce(Return(dataSpace));
+		EXPECT_CALL(*mockCPU, regValue(_, CPU::REGISTER_Y)).Times(1).WillOnce(Return(index));
+		EXPECT_CALL(*mockCPU, readReferenceByte(_, referencesAreEqual(CPU::REFERENCE_MEM, opTarget))).Times(1).WillOnce(Return(testValue));
+		EXPECT_CALL(*mockCPU, addAccumulator(_, testValue)).Times(1);
+
+		// When:
+		cpu->testExecute(1, mockCPU);
+	}
+
+	TEST_F(TestArithmeticInstruction, TestADCIndirectYRealBinaryNoPage) {
+		// Given:
+		dataSpace &= 0xFF00;
+		Byte opA = rand(), opB = rand();
+		Byte flag = (state->FLAGS.bit.C ? 1 : 0);
+		state->A = opA;
+		state->FLAGS.bit.D = false;	//Binary mode
+		Byte zpTarget = rand();
+		Byte index = rand();
+
+		state->Y = index;
+		(*memory)[programSpace] = INS_ADC_INY.opcode;
+		(*memory)[programSpace + 1] = zpTarget;
+		(*memory)[zpTarget] = dataSpace & 0xFF;
+		(*memory)[zpTarget + 1] = dataSpace >> 8;
+		(*memory)[dataSpace + index] = opB;
+
+		// When:
+		u8 cycles = cpu->execute(1);
+
+		// Then:
+		EXPECT_EQ(state->A, (Byte)(opA + opB + flag));
+		EXPECT_EQ(cycles, 5);
+		state->FLAGS = initPS;		// Not interested in testing flags here as this is covered in CPU tests
+	}
+
+	TEST_F(TestArithmeticInstruction, TestADCIndirectYRealDecimalNoPage) {
+		// Given:
+		dataSpace &= 0xFF00;
+		Byte opA = 0x72, opB = 0x59;
+		Byte flag = (state->FLAGS.bit.C ? 1 : 0);
+		state->A = opA;
+		state->FLAGS.bit.D = true;	//Binary mode
+		Byte zpTarget = rand();
+		Byte index = rand();
+
+		state->A = opA;
+		state->Y = index;
+		(*memory)[programSpace] = INS_ADC_INY.opcode;
+		(*memory)[programSpace + 1] = zpTarget;
+		(*memory)[zpTarget] = dataSpace & 0xFF;
+		(*memory)[zpTarget + 1] = dataSpace >> 8;
+		(*memory)[dataSpace + index] = opB;
+
+		// When:
+		u8 cycles = cpu->execute(1);
+
+		// Then:
+		EXPECT_EQ(state->A, (Byte)(0x31 + flag));	// 72 + 59 + carry = 131+c = 0x31 + c
+		EXPECT_EQ(cycles, 5);
+		state->FLAGS = initPS;		// Not interested in testing flags here as this is covered in CPU tests
+	}
+
+
+	TEST_F(TestArithmeticInstruction, TestADCIndirectYRealBinaryPage) {
+		// Given:
+		dataSpace |= 0x80;
+		Byte opA = rand(), opB = rand();
+		Byte flag = (state->FLAGS.bit.C ? 1 : 0);
+		state->A = opA;
+		state->FLAGS.bit.D = false;	//Binary mode
+		Byte zpTarget = rand();
+		Byte index = (rand() | 0x80);
+
+		state->Y = index;
+		(*memory)[programSpace] = INS_ADC_INY.opcode;
+		(*memory)[programSpace + 1] = zpTarget;
+		(*memory)[zpTarget] = dataSpace & 0xFF;
+		(*memory)[zpTarget + 1] = dataSpace >> 8;
+		(*memory)[dataSpace + index] = opB;
+
+		// When:
+		u8 cycles = cpu->execute(1);
+
+		// Then:
+		EXPECT_EQ(state->A, (Byte)(opA + opB + flag));
+		EXPECT_EQ(cycles, 6);
+		state->FLAGS = initPS;		// Not interested in testing flags here as this is covered in CPU tests
+	}
+
+	TEST_F(TestArithmeticInstruction, TestADCIndirectYRealDecimalPage) {
+		// Given:
+		dataSpace |= 0x80;
+		Byte opA = 0x72, opB = 0x59;
+		Byte flag = (state->FLAGS.bit.C ? 1 : 0);
+		state->A = opA;
+		state->FLAGS.bit.D = true;	//Binary mode
+		Byte zpTarget = rand();
+		Byte index = rand() | 0x80;
+
+		state->A = opA;
+		state->Y = index;
+		(*memory)[programSpace] = INS_ADC_INY.opcode;
+		(*memory)[programSpace + 1] = zpTarget;
+		(*memory)[zpTarget] = dataSpace & 0xFF;
+		(*memory)[zpTarget + 1] = dataSpace >> 8;
+		(*memory)[dataSpace + index] = opB;
+
+		// When:
+		u8 cycles = cpu->execute(1);
+
+		// Then:
+		EXPECT_EQ(state->A, (Byte)(0x31 + flag));	// 72 + 59 + carry = 131+c = 0x31 + c
+		EXPECT_EQ(cycles, 6);
+		state->FLAGS = initPS;		// Not interested in testing flags here as this is covered in CPU tests
+	}
+
 }
