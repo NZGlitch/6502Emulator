@@ -3,8 +3,8 @@
 
 namespace E6502 {
 
-	/** Handles execution of all arithmetic instructions */
-	void ArithmeticInstruction::arithmeticHandler(CPU* cpu, u8& cycles, Byte opCode) {
+	/** Handles execution of ADC instructions */
+	void ArithmeticInstruction::adcHandler(CPU* cpu, u8& cycles, Byte opCode) {
 		// Memory mode
 		Byte md = (opCode >> 2) & 0x7;					// Memory Mode (bits 4,3,2)
 		Byte operandB = 0x00;
@@ -16,6 +16,11 @@ namespace E6502 {
 			operandB = cpu->readReferenceByte(cycles, ref);
 		}
 		cpu->addAccumulator(cycles, operandB);
+	}
+
+	/** Handles execution of SBC instructions */
+	void ArithmeticInstruction::sbcHandler(CPU* cpu, u8& cycles, Byte opCode) {
+		// TODO
 	}
 
 	/** Called to add arithmetic instruction handlers to the emulator */

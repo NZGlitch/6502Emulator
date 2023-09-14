@@ -63,6 +63,82 @@ namespace E6502 {
 			EXPECT_EQ(cycles, 0);
 		}
 
+		// Helper for addAccumulator instructions
+		void testAddAccumulator(bool decimal, bool carryIn) {
+			// Maybe not efficent, but easy to implment - test every possible operation
+			for (int a = 0x00; a < 0x100; a++) {
+				for (int b = 0x00; b < 0x100; b++) {
+					// Default to binary
+					Byte expectResult = a + b + carryIn;
+					FlagUnion expectFlags = getExpectedFlagsForBinaryADCOp(a, b, carryIn);
+
+					// Change values for decimal
+					if (decimal) {
+						Word AL = 0x0000;
+						AL = (a & 0x0f) + (b & 0x0F) + carryIn;
+						if (AL > 0x09) AL = ((AL + 0x06) & 0x0F) + 0x10;
+						AL = ((a & 0xF0) + (b & 0x0F0)) + AL;
+						if (AL > 0x99) AL = AL + 0x60;
+						expectResult = AL;
+						
+						// Flags
+						expectFlags.bit.C = AL > 0x99;
+						expectFlags.bit.V = (expectResult >> 7) != (a >> 7);
+						expectFlags.bit.Z = (expectResult == 0);
+						expectFlags.bit.N = (expectResult >> 7);
+					}
+					
+					// Given:
+					
+					state->A = a;
+					state->FLAGS.byte = ~expectFlags.byte;		// Ensures operation must change all the required flags
+					state->FLAGS.bit.C = carryIn;				// (Carry is special as it is used on both sides of the operation)
+					state->FLAGS.bit.D = decimal;
+					Byte cycles = 0;
+
+
+					
+
+					// When:
+					cpu->addAccumulator(cycles, b);
+
+					// Then:
+					// Check result
+					char* mode = decimal ? "Decimal" : "Binary";
+					char* carry = carryIn ? "1" : "0";
+
+					if (state->A != expectResult) {
+						fprintf(stderr, "Invalid result in %s addAccumulator %X + %X + %s, expected %X got %X\n", mode, a, b, carry, expectResult, state->A);
+						ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
+					}
+
+					// Check flags
+					if (state->FLAGS.bit.C != expectFlags.bit.C) {
+						fprintf(stderr, "Carry bit not set corrctly in %s addAccumulator %X + %X + %s = %X - Expected (%d)\n", mode, a, b, carry, state->A, expectFlags.bit.C);
+						ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
+					}
+					if (state->FLAGS.bit.Z != expectFlags.bit.Z) {
+						fprintf(stderr, "Zero bit not set correctly in %s addAccumulator %X + %X + %s = %X - Expected (%d)\n", mode, a, b, carry, state->A, expectFlags.bit.Z);
+						ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
+					}
+					if (state->FLAGS.bit.V != expectFlags.bit.V) {
+						fprintf(stderr, "Overflow bit not set correctly in %s addAccumulator %X + %X + %s = %X - Expected (%d)\n", mode, a, b, carry, state->A, expectFlags.bit.V);
+						ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
+					}
+					if (state->FLAGS.bit.N != expectFlags.bit.N) {
+						fprintf(stderr, "Negative bit not set correctly in %s addAccumulator %X + %X + %s = %X - Expected (%d)\n", mode, a, b, carry, state->A, expectFlags.bit.N);
+						ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
+					}
+
+					// Check cycles
+					if (cycles != 0) {
+						fprintf(stderr, "Incorrect cycles used in %s addAccumulator %X + %X + %s = %X. Expected 1 got %d\n", mode, a, b, carry, state->A, cycles);
+						ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
+					}
+				}
+			}
+		}
+		
 		virtual void SetUp() {
 			cpu = new CPUInternal(state, memory, &loader);
 		}
@@ -580,263 +656,15 @@ namespace E6502 {
 	}
 
 	/* Test the add accumulator function */
-	TEST_F(TestCPU, testAddAccumulatorBinaryNoCarryIn) {
-		// Maybe not efficent, but easy to implment - test every possible operation
-		for (int a = 0x00; a < 0x100; a++) {
-			for (int b = 0x00; b < 0x100; b++) {
-				// Given:
-				FlagUnion expectFlags = getExpectedFlagsForBinaryADCOp(a, b, false);
-				state->A = a;
-				state->FLAGS.byte = ~expectFlags.byte;		// Ensures operation must change all the required flags
-				state->FLAGS.bit.C = 0;						// (Carry is special as it is used on both sides of the operation)
-				state->FLAGS.bit.D = 0;						// Binary mode
-				Byte cycles = 0;
-				Byte expectResult = a + b;
-
-				// When:
-				cpu->addAccumulator(cycles, b);
-
-				// Then:
-				// Check result
-				if (state->A != expectResult) {
-					fprintf(stderr, "Invalid result in Binary addAccumulator %X + %X + 0, expected %X got %X\n", a, b, expectResult, state->A);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check flags
-				if (state->FLAGS.bit.C != expectFlags.bit.C) {
-					fprintf(stderr, "Carry bit not set corrctly in Binary addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.C);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.Z != expectFlags.bit.Z) {
-					fprintf(stderr, "Zero bit not set correctly in Binary addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.Z);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.V != expectFlags.bit.V) {
-					fprintf(stderr, "Overflow bit not set correctly in Binary addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.V);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.N != expectFlags.bit.N) {
-					fprintf(stderr, "Negative bit not set correctly in Binary addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.N);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check cycles
-				if (cycles != 0) {
-					fprintf(stderr, "Incorrect cycles used in Binary addAccumulator %X + %X + 0 = %X (no Carry In). Expected 1 got %d\n", a, b, state->A,cycles);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-			}
-		}
-	}
-
-	TEST_F(TestCPU, testAddAccumulatorBinaryWithCarryIn) {
-		// Maybe not efficent, but easy to implment - test every possible operation
-		for (int a = 0x00; a < 0x100; a++) {
-			for (int b = 0x00; b < 0x100; b++) {
-				// Given:
-				FlagUnion expectFlags = getExpectedFlagsForBinaryADCOp(a, b, true);
-				state->A = a;
-				state->FLAGS.byte = ~expectFlags.byte;		// Ensures operation must change all the required flags
-				state->FLAGS.bit.C = true;					// (Carry is special as it is used on both sides of the operation)
-				state->FLAGS.bit.D = 0;						// Binary mode
-				Byte cycles = 0;
-				Byte expectResult = a + b + 1;
-
-				// When:
-				cpu->addAccumulator(cycles, b);
-
-				// Then:
-				// Check result
-				if (state->A != expectResult) {
-					fprintf(stderr, "Invalid result in Binary addAccumulator %X + %X + 1, expected %X got %X\n", a, b, expectResult, state->A);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check flags
-				if (state->FLAGS.bit.C != expectFlags.bit.C) {
-					fprintf(stderr, "Carry bit not set corrctly in Binary addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.C);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.Z != expectFlags.bit.Z) {
-					fprintf(stderr, "Zero bit not set correctly in Binary addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.Z);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.V != expectFlags.bit.V) {
-					fprintf(stderr, "Overflow bit not set correctly in Binary addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.V);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.N != expectFlags.bit.N) {
-					fprintf(stderr, "Negative bit not set correctly in Binary addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.N);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check cycles
-				if (cycles != 0) {
-					fprintf(stderr, "Incorrect cycles used in Binary addAccumulator %X + %X + 1 = %X - Expected 1 got %d\n", a, b, state->A, cycles);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-			}
-		}
-	}
-	
-	TEST_F(TestCPU, testAddAccumulatorDecimalNoCarryIn) {
-		/** 
-		This algorithm is taken from Appendix A of http://www.6502.org/tutorials/decimal_mode.html 
+	TEST_F(TestCPU, testAddAccumulatorBinaryNoCarryIn) { testAddAccumulator(false, false); }
+	TEST_F(TestCPU, testAddAccumulatorBinaryWithCarryIn) { testAddAccumulator(false, true); }
+	TEST_F(TestCPU, testAddAccumulatorDecimalNoCarryIn) { testAddAccumulator(true, false); }
+	TEST_F(TestCPU, testAddAccumulatorDecimalWithCarryIn) { testAddAccumulator(true, true); }
 		
-		1a. AL = (A & $0F) + (B & $0F) + C
-		1b. If AL >= $0A, then AL = ((AL + $06) & $0F) + $10
-		1c. A = (A & $F0) + (B & $F0) + AL
-		1d. Note that A can be >= $100 at this point
-		1e. If (A >= $A0), then A = A + $60
-		1f. The accumulator result is the lower 8 bits of A
-		
-		// Flags
-		C = RES > $FF
-		Z = RES == $00
-		N = (RES >> 7) & 1
-		V = Same as bin (bit 7 has flipped)
-
-		*/
-
-
-		// Maybe not efficent, but easy to implment - test every possible operation
-		for (int a = 0x00; a < 0x100; a++) {
-			for (int b = 0x00; b < 0x100; b++) {
-				// Given:
-				// The 'algorithm'
-				Word AL = 0x0000;
-				AL = (a & 0x0f) + (b & 0x0F) + 0;
-				if (AL > 0x09) AL = ((AL + 0x06) & 0x0F) + 0x10;
-				AL = ((a & 0xF0) + (b & 0x0F0)) + AL;
-				if (AL > 0x99) AL = AL + 0x60;
-				Byte expectResult = AL;
-				FlagUnion expectFlags;
-				expectFlags.bit.C = AL > 0x99;
-				expectFlags.bit.Z = (expectResult == 0);
-				expectFlags.bit.N = (expectResult >> 7);
-				expectFlags.bit.V = (expectResult >> 7) != (a >> 7);
-
-				state->A = a;
-				state->FLAGS.byte = ~expectFlags.byte;		// Ensures operation must change all the required flags
-				state->FLAGS.bit.C = 0;						// (Carry is special as it is used on both sides of the operation)
-				state->FLAGS.bit.D = 1;						// Decimal mode
-				Byte cycles = 0;
-
-				// When:
-				cpu->addAccumulator(cycles, b);
-
-				// Then:
-				// Check result
-				if (state->A != expectResult) {
-					fprintf(stderr, "Invalid result in Decimal addAccumulator %X + %X + 0, expected %X got %X\n", a, b, expectResult, state->A);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check flags
-				if (state->FLAGS.bit.C != expectFlags.bit.C) {
-					fprintf(stderr, "Carry bit not set corrctly in Decimal addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.C);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.Z != expectFlags.bit.Z) {
-					fprintf(stderr, "Zero bit not set correctly in Decimal addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.Z);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.V != expectFlags.bit.V) {
-					fprintf(stderr, "Overflow bit not set correctly in Decimal addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.V);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.N != expectFlags.bit.N) {
-					fprintf(stderr, "Negative bit not set correctly in Decimal addAccumulator %X + %X + 0 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.N);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check cycles
-				if (cycles != 0) {
-					fprintf(stderr, "Incorrect cycles used in Decimal addAccumulator %X + %X + 0 = %X (no Carry In). Expected 1 got %d\n", a, b, state->A, cycles);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-			}
-		}
-	}
-
-	TEST_F(TestCPU, testAddAccumulatorDecimalWithCarryIn) {
-		/**
-		This algorithm is taken from Appendix A of http://www.6502.org/tutorials/decimal_mode.html
-
-		1a. AL = (A & $0F) + (B & $0F) + C
-		1b. If AL >= $0A, then AL = ((AL + $06) & $0F) + $10
-		1c. A = (A & $F0) + (B & $F0) + AL
-		1d. Note that A can be >= $100 at this point
-		1e. If (A >= $A0), then A = A + $60
-		1f. The accumulator result is the lower 8 bits of A
-
-		// Flags
-		C = RES > $FF
-		Z = RES == $00
-		N = (RES >> 7) & 1
-		V = Same as bin (bit 7 has flipped)
-
-		*/
-
-
-		// Maybe not efficent, but easy to implment - test every possible operation
-		for (int a = 0x00; a < 0x100; a++) {
-			for (int b = 0x00; b < 0x100; b++) {
-				// Given:
-				// The 'algorithm'
-				Word AL = 0x0000;
-				AL = (a & 0x0f) + (b & 0x0F) + 1;
-				if (AL > 0x09) AL = ((AL + 0x06) & 0x0F) + 0x10;
-				AL = ((a & 0xF0) + (b & 0x0F0)) + AL;
-				if (AL > 0x99) AL = AL + 0x60;
-				Byte expectResult = AL;
-				FlagUnion expectFlags;
-				expectFlags.bit.C = AL > 0x99;
-				expectFlags.bit.Z = (expectResult == 0);
-				expectFlags.bit.N = (expectResult >> 7);
-				expectFlags.bit.V = (expectResult >> 7) != (a >> 7);
-
-				state->A = a;
-				state->FLAGS.byte = ~expectFlags.byte;		// Ensures operation must change all the required flags
-				state->FLAGS.bit.C = 1;						// (Carry is special as it is used on both sides of the operation)
-				state->FLAGS.bit.D = 1;						// Decimal mode
-				Byte cycles = 0;
-
-				// When:
-				cpu->addAccumulator(cycles, b);
-
-				// Then:
-				// Check result
-				if (state->A != expectResult) {
-					fprintf(stderr, "Invalid result in Decimal addAccumulator %X + %X + 1, expected %X got %X\n", a, b, expectResult, state->A);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check flags
-				if (state->FLAGS.bit.C != expectFlags.bit.C) {
-					fprintf(stderr, "Carry bit not set corrctly in Decimal addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.C);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.Z != expectFlags.bit.Z) {
-					fprintf(stderr, "Zero bit not set correctly in Decimal addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.Z);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.V != expectFlags.bit.V) {
-					fprintf(stderr, "Overflow bit not set correctly in Decimal addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.V);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-				if (state->FLAGS.bit.N != expectFlags.bit.N) {
-					fprintf(stderr, "Negative bit not set correctly in Decimal addAccumulator %X + %X + 1 = %X - Expected (%d)\n", a, b, state->A, expectFlags.bit.N);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-
-				// Check cycles
-				if (cycles != 0) {
-					fprintf(stderr, "Incorrect cycles used in Decimal addAccumulator %X + %X + 1 = %X (no Carry In). Expected 1 got %d\n", a, b, state->A, cycles);
-					ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
-				}
-			}
-		}
-	}
+	/* Test the sub accumulator function 
+	TEST_F(TestCPU, testSubAccumulatorBinaryNoCarryIn) { EXPECT_TRUE(false); }	// TODO
+	TEST_F(TestCPU, testSubAccumulatorBinaryWithCarryIn) { EXPECT_TRUE(false); }	// TODO
+	TEST_F(TestCPU, testSubAccumulatorDecimalNoCarryIn) { EXPECT_TRUE(false);  }	// TODO
+	TEST_F(TestCPU, testSubAccumulatorDecimalWithCarryIn) { EXPECT_TRUE(false); }	// TODO
+	*/
 }

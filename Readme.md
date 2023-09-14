@@ -13,6 +13,8 @@ retro computing so this seemed like a good idea.
  - Write tests for BaseInstruction class
  - Refactor older instructions to match new architecture
     - JUMP, LOAD, SHIFT, STACK, STORE, TRANSFER
+ - reset, irq, nmi functions
+ - Interrupt/rest vectors $FFFA - $FFFF
  - Cleanup gtest warnings on compile
  - Make command line executable that runs a binary file
  - Licence & copyright
