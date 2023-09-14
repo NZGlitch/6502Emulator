@@ -72,7 +72,7 @@ namespace E6502 {
 					Byte expectResult = a + b + carryIn;
 					FlagUnion expectFlags = getExpectedFlagsForBinaryADCOp(a, b, carryIn);
 
-					// Change values for decimal
+					// Change values as needed if in decimal mode
 					if (decimal) {
 						Word AL = 0x0000;
 						AL = (a & 0x0f) + (b & 0x0F) + carryIn;
@@ -89,24 +89,20 @@ namespace E6502 {
 					}
 					
 					// Given:
-					
 					state->A = a;
 					state->FLAGS.byte = ~expectFlags.byte;		// Ensures operation must change all the required flags
 					state->FLAGS.bit.C = carryIn;				// (Carry is special as it is used on both sides of the operation)
-					state->FLAGS.bit.D = decimal;
+					state->FLAGS.bit.D = decimal;				// Decimal will influence the nature of the test
 					Byte cycles = 0;
-
-
-					
 
 					// When:
 					cpu->addAccumulator(cycles, b);
 
 					// Then:
-					// Check result
 					char* mode = decimal ? "Decimal" : "Binary";
 					char* carry = carryIn ? "1" : "0";
 
+					// Check result
 					if (state->A != expectResult) {
 						fprintf(stderr, "Invalid result in %s addAccumulator %X + %X + %s, expected %X got %X\n", mode, a, b, carry, expectResult, state->A);
 						ASSERT_TRUE(false) << "Error testing addAccumulator, see stderr for details.";
