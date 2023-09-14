@@ -241,4 +241,9 @@ namespace E6502 {
 		currentState->FLAGS.bit.V = (result >> 7) != (operandA >> 7);
 		currentState->A = result;
 	}
+
+	/* Subtracts the given value from the accumulator (respecting D flag as needed), sets flags, uses 0 cycles */
+	void CPUInternal::subAccumulator(u8& cycles, Byte operandB) {
+		// TODO
+	}
 }

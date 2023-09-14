@@ -110,6 +110,9 @@ namespace E6502 {
 
 		/* Adds the given value to the accumulator (respecting D flag as needed), sets flags (N,V,Z,C) uses 1 cycle */
 		virtual void addAccumulator(u8& cycles, Byte operandB) = 0;
+		
+		/* Subtracts the given value from the accumulator (respecting D flag as needed), sets flags (N,V,Z,C) uses 1 cycle */
+		virtual void subAccumulator(u8& cycles, Byte operandB) = 0;
 
 	};
 
@@ -169,5 +172,6 @@ namespace E6502 {
 		virtual void writeReferenceByte(u8& cycles, Reference& ref, Byte data);
 
 		virtual void addAccumulator(u8& cycles, Byte operandB);
+		virtual void subAccumulator(u8& cycles, Byte operandB);
 	};
 }
